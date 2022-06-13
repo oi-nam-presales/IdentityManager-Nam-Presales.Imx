@@ -1,0 +1,13 @@
+{
+  "Name": "rms",
+  "Path": "imxweb\\projects\\sample-plugin",
+  "ProjectType": "ng-lib",
+  "ProjectDependcies": [
+    "qbm",
+    "qer"
+  ],
+  "ChangePatterns": [
+    "imxweb\\projects\\sample-plugin",
+    "imxweb\\shared\\assets"
+  ]
+}

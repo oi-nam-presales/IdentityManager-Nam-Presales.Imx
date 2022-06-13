@@ -33,7 +33,13 @@
       "rps": ["dist/rps"],
       "rps/*": ["dist/rps/*"],
       "o3t": ["dist/o3t"],
-      "o3t/*": ["dist/o3t/*"],
+      "o3t/*": [
+        "dist/o3t/*"
+      ],
+      "sample-plugin": [
+        "dist/sample-plugin/sample-plugin",
+        "dist/sample-plugin"
+      ],
       "aad": ["dist/aad"],
       "aad/*": ["dist/aad/*"]
     }
