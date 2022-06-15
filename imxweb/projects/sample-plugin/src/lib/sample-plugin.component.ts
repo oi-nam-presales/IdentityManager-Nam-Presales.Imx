@@ -18,7 +18,8 @@ export class SamplePluginComponent implements OnInit {
   testMessage: string = "Today is sunny";
   description: string = "Management will place message of the day here"
   config: EuiSidesheetConfig
-
+  isAdmin: Boolean = true
+  tableName: string = "Department"
 
   constructor(
     public requestsService: RequestsService,
@@ -44,6 +45,13 @@ export class SamplePluginComponent implements OnInit {
         title,
         width: '700px',
         headerColour: 'iris-blue',
+        data: {
+          isAdmin: this.isAdmin,
+          ownershipInfo: {
+            TableName: this.tableName,
+            Count: 1,
+          }
+        }
       }
     );
 

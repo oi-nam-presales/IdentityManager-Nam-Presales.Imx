@@ -1,4 +1,6 @@
 {
     "explorer.compactFolders": false,
-    "editor.tabSize": 2
+    "editor.tabSize": 2,
+    "workbench.editor.wrapTabs": true,
+    "files.autoSave": "afterDelay"
 }

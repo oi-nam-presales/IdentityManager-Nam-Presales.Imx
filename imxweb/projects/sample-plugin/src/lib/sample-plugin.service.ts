@@ -1,19 +1,26 @@
+import { OverlayRef } from '@angular/cdk/overlay';
 import { Injectable } from '@angular/core';
 import { Route, Router } from '@angular/router';
-import { ExtService } from 'qbm';
+import { EuiLoadingService } from '@elemental-ui/core';
+import { OwnershipInformation } from 'imx-api-qer';
+import { CollectionLoadParameters, EntityData, EntitySchema, HierarchyData, IEntity, TypedEntityBuilder, ValType } from 'imx-qbm-dbts';
+import { ExtService, SettingsService, TreeDatabase, TreeNodeResultParameter } from 'qbm';
+import { RoleService } from 'qer';
 import { SamplePluginComponent } from './sample-plugin.component';
 
 @Injectable({
   providedIn: 'root'
 })
-export class SamplePluginService {
+export class SamplePluginService  {
 
   sampleMessage: string
+  tableName: string = "Department"
 
   constructor(
     private readonly extService: ExtService,
     private readonly router: Router
-  ) { }
+  ) {
+   }
 
   public onInit(routes: Route[]): void{
     this.addRoutes(routes);
@@ -27,4 +34,6 @@ export class SamplePluginService {
     });
     this.router.resetConfig(config);
   }
+
+
 }

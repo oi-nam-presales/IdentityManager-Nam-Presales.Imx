@@ -1,1 +1,54 @@
 <p><b>{{sampleMessage}}</b></p>
+
+<h1 class="mat-headline" *ngIf="!isAdmin">
+  {{ ownershipInfo?.TableNameDisplay }}
+</h1>
+
+<ng-container *ngIf="!useTree">
+  <imx-data-source-toolbar #dst data-imx-identifier="roles-overview-data-source-toolbar" [settings]="dstSettings"
+    [options]="['search', 'filter', 'groupBy']" [searchBoxText]="'#LDS#Search' | translate"
+    (navigationStateChanged)="onNavigationStateChanged($event)" (search)="onSearch($event)">
+  </imx-data-source-toolbar>
+  <imx-data-table #dataTable data-imx-identifier="roles-overview-data-table" [dst]="dst" detailViewVisible="false"
+    mode="manual">
+    <imx-data-table-column *ngIf="entitySchema"
+      [entityColumn]="entitySchema.Columns[DisplayColumns.DISPLAY_PROPERTYNAME]">
+      <ng-template let-item>
+        <div>
+          {{ item?.GetEntity()?.GetDisplay() }}
+        </div>
+        <div *ngIf="item.GetEntity().GetDisplay() != item.GetEntity().GetDisplayLong()" class="imx-subtext">
+          {{ item.GetEntity().GetDisplayLong() }}
+        </div>
+      </ng-template>
+    </imx-data-table-column>
+    <imx-data-table-generic-column columnName="details">
+      <ng-template let-item>
+        <button mat-button data-imx-identifier="roles-overview-detail-button" color="primary"
+          (click)="showDetails(item)">
+          {{ '#LDS#Edit' | translate }}
+        </button>
+      </ng-template>
+    </imx-data-table-generic-column>
+  </imx-data-table>
+  <imx-data-source-paginator data-imx-identifier="roles-overview-paginator" [dst]="dst"></imx-data-source-paginator>
+</ng-container>
+
+<mat-card *ngIf="useTree" class="imx-data-tree-container">
+  <div class="data-explorer-card-header">
+    <div class="data-explorer-card-header-bg">
+      <span>{{ ownershipInfo?.TableNameDisplay }}</span>
+    </div>
+  </div>
+  <div class="imx-card-content">
+    <imx-data-tree-wrapper data-imx-identifier="roles-overview-data-tree" [database]="treeDatabase"
+    [withSelectedNodeHighlight]="false" [filters]="filterOptions">
+      <ng-template let-entity>
+        <button class="imx-edit-role-button" mat-button color="primary"
+        [attr.data-imx-identifier]="'roles-overview-edit-element-button-' + entity.GetKeys().join('-')"
+        (click)="onNodeSelected(entity)">{{'#LDS#Edit' |translate}}</button>
+      </ng-template>
+    </imx-data-tree-wrapper>
+  </div>
+</mat-card>
+
