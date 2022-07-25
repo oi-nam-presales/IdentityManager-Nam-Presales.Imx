@@ -227,7 +227,6 @@
       "name": "AOB Unit Tests (Chrome)",
       "type": "chrome",
       "request": "launch",
-      "address": "localhost",
       "port": 9333,
       "webRoot": "${workspaceFolder}/projects/aob",
       "sourceMapPathOverrides": {
