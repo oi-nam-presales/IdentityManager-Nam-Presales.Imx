@@ -79,6 +79,15 @@
       }
     },
     {
+      "name": "QER App Portal 2 (Chrome)",
+      "type": "chrome",
+      "port": 9230,
+      "request": "launch",
+      "sourceMaps": true,
+      "url": "http://localhost:4200/",
+      "webRoot": "${workspaceFolder}" //projects/qer-app-portal
+    },
+    {
       "name": "QER App Portal (Chrome, API Server)",
       "type": "chrome",
       "request": "launch",
