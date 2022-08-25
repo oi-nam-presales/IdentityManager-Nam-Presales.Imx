@@ -1,0 +1,19 @@
+<p><b>"Sample Plugin Demo"</b></p>
+<p><b>{{sampleMessage}}</b></p>
+
+<button mat-button mat-button color="warn" (click)='navigateToStartPage()'> <---------- Go Home </button>
+
+<div>
+  <ul class="imx-kpi-list">
+    <li *ngFor="let item of userGroupInfo">
+      <mat-card>
+
+          <mat-card-content class="imx-kpi-content">
+            <div class="imx-kpi-text" [matTooltip]="item.Name">{{item.Name}}</div>
+          </mat-card-content>
+
+      </mat-card>
+    </li>
+  </ul>
+</div>
+<p>===========================================================================================</p>

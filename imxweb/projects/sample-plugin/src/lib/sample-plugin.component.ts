@@ -13,8 +13,8 @@ import { SamplePluginMessageComponent } from './sample-plugin-message/sample-plu
 })
 export class SamplePluginComponent implements OnInit {
 
-  caption: string = "View Message of the Day"
-  actionText: string = "Message of the Day";
+  caption: string = "View Message of the Day -Hurray!"
+  actionText: string = "Message of the Day !!!++";
   testMessage: string = "Today is sunny";
   description: string = "Management will place message of the day here"
   config: EuiSidesheetConfig
@@ -44,7 +44,7 @@ export class SamplePluginComponent implements OnInit {
       {
         title,
         width: '700px',
-        headerColour: 'iris-blue',
+        headerColour: 'green',
         data: {
           isAdmin: this.isAdmin,
           ownershipInfo: {
