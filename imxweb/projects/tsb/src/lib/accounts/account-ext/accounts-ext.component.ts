@@ -71,6 +71,8 @@ export class AccountsExtComponent implements OnInit {
 
     this.displayColumn = { ColumnName: "AccountDisabled", Description: "", Display: "Account Disabled", IsReadOnly: true, IsValidColumnForFiltering: false, Type: ValType.Bool }
 
+    //this.entitySchemaAccount.push(this.displayColumn)
+
     this.entitySchemaAccountNew = new EntitySchemaNew(this.entitySchemaAccount, this.displayColumn)
 
 
@@ -106,10 +108,10 @@ export class AccountsExtComponent implements OnInit {
     setTimeout(() => overlayRef = this.busyService.show());
     try {
       //const groupsPerIdentity = await this.accountsService.getAccounts(this.referrer.objectuid);
-      const groupsPerIdentity = this.accountsService.getAccountsWithExtraColumns(this.referrer.objectuid, "AccountDisabled");
+      const groupsPerIdentity = await this.accountsService.getAccountsWithExtraColumns(this.referrer.objectuid, "AccountDisabled");
       this.dstSettings = {
         displayedColumns: this.displayColumns,
-        dataSource: await groupsPerIdentity,
+        dataSource: groupsPerIdentity,
         entitySchema: this.entitySchemaAccountNew,
         navigationState: this.navigationState
       };
