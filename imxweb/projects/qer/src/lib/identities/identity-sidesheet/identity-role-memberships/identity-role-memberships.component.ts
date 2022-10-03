@@ -54,6 +54,7 @@ export class IdentityRoleMembershipsComponent implements OnInit {
   private referrer: { objectuid: string; tablename: string };
   private navigationState: CollectionLoadParameters;
   private displayedColumnsWithDisplay: IClientProperty[];
+  displayColumn: any;
 
   constructor(
     private readonly busyService: EuiLoadingService,
@@ -67,10 +68,14 @@ export class IdentityRoleMembershipsComponent implements OnInit {
   ) {
     this.referrer = dataProvider.data;
     this.entitySchema = this.roleMembershipsService.getSchema(this.referrer.tablename);
+    this.entitySchema.Columns["UID_UNSRoot"].Display="Target System"
+    this.displayColumn = { ColumnName: "UID_UNSRoot", Description: "Target System", Display: "Target System", IsReadOnly: true, IsValidColumnForFiltering: false, Type: ValType.String }
+
     this.withActions = this.roleMembershipsService.canAnalyseAssignment(this.referrer.tablename);
 
     this.navigationState = { PageSize: this.settingService.DefaultPageSize };
     this.displayedColumns = [
+      this.displayColumn,
       this.entitySchema.Columns.XOrigin,
       this.entitySchema.Columns.XDateInserted,
       this.entitySchema.Columns.OrderState,
