@@ -68,19 +68,31 @@ export class IdentityRoleMembershipsComponent implements OnInit {
   ) {
     this.referrer = dataProvider.data;
     this.entitySchema = this.roleMembershipsService.getSchema(this.referrer.tablename);
-    this.entitySchema.Columns["UID_UNSRoot"].Display="Target System"
-    this.displayColumn = { ColumnName: "UID_UNSRoot", Description: "Target System", Display: "Target System", IsReadOnly: true, IsValidColumnForFiltering: false, Type: ValType.String }
 
     this.withActions = this.roleMembershipsService.canAnalyseAssignment(this.referrer.tablename);
-
     this.navigationState = { PageSize: this.settingService.DefaultPageSize };
-    this.displayedColumns = [
-      this.displayColumn,
-      this.entitySchema.Columns.XOrigin,
-      this.entitySchema.Columns.XDateInserted,
-      this.entitySchema.Columns.OrderState,
-      this.entitySchema.Columns.ValidUntil,
-    ];
+
+    //P.S.  For some membership data includes UID_UNSRoot column, for others it doesn't
+    if(this.entitySchema.Columns["UID_UNSRoot"] != null){
+
+      this.entitySchema.Columns["UID_UNSRoot"].Display="Target System"
+      this.displayColumn = { ColumnName: "UID_UNSRoot", Description: "Target System", Display: "Target System", IsReadOnly: true, IsValidColumnForFiltering: false, Type: ValType.String }
+
+      this.displayedColumns = [
+        this.displayColumn,
+        this.entitySchema.Columns.XOrigin,
+        this.entitySchema.Columns.XDateInserted,
+        this.entitySchema.Columns.OrderState,
+        this.entitySchema.Columns.ValidUntil,
+      ];
+    }else{
+      this.displayedColumns = [
+        this.entitySchema.Columns.XOrigin,
+        this.entitySchema.Columns.XDateInserted,
+        this.entitySchema.Columns.OrderState,
+        this.entitySchema.Columns.ValidUntil,
+      ];
+    }
 
     this.displayedColumnsWithDisplay = [...[this.entitySchema.Columns[DisplayColumns.DISPLAY_PROPERTYNAME]], ...this.displayedColumns];
     if (this.withActions) {
