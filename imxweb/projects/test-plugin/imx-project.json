@@ -1,0 +1,13 @@
+{
+  "Name": "test-plugin",
+  "Path": "imxweb\\projects\\test-plugin",
+  "ProjectType": "ng-lib",
+  "ProjectDependcies": [
+    "qbm",
+    "qer"
+  ],
+  "ChangePatterns": [
+    "imxweb\\projects\\test-plugin",
+    "imxweb\\shared\\assets"
+  ]
+}
