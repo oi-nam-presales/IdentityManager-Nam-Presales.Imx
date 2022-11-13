@@ -1,9 +1,15 @@
-import { Component, OnInit } from '@angular/core';
-import { EuiSidesheetConfig, EuiSidesheetService } from '@elemental-ui/core';
-import { RequestsService } from 'qer';
+import { Component, ErrorHandler, OnInit } from '@angular/core';
+import { EuiLoadingService, EuiSidesheetConfig, EuiSidesheetService } from '@elemental-ui/core';
+import { IdentitySidesheetComponent, ProjectConfigurationService, QerApiService, RequestsService, UserModelService } from 'qer';
 import { SamplePluginService } from './sample-plugin.service';
 
 import { SamplePluginMessageComponent } from './sample-plugin-message/sample-plugin-message.component';
+import { OwnershipInformation, PortalPersonMasterdataInteractive, PortalPersonMasterdataWrapper, PortalPersonReports, PortalPersonReportsInteractive, ProjectConfig } from 'imx-api-qer';
+import { OverlayRef } from '@angular/cdk/overlay';
+import { imx_SessionService } from 'qbm';
+import { first } from 'rxjs/operators';
+//import { Console } from 'console';
+import { CompareOperator, FilterData, FilterType, IEntity, IWriteValue, ValType } from 'imx-qbm-dbts';
 
 @Component({
   selector: 'imx-sample-plugin',
@@ -13,22 +19,49 @@ import { SamplePluginMessageComponent } from './sample-plugin-message/sample-plu
 })
 export class SamplePluginComponent implements OnInit {
 
-  caption: string = "View Message of the Day -Hurray!"
-  actionText: string = "Message of the Day !!!++";
+  caption: string = "View Personal Information"
+  actionText: string = "";
   testMessage: string = "Today is sunny";
-  description: string = "Management will place message of the day here"
+  description: string = "Logged in user can view his entitlements"
   config: EuiSidesheetConfig
-  isAdmin: Boolean = true
+  isAdmin: Boolean = false
   tableName: string = "Department"
+
+  private projectConfig: ProjectConfig;
+  userIdentity: any;
+  userID: string;
+  public ownerships: OwnershipInformation[];
+  public viewReady: boolean;
 
   constructor(
     public requestsService: RequestsService,
     private readonly sidesheetService: EuiSidesheetService,
-    public initServ: SamplePluginService
+    public readonly sessionService: imx_SessionService,
+    public initServ: SamplePluginService,
+    private readonly busyService: EuiLoadingService,
+    private readonly qerClient: QerApiService,
+    private readonly errorHandler: ErrorHandler,
+    private readonly sideSheet: EuiSidesheetService,
+    private readonly configService: ProjectConfigurationService,
+    private readonly userModelService: UserModelService,
   ) { }
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
     console.log("SamplePluginComponent -> onInit")
+    this.userID = (await this.sessionService.getSessionState()).UserUid
+    this.actionText = (await this.sessionService.getSessionState()).Username
+    let overlayRef: OverlayRef;
+    setTimeout(() => overlayRef = this.busyService.show());
+    try {
+      const userConfig = await this.userModelService.getUserConfig();
+      this.ownerships = userConfig.Ownerships;
+
+      this.projectConfig = await this.configService.getConfig();
+
+      this.viewReady = true;
+    } finally {
+      setTimeout(() => this.busyService.hide(overlayRef));
+    }
   }
 
   showMessage(): void{
@@ -57,4 +90,47 @@ export class SamplePluginComponent implements OnInit {
 
   }
 
+  public async openIdentitySidesheet(): Promise<void> {
+
+    let initId: PortalPersonMasterdataInteractive;
+    let selectedIdentity: PortalPersonMasterdataInteractive;
+
+    let overlayRef: OverlayRef;
+    setTimeout(() => overlayRef = this.busyService.show());
+    try {
+
+      const identityCollection = await this.qerClient.typedClient.PortalPersonMasterdataInteractive.Get_byid(this.userID);
+      selectedIdentity = identityCollection?.Data?.[0];
+
+    }catch (e){
+      console.error(e);
+    } finally {
+      setTimeout(() => this.busyService.hide(overlayRef));
+    }
+
+    if (!selectedIdentity) {
+      this.errorHandler.handleError('Identity could not be loaded.');
+      return;
+    }
+
+    await this.sideSheet.open(IdentitySidesheetComponent, {
+      title: selectedIdentity.GetEntity().GetDisplay(),
+      headerColour: 'iris-blue',
+      padding: '0px',
+      disableClose: true,
+      width: 'max(700px, 70%)',
+      icon: 'contactinfo',
+      testId: 'identity-sidesheet',
+      data: {
+        isAdmin: false,
+        projectConfig: this.projectConfig,
+        selectedIdentity,
+      }
+    }).afterClosed().toPromise();
+
+  }
 }
+function IReadValue<T>(arg0: number): import("imx-qbm-dbts").IReadValue<number> {
+  throw new Error('Function not implemented.');
+}
+

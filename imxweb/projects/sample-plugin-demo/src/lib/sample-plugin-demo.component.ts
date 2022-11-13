@@ -72,7 +72,7 @@ export class SamplePluginDemoComponent implements OnInit {
     //console.log("UserConfig = " + this.userConfig.ShowPasswordTile)
     //console.log("systemInfo = " + this.userGroupInfo)
 
-    return this.userName.startsWith("W") //this.userConfig?.IsITShopEnabled // && this.userUid && this.systemInfo.PreProps.includes('ITSHOP');
+    return this.userName.startsWith("E") //this.userConfig?.IsITShopEnabled // && this.userUid && this.systemInfo.PreProps.includes('ITSHOP');
   }
 }
 
