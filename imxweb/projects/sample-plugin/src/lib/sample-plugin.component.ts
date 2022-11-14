@@ -130,7 +130,4 @@ export class SamplePluginComponent implements OnInit {
 
   }
 }
-function IReadValue<T>(arg0: number): import("imx-qbm-dbts").IReadValue<number> {
-  throw new Error('Function not implemented.');
-}
 
