@@ -3,9 +3,9 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { EuiLoadingService, EuiSidesheetService } from '@elemental-ui/core';
 import { UserConfig, UserGroupInfo } from 'imx-api-qer';
-import { imx_SessionService } from 'qbm';
+//import { imx_SessionService } from 'qbm';
 
-import { RequestsService, UserModelService } from 'qer';
+import { RequestsService } from 'qer';
 import { SamplePluginDemoService } from './sample-plugin-demo.service';
 import { SimpleUiComponent } from './simple-ui/simple-ui.component';
 

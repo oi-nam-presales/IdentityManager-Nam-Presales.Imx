@@ -4,7 +4,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { SamplePluginDemoComponent } from './sample-plugin-demo.component';
 import { SamplePluginDemoService } from './sample-plugin-demo.service';
 
-//import {TileModule} from 'qbm';
+//import { TileModule, QbmModule } from 'qbm';
 import { SimpleUiComponent } from './simple-ui/simple-ui.component';
 
 import { BrowserModule } from '@angular/platform-browser';
@@ -29,11 +29,10 @@ import {
   MenuService,
   RouteGuardService,
   SqlWizardApiService,
+  QbmModule,
   TileModule
 } from 'qbm';
-import { RoleMembershipsComponent } from 'qer';
-import { AssignmentsComponent } from 'qer/lib/identities/identity-sidesheet/assignments/assignments.component';
-
+//import { RoleMembershipsComponent } from 'qer';
 
 //const routes: Routes = []
 const routes: Routes = [
@@ -62,7 +61,8 @@ const routes: Routes = [
     MatSelectModule,
     MatProgressSpinnerModule,
     ReactiveFormsModule,
-    DynamicTabsModule
+    DynamicTabsModule,
+    QbmModule
   ],
   exports: [
     TileModule,

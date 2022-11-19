@@ -7,7 +7,7 @@ import { SamplePluginMessageComponent } from './sample-plugin-message/sample-plu
 import { OwnershipInformation, PortalPersonMasterdataInteractive, PortalPersonMasterdataWrapper, PortalPersonReports, PortalPersonReportsInteractive, ProjectConfig } from 'imx-api-qer';
 import { OverlayRef } from '@angular/cdk/overlay';
 import { imx_SessionService } from 'qbm';
-import { first } from 'rxjs/operators';
+//import { first } from 'rxjs/operators';
 //import { Console } from 'console';
 import { CompareOperator, FilterData, FilterType, IEntity, IWriteValue, ValType } from 'imx-qbm-dbts';
 

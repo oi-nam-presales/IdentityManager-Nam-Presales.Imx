@@ -26,11 +26,11 @@ const routes: Routes = []
 export class TestPluginModule {
 
   constructor(private readonly initializer: TestPluginService) {
-    console.log('In constructor of SamplePluginDemoModule: Message of the Day Loaded');
+    console.log('In constructor of TestPluginModule: Message of the Day Loaded');
 
     this.initializer.onInit(routes);
 
-    console.log('Demo Module initialized');
+    console.log('TestPluginModule Module initialized');
 }
 
 }
