@@ -27,8 +27,9 @@
 import { Injectable } from '@angular/core';
 
 import { PortalPersonAccounts } from 'imx-api-tsb';
-import { EntitySchema, ExtendedTypedEntityCollection } from 'imx-qbm-dbts';
+import { EntitySchema, ExtendedTypedEntityCollection, TypedEntityCollectionData, ValType } from 'imx-qbm-dbts';
 import { TsbApiService } from '../../tsb-api-client.service';
+import { PortalPersonAccountsPlus } from './account-ext-declaration';
 
 @Injectable({ providedIn: 'root' })
 export class AccountsExtService {
@@ -41,6 +42,42 @@ export class AccountsExtService {
 
   public getAccounts(uid: string): Promise<ExtendedTypedEntityCollection<PortalPersonAccounts, unknown>> {
     return this.apiService.typedClient.PortalPersonAccounts.Get(uid);
+  }
+
+  public async getAccountsWithExtraColumns(uid: string, extraColumns: string): Promise<TypedEntityCollectionData<PortalPersonAccountsPlus>> {
+
+    const parametersOptional = {withProperties : extraColumns }
+
+    var newTotalRet = {
+      Data: [],
+      totalCount: 0
+    }
+
+    console.log('In getAccountsWithExtraColumns');
+
+    const ret = await this.apiService.typedClient.PortalPersonAccounts.Get(uid, parametersOptional)
+
+      ret.Data.forEach(persAcc =>{
+          var ent = persAcc.GetEntity();
+          ent.ApplySchema({
+            Columns: {
+                "AccountDisabled": {
+                    Type: ValType.Bool,
+                    ColumnName: "AccountDisabled"
+                }
+            }
+          });
+
+          var column = ent.GetColumn("AccountDisabled")
+                    //var assa = column.GetValue()
+          var plus = new PortalPersonAccountsPlus(persAcc, column)
+          newTotalRet.Data.push(plus)
+
+          console.log('In getAccountsWithExtraColumns - processed ' + persAcc.AccountName.value);
+      });
+
+    newTotalRet.totalCount = newTotalRet.Data.length
+    return newTotalRet
   }
 
 }

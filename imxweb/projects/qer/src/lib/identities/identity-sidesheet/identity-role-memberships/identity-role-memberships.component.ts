@@ -70,12 +70,34 @@ export class IdentityRoleMembershipsComponent implements OnInit {
     this.withActions = this.roleMembershipsService.canAnalyseAssignment(this.referrer.tablename);
 
     this.navigationState = { PageSize: this.settingService.DefaultPageSize };
-    this.displayedColumns = [
-      this.entitySchema.Columns.XOrigin,
-      this.entitySchema.Columns.XDateInserted,
-      this.entitySchema.Columns.OrderState,
-      this.entitySchema.Columns.ValidUntil,
-    ];
+
+    if(this.entitySchema.Columns["UID_UNSRoot"] != null){
+
+      this.entitySchema.Columns["UID_UNSRoot"].Display="Target System"
+
+      this.displayedColumns = [
+        { ColumnName: "UID_UNSRoot", Display: "Target System", IsReadOnly: true, Type: ValType.String },
+        this.entitySchema.Columns.XOrigin,
+        this.entitySchema.Columns.XDateInserted,
+        this.entitySchema.Columns.OrderState,
+        this.entitySchema.Columns.ValidUntil,
+      ];
+    }else if(this.entitySchema.TypeName == "PersonInOrg"){
+      this.displayedColumns = [
+        { ColumnName: "RoleFullPath", Display: "Business Role", IsReadOnly: true, Type: ValType.String },
+        this.entitySchema.Columns.XOrigin,
+        this.entitySchema.Columns.XDateInserted,
+        this.entitySchema.Columns.OrderState,
+        this.entitySchema.Columns.ValidUntil,
+      ];
+    }else{
+      this.displayedColumns = [
+        this.entitySchema.Columns.XOrigin,
+        this.entitySchema.Columns.XDateInserted,
+        this.entitySchema.Columns.OrderState,
+        this.entitySchema.Columns.ValidUntil,
+      ];
+    }
 
     this.displayedColumnsWithDisplay = [...[this.entitySchema.Columns[DisplayColumns.DISPLAY_PROPERTYNAME]], ...this.displayedColumns];
     if (this.withActions) {

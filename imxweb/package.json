@@ -105,6 +105,7 @@
     "imx-api-arc": "file:imx-modules/imx-api-arc.tgz",
     "imx-api-att": "file:imx-modules/imx-api-att.tgz",
     "imx-api-cpl": "file:imx-modules/imx-api-cpl.tgz",
+    "imx-api-customplugin": "file:imx-modules/imx-api-customlugin.tgz",
     "imx-api-dpr": "file:imx-modules/imx-api-dpr.tgz",
     "imx-api-hds": "file:imx-modules/imx-api-hds.tgz",
     "imx-api-o3t": "file:imx-modules/imx-api-o3t.tgz",

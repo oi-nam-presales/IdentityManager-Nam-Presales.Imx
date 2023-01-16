@@ -193,6 +193,52 @@ export class IdentitySidesheetComponent implements OnInit, OnDestroy {
     }
   }
 
+  public async terminate(): Promise<void> {
+
+    var ent = this.data.selectedIdentity.GetEntity()
+
+    if (await this.confirmationService.confirm({ Title: '#LDS#Terminating Identity',
+      	Message: '#LDS#Are you sure you want to terminate '  + 				   		ent.GetColumn("CentralAccount").GetValue() + '? '
+    }))
+    {
+      if (this.detailsFormGroup.valid) {
+        	this.logger.debug(this, `Terminating identity`);
+        	const overlayRef = this.busyService.show();
+        	try {
+
+          		this.data.selectedIdentity.IsInActive.value = true;
+
+          		await ent.Commit(true);
+          		this.detailsFormGroup.markAsPristine();
+          	              this.snackbar.open({ key: '#LDS#User ' + ent.GetColumn("CentralAccount").GetValue() 			+ ' was terminated' });
+          		this.closeSidesheet();
+       	 } finally {
+          		this.busyService.hide(overlayRef);
+        	}
+      }
+    }
+  }
+
+  public async unTerminate(): Promise<void> {
+    if (this.detailsFormGroup.valid) {
+      this.logger.debug(this, `Terminating identity`);
+      const overlayRef = this.busyService.show();
+      try {
+
+        this.data.selectedIdentity.IsInActive.value = false;
+
+        var ent = this.data.selectedIdentity.GetEntity()
+
+        await ent.Commit(true);
+        this.detailsFormGroup.markAsPristine();
+        this.snackbar.open({ key: '#LDS#User ' + ent.GetColumn("CentralAccount").GetValue() + ' was re-enabled' });
+        this.closeSidesheet();
+      } finally {
+        this.busyService.hide(overlayRef);
+      }
+    }
+  }
+  
   public async save(): Promise<void> {
     if (this.detailsFormGroup.valid) {
       this.logger.debug(this, `Saving identity manager change`);
