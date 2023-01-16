@@ -33,30 +33,32 @@ import { AuthenticationService, ISessionState, SplashService } from 'qbm';
 @Component({
   selector: 'imx-root',
   styleUrls: ['./app.component.scss'],
-  templateUrl: './app.component.html'
+  templateUrl: './app.component.html',
 })
 export class AppComponent implements OnInit, OnDestroy {
   public isLoggedIn = false;
   public hideUserMessage = false;
-  public showPageContent = false;
+  public showPageContent = true;
 
   private readonly subscriptions: Subscription[] = [];
 
   constructor(
     private readonly authentication: AuthenticationService,
     private readonly router: Router,
-    private readonly splash: SplashService,
+    private readonly splash: SplashService
   ) {
     this.subscriptions.push(
       this.authentication.onSessionResponse.subscribe(async (sessionState: ISessionState) => {
-
         if (sessionState.hasErrorState) {
           // Needs to close here when there is an error on sessionState
           this.splash.close();
+        } else {
+          if (sessionState.IsLoggedOut) {
+            this.showPageContent = false;
+          }
         }
 
         this.isLoggedIn = sessionState.IsLoggedIn;
-
         if (this.isLoggedIn) {
           // Close the splash screen that opened in app service initialisation
           // Needs to close here when running in containers (auth skipped)
@@ -73,11 +75,11 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   public ngOnDestroy(): void {
-    this.subscriptions.forEach(subscription => subscription.unsubscribe());
+    this.subscriptions.forEach((subscription) => subscription.unsubscribe());
   }
 
   private setupRouter(): void {
-    this.router.events.subscribe(((event: RouterEvent) => {
+    this.router.events.subscribe((event: RouterEvent) => {
       if (event instanceof NavigationStart) {
         this.hideUserMessage = true;
         if (this.isLoggedIn && event.url === '/') {
@@ -92,13 +94,12 @@ export class AppComponent implements OnInit, OnDestroy {
 
       if (event instanceof NavigationEnd) {
         this.hideUserMessage = false;
-        // show the pageContent, if the user is logged in or the login page is shown
-        this.showPageContent = this.isLoggedIn || event.urlAfterRedirects === '/';
+        this.showPageContent = true;
       }
 
       if (event instanceof NavigationError) {
         this.hideUserMessage = false;
       }
-    }));
+    });
   }
 }

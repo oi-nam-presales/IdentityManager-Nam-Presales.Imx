@@ -44,7 +44,8 @@
 
     <ng-container *ngIf="!loading">
 
-      <button mat-raised-button data-imx-identifier="admin-add-config-setting-button" (click)="add()">{{'#LDS#Create configuration key' | translate}}</button>
+      <button mat-raised-button data-imx-identifier="admin-add-config-setting-button" *ngIf="configSvc.canAddAnyConfigKey"
+        (click)="add()">{{'#LDS#Create configuration key' | translate}}</button>
 
       <div *ngIf="sectionsFiltered.length == 0" class="no-results">
         <eui-icon [icon]="'search'"></eui-icon>{{ 'No configuration settings were found.' | translate}}
@@ -69,8 +70,8 @@
               </mat-panel-title>
               <mat-panel-description class="right-aligned-description">
                 <ng-container *ngIf="isBoolean(conf)">
-                  <ng-container *ngIf="conf.Value">yes</ng-container>
-                  <ng-container *ngIf="!conf.Value">no</ng-container>
+                  <ng-container *ngIf="conf.Value">{{'#LDS#Activated' | translate}}</ng-container>
+                  <ng-container *ngIf="!conf.Value">{{'#LDS#Deactivated' | translate}}</ng-container>
                 </ng-container>
               </mat-panel-description>
             </mat-expansion-panel-header>
