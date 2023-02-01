@@ -29,6 +29,7 @@ export class UnitePluginScriptComponent implements OnInit {
     const uidPerson = this.sidesheetdata
     var roles = await this.unitePluginService.userGetReportRolesScript(uidPerson);
 
+    var myJsonString = JSON.stringify(roles)
     this.myDataArray = roles
   }
 

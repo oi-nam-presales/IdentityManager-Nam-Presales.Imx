@@ -48,9 +48,17 @@ export class UnitePluginService {
   }
 
   async userGetReportRolesSQL(uidPerson): Promise<any> {    
-    try{
-      
-      var x = await this.v2Client.portal_uniteplugin_getreportsrolessql_get(uidPerson);
+    try{      
+      var x = await this.v2Client.portal_uniteplugin_getreportsrolessql_get(uidPerson);      
+      return x;
+    }catch(e) {
+      console.error(e);
+    }
+  }
+
+  async userGetReportRolesSQLSchema(): Promise<any> {    
+    try{      
+      var x = await this.tc.PortalUnitepluginGetreportsrolessql.GetSchema()
       return x;
     }catch(e) {
       console.error(e);

@@ -1,27 +1,14 @@
 <p>unite-plugin-sql works!</p>
-<!--
-<ng-container>  
-  <imx-data-table #dataTable data-imx-identifier="roles-overview-data-table" detailViewVisible="false" mode="manual">
-    <imx-data-table-column *ngIf="entitySchema"
-      [entityColumn]="entitySchema.Columns[DisplayColumns.DISPLAY_PROPERTYNAME]">
-      <ng-template let-item>
-        <div>
-          {{ item?.GetEntity()?.GetDisplay() }}
-        </div>
-        <div *ngIf="item.GetEntity().GetDisplay() != item.GetEntity().GetDisplayLong()" class="imx-subtext">
-          {{ item.GetEntity().GetDisplayLong() }}
-        </div>
-      </ng-template>
-    </imx-data-table-column>
-    <imx-data-table-generic-column columnName="details">
-      <ng-template let-item>
-        <button mat-button data-imx-identifier="roles-overview-detail-button" color="primary"
-          (click)="showDetails(item)">
-          {{ '#LDS#Edit' | translate }}
-        </button>
-      </ng-template>
-    </imx-data-table-generic-column>
-  </imx-data-table>
-  <imx-data-source-paginator data-imx-identifier="roles-overview-paginator" [dst]="dst"></imx-data-source-paginator>
-</ng-container>
+
+  <!--<mat-card class="imx-table-container" *ngIf="dstSettings">-->
+    <imx-data-source-toolbar #dst [options]="['search']"
+      [settings]="dstSettings" data-imx-identifier="test-sql-dst">
+    </imx-data-source-toolbar>
+    <imx-data-table [dst]="dst" [detailViewVisible]="true" mode="auto" [selectable]="false"
+      [showSelectedItemsMenu]="false"
+      data-imx-identifier="test-sql-datatable"
+      noMatchingDataText="#LDS#There are no matching identities.">
+    </imx-data-table>   
+  <!--</mat-card>-->
+
 -->
