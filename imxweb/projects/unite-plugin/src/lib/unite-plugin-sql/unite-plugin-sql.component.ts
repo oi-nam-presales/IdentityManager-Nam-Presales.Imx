@@ -1,9 +1,10 @@
 import { OverlayRef } from '@angular/cdk/overlay';
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { EuiLoadingService } from '@elemental-ui/core';
 import { EntitySchemaNew } from 'html/tsb/lib/accounts/account-ext/account-ext-declaration';
 import { CollectionLoadParameters, EntitySchema, FilterData, IClientProperty, ValType } from 'imx-qbm-dbts';
-import { DataSourceToolbarSettings, imx_SessionService, SettingsService } from 'qbm';
+import { AppConfigService, DataSourceToolbarSettings, imx_SessionService, SettingsService } from 'qbm';
 import { UnitePluginService } from '../unite-plugin.service';
 
 @Component({
@@ -23,7 +24,8 @@ export class UnitePluginSqlComponent implements OnInit {
   constructor(
     public readonly sessionService: imx_SessionService,
     public unitePluginService: UnitePluginService,
-    private readonly settingService: SettingsService,
+    private readonly appConfig: AppConfigService,
+    private readonly router: Router
   ) { }
 
   async ngOnInit(): Promise<void> {
@@ -32,20 +34,24 @@ export class UnitePluginSqlComponent implements OnInit {
     var schema = await this.unitePluginService.userGetReportRolesSQLSchema();
     //---------------------------------------------------------------------------------------    
     this.displayedColumns = [
-      { ColumnName: "CentralAccount", IsReadOnly: true, IsValidColumnForFiltering: false, Type: ValType.String },
-      { ColumnName: "FirstName", IsReadOnly: true, IsValidColumnForFiltering: false, Type: ValType.String },
-      { ColumnName: "LastName", IsReadOnly: true, IsValidColumnForFiltering: false, Type: ValType.String },      
-      { ColumnName: "Title", IsReadOnly: true, IsValidColumnForFiltering: false, Type: ValType.String },
-      { ColumnName: "Ident_Org", IsReadOnly: true, IsValidColumnForFiltering: false, Type: ValType.String }
+      schema.Columns.CentralAccount,
+      schema.Columns.FirstName,
+      schema.Columns.LastName,
+      schema.Columns.Ident_Org,
+      schema.Columns.Title
     ];
     //----------------------------------------------------------------------------------------   
     
       this.dstSettings = {
-        displayedColumns: this.displayedColumns, //schema.Columns,
+        displayedColumns: this.displayedColumns, //
         dataSource: roles,
         entitySchema: schema,
-        navigationState: { PageSize: this.settingService.DefaultPageSize, StartIndex:0 } 
+        navigationState: { PageSize: 5, StartIndex:0 } 
       };    
   }
 
+  navigateToStartPage():void{
+    this.router.navigate([this.appConfig.Config.routeConfig.start], { queryParams: {} });
+  }
 }
+

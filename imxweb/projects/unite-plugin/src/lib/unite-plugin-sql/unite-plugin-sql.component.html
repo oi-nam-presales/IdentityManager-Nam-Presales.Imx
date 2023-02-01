@@ -1,6 +1,8 @@
-<p>unite-plugin-sql works!</p>
+<h1><b>This component displays data retrieved by Predefined SQL</b></h1>
 
-  <!--<mat-card class="imx-table-container" *ngIf="dstSettings">-->
+<button mat-button mat-button color="warn" (click)='navigateToStartPage()'> Back to Dashboard </button>
+
+ 
     <imx-data-source-toolbar #dst [options]="['search']"
       [settings]="dstSettings" data-imx-identifier="test-sql-dst">
     </imx-data-source-toolbar>
@@ -8,7 +10,4 @@
       [showSelectedItemsMenu]="false"
       data-imx-identifier="test-sql-datatable"
       noMatchingDataText="#LDS#There are no matching identities.">
-    </imx-data-table>   
-  <!--</mat-card>-->
-
--->
+    </imx-data-table> 

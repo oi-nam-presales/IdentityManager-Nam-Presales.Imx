@@ -10,7 +10,7 @@ import { V2Client, TypedClient } from 'imx-api-customplugin';
 export class UnitePluginService {
 
   private v2Client: V2Client;
-  private tc: TypedClient;
+  private typedClient: TypedClient;
 
 
   constructor(
@@ -21,7 +21,7 @@ export class UnitePluginService {
   ) {
     const schemaProvider = appConfig.client;
     this.v2Client = new V2Client(appConfig.apiClient, schemaProvider);
-    this.tc = new TypedClient(this.v2Client, this.translationProvider);
+    this.typedClient = new TypedClient(this.v2Client, this.translationProvider);
    }
 
   public onInit(routes: Route[]): void{
@@ -49,7 +49,7 @@ export class UnitePluginService {
 
   async userGetReportRolesSQL(uidPerson): Promise<any> {    
     try{      
-      var x = await this.v2Client.portal_uniteplugin_getreportsrolessql_get(uidPerson);      
+      var x = await this.typedClient.PortalUnitepluginGetreportsrolessql.Get(uidPerson);          
       return x;
     }catch(e) {
       console.error(e);
@@ -58,7 +58,7 @@ export class UnitePluginService {
 
   async userGetReportRolesSQLSchema(): Promise<any> {    
     try{      
-      var x = await this.tc.PortalUnitepluginGetreportsrolessql.GetSchema()
+      var x = await this.typedClient.PortalUnitepluginGetreportsrolessql.GetSchema()
       return x;
     }catch(e) {
       console.error(e);
