@@ -85,6 +85,15 @@ export class IdentityRoleMembershipsComponent implements OnInit {
         this.entitySchema.Columns.OrderState,
         this.entitySchema.Columns.ValidUntil,
       ];
+    }else if(this.entitySchema.TypeName == "PersonInOrg"){
+      this.displayColumn = { ColumnName: "RoleFullPath", Description: "Role Full Path", Display: "Business Role", IsReadOnly: true, IsValidColumnForFiltering: false, Type: ValType.String }
+      this.displayedColumns = [
+        this.displayColumn,
+        this.entitySchema.Columns.XOrigin,
+        this.entitySchema.Columns.XDateInserted,
+        this.entitySchema.Columns.OrderState,
+        this.entitySchema.Columns.ValidUntil,
+      ];
     }else{
       this.displayedColumns = [
         this.entitySchema.Columns.XOrigin,

@@ -30,7 +30,7 @@ export class SamplePluginDemoComponent implements OnInit {
     public readonly busyService: EuiLoadingService,
     public requestsService: RequestsService,
     public readonly sidesheetService: EuiSidesheetService,
-    public samplePluginService: SamplePluginDemoService
+    public samplePluginDemoService: SamplePluginDemoService
 
   ) { }
 
@@ -41,7 +41,7 @@ export class SamplePluginDemoComponent implements OnInit {
     let overlayRef: OverlayRef;
     setTimeout(() => (overlayRef = this.busyService.show()));
     try {
-      this.userName = await this.samplePluginService.getUserName()
+      this.userName = await this.samplePluginDemoService.getUserName()
       this.actionText = this.actionText + " " + this.userName
       console.log("userName: " + this.userName);
     } finally {
@@ -49,11 +49,13 @@ export class SamplePluginDemoComponent implements OnInit {
     }
   }
 
-  showMessage(): void{
+  async showMessage(): Promise<void>{
     console.log("Showing message");
     this.requestsService.openSnackbar(this.testMessage, '#LDS#Close');
 
     const title = this.actionText;
+
+    //var userRoles = await this.samplePluginDemoService.userGetReportRoles();
 
     // const sidesheetRef = this.sidesheetService.open(
     //   SimpleUiComponent,
@@ -72,7 +74,8 @@ export class SamplePluginDemoComponent implements OnInit {
     //console.log("UserConfig = " + this.userConfig.ShowPasswordTile)
     //console.log("systemInfo = " + this.userGroupInfo)
 
-    return this.userName.startsWith("E") //this.userConfig?.IsITShopEnabled // && this.userUid && this.systemInfo.PreProps.includes('ITSHOP');
+    //return this.userName.startsWith("E") //this.userConfig?.IsITShopEnabled // && this.userUid && this.systemInfo.PreProps.includes('ITSHOP');
+    return true
   }
 }
 

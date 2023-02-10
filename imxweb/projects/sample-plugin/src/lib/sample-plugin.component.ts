@@ -1,6 +1,6 @@
 import { Component, ErrorHandler, OnInit } from '@angular/core';
 import { EuiLoadingService, EuiSidesheetConfig, EuiSidesheetService } from '@elemental-ui/core';
-import { IdentitySidesheetComponent, ProjectConfigurationService, QerApiService, RequestsService, UserModelService } from 'qer';
+import { IdentityRoleMembershipsComponent, IdentitySidesheetComponent, ProjectConfigurationService, QerApiService, RequestsService, UserModelService } from 'qer';
 import { SamplePluginService } from './sample-plugin.service';
 
 import { SamplePluginMessageComponent } from './sample-plugin-message/sample-plugin-message.component';
@@ -111,13 +111,14 @@ export class SamplePluginComponent implements OnInit {
     if (!selectedIdentity) {
       this.errorHandler.handleError('Identity could not be loaded.');
       return;
+
     }
 
     await this.sideSheet.open(IdentitySidesheetComponent, {
       title: selectedIdentity.GetEntity().GetDisplay(),
       headerColour: 'iris-blue',
       padding: '0px',
-      disableClose: true,
+      disableClose: false,
       width: 'max(700px, 70%)',
       icon: 'contactinfo',
       testId: 'identity-sidesheet',

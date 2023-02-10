@@ -19,7 +19,7 @@ import {
   RouteGuardService,
   SqlWizardApiService,
   TileModule
-} from '../../../qbm/src/public_api';
+} from 'qbm';
 
 import { SamplePluginMessageComponent } from './sample-plugin-message/sample-plugin-message.component';
 import { SamplePluginService } from './sample-plugin.service';

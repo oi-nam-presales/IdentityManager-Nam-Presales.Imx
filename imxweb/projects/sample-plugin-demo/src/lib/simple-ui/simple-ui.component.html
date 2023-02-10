@@ -2,7 +2,21 @@
 <p><b>{{sampleMessage}}</b></p>
 
 <button mat-button mat-button color="warn" (click)='navigateToStartPage()'> <---------- Go Home </button>
+<p>===========================================================================================</p>
+<div>
+  <ul class="imx-kpi-list">
+    <li *ngFor="let item of userRoles">
+      <mat-card>
 
+          <mat-card-content class="imx-kpi-content">
+            <div class="imx-kpi-text" [matTooltip]="item.GetEntity().GetDisplay()">{{item.GetEntity().GetDisplay()}}</div>
+          </mat-card-content>
+
+      </mat-card>
+    </li>
+  </ul>
+</div>
+<p>===========================================================================================</p>
 <div>
   <ul class="imx-kpi-list">
     <li *ngFor="let item of userGroupInfo">

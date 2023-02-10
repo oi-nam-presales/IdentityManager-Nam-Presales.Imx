@@ -19,20 +19,10 @@ import { CommonModule } from '@angular/common';
 
 import {
   CdrModule,
-  ClassloggerService,
-  DataSourceToolbarModule,
-  DataTableModule,
-  DataTreeWrapperModule,
   DynamicTabsModule,
-  FkAdvancedPickerModule,
   LdsReplaceModule,
-  MenuService,
-  RouteGuardService,
-  SqlWizardApiService,
-  QbmModule,
   TileModule
 } from 'qbm';
-//import { RoleMembershipsComponent } from 'qer';
 
 //const routes: Routes = []
 const routes: Routes = [
@@ -49,7 +39,6 @@ const routes: Routes = [
   imports: [
     RouterModule.forChild(routes),
     TileModule,
-    //BrowserModule,
     CdrModule,
     CommonModule,
     EuiCoreModule,
@@ -61,8 +50,7 @@ const routes: Routes = [
     MatSelectModule,
     MatProgressSpinnerModule,
     ReactiveFormsModule,
-    DynamicTabsModule,
-    QbmModule
+    DynamicTabsModule
   ],
   exports: [
     TileModule,
