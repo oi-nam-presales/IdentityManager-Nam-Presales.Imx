@@ -1,32 +1,15 @@
 import { PortalPersonAccounts } from "imx-api-tsb";
-import { DisplayPattern, EntitySchema, FkCandidateRouteDto, IClientProperty, IEntity, IEntityColumn, IReadValue, IValueMetadata, StaticSchema, TypedEntity } from "imx-qbm-dbts";
+import { DisplayPattern, EntitySchema, EntityValue, FkCandidateRouteDto, IClientProperty, IEntity, IEntityColumn, IReadValue, IValueMetadata, StaticSchema, TypedEntity } from "imx-qbm-dbts";
 import { SuperCall } from "typescript";
 
 export class PortalPersonAccountsPlus extends PortalPersonAccounts {
-  readonly AccountDisabled: EntityValue;
+  readonly AccountDisabled: IEntityColumn;
 
   constructor(acc: PortalPersonAccounts, isDisabled: IEntityColumn){
     super(acc.GetEntity())
-    this.AccountDisabled = new EntityValue(isDisabled.GetValue(), isDisabled);
-
+    this.AccountDisabled = isDisabled
   }
 }
-
-export class EntityValue implements IReadValue<any>{
-    readonly value: any;
-
-    readonly Column: IEntityColumn;
-
-    GetMetadata(): IValueMetadata{
-      return this.Column.GetMetadata();
-    }
-
-    constructor(val: any, col: IEntityColumn){
-      this.value = val
-      this.Column = col
-    }
-}
-
 export class EntitySchemaNew implements EntitySchema{
   /** Returns the entity type. For database entities, this is equal to the table name.
    * For custom entity schema types, the client can define an arbitrary type name.
