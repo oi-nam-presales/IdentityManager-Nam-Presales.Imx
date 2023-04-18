@@ -163,6 +163,17 @@
                     matTooltip="{{'#LDS#Resets this setting to its original value.' | translate}}" color="primary"
                     data-imx-identifier="admin-revert-setting" (click)="configSvc.revert(conf)">{{'#LDS#Reset' |
                     translate }}</button>
+
+                    &nbsp;
+
+                    <input type="file" accept="image/*" class="file-input"
+                          (change)="onFileSelected($event)" #fileUpload>
+
+                    <!--<button  mat-raised-button color="primary" -->
+					          <button mat-flat-button *ngIf="conf.Key == 'CompanyLogoUrl'" color="primary"
+                      (click)="fileUpload.click()">
+                        <mat-icon>attach_file</mat-icon>
+                    </button>
                 </div>
               </ng-container>
 
