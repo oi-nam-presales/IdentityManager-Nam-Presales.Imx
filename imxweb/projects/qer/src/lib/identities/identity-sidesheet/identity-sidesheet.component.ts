@@ -47,6 +47,7 @@ import {
   ConfirmationService,
   TabItem,
   ExtService,
+  imx_SessionService,
 } from 'qbm';
 import { DbObjectKey, IEntity, IEntityColumn } from 'imx-qbm-dbts';
 import { IdentitiesReportsService } from '../identities-reports.service';
@@ -78,6 +79,7 @@ export class IdentitySidesheetComponent implements OnInit, OnDestroy {
   private readonly subscriptions: Subscription[] = [];
   private currentUserUid: string;
   private featureConfig: FeatureConfig;
+  public showTerminateButton: boolean;
 
   constructor(
     formBuilder: FormBuilder,
@@ -106,6 +108,7 @@ export class IdentitySidesheetComponent implements OnInit, OnDestroy {
     authentication: AuthenticationService,
     confirm: ConfirmationService
   ) {
+    
     this.subscriptions.push(
       this.sidesheetRef.closeClicked().subscribe(async (result) => {
         if (this.detailsFormGroup.dirty) {
@@ -120,6 +123,9 @@ export class IdentitySidesheetComponent implements OnInit, OnDestroy {
     );
 
     this.subscriptions.push(authentication.onSessionResponse.subscribe((sessionState) => (this.currentUserUid = sessionState.UserUid)));
+
+    
+    this.showTerminateButton =  this.currentUserUid !== this.data.selectedIdentity.EntityKeysData.Keys[0]; 
 
     this.detailsFormGroup = new FormGroup({});
     this.reportDownload = {

@@ -108,16 +108,17 @@
               </button>
             </mat-menu>
 
-            <!--P.S. New Terminate button-->
-            <button mat-flat-button color="warn" *ngIf="!data?.selectedIdentity?.IsInActive.value" (click)="terminate()"
+            <!--P.S. New Terminate button-->            
+            <button mat-flat-button color="warn" *ngIf="(!data?.selectedIdentity?.IsInActive.value) && showTerminateButton" (click)="terminate()"
               data-imx-identifier="identity-sidesheet-button-terminate">
               <span translate>#LDS#Terminate</span>
             </button>
             
-            <button mat-flat-button color="primary" *ngIf="data?.selectedIdentity?.IsInActive.value" (click)="unTerminate()"
+            <button mat-flat-button color="primary" *ngIf="data?.selectedIdentity?.IsInActive.value && showTerminateButton" (click)="unTerminate()"
               data-imx-identifier="identity-sidesheet-button-terminate">
               <span translate>#LDS#Re-enable</span>
             </button>
+            
 
             <button
               mat-flat-button
