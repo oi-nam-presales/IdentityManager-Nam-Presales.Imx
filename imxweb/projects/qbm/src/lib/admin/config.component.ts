@@ -28,8 +28,10 @@ import { Component } from '@angular/core';
 import { EuiSidesheetService } from '@elemental-ui/core';
 import { TranslateService } from '@ngx-translate/core';
 import { ConfigSettingType } from 'imx-api-qbm';
+import { ApiClient, TimeZoneInfo } from 'imx-qbm-dbts';
 import { AppConfigService } from '../appConfig/appConfig.service';
 import { DataSourceToolbarSettings } from '../data-source-toolbar/data-source-toolbar-settings';
+import { SnackBarService } from '../snackbar/snack-bar.service';
 import { AddConfigSidesheetComponent } from './add-config-sidesheet.component';
 import { ApplyConfigSidesheetComponent } from './apply-config-sidesheet.component';
 import { KeyData } from './config-section';
@@ -43,12 +45,17 @@ import { ConvertConfigSidesheetComponent } from './convert-config-sidesheet.comp
 })
 export class ConfigComponent {
 
+  apiClient: ApiClient;
+
   constructor(private readonly appConfigSvc: AppConfigService,
     public readonly configSvc: ConfigService,
     private readonly translator: TranslateService,
     private readonly sidesheet: EuiSidesheetService,
-    private readonly translate: TranslateService
-  ) { }
+    private readonly translate: TranslateService,
+    private readonly snackbar: SnackBarService
+  ) {
+    this.apiClient = appConfigSvc.apiClient;
+   }
 
   public dstSettings: DataSourceToolbarSettings;
 
@@ -174,5 +181,51 @@ export class ConfigComponent {
       width: '600px',
       testId: 'admin-add-config-sidesheet'
     });
+  }
+
+  async onFileSelected(event) {
+
+    const file:File = event.target.files[0];
+
+    if (file) {
+        
+      var body = file.slice();
+      
+      try{
+        
+        var ret = await this.apiClient.processRequest(
+            {
+              path: "/admin/uniteadminplugin/uploadfilebinary/"+file.name,  
+              parameters: [
+                {
+                  name: 'body',
+                  value: body,
+                  in: 'body'
+                },
+              ],           
+              method: 'POST',
+              headers: {
+                'imx-timezone': TimeZoneInfo.get(),
+                'Content-Type': 'image/jpeg'
+              },
+              credentials: 'include',
+              observe: 'response',
+              responseType: 'json',              
+            }
+          )  
+
+          const key = "Uploaded file '" + file.name + "' to ApiServer directory '" + ret + "'"
+          console.info(key)
+
+          this.snackbar.openAtTheBottom({key});
+          
+        }catch(e) {
+          console.error(e);
+        }
+                
+        //const upload$ = this.http.post("/api/thumbnail-upload", formData);
+
+        //upload$.subscribe();
+    }
   }
 }
