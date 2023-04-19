@@ -16,7 +16,7 @@
             {{ item.CanonicalName.Column.GetDisplayValue() }}</div>
         </ng-template>
       </imx-data-table-column>
-      <imx-data-table-column [entityColumn]="this.entitySchemaAccountNew.Columns.AccountDisabled">
+      <imx-data-table-column [entityColumn]="this.disabledAccountColumn">
         <ng-template let-item>
           <div data-imx-identifier="account-ext-tabledata-display">
             {{ item.AccountDisabled.Column.GetDisplayValue() }}

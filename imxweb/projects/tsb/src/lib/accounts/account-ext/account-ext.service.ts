@@ -70,7 +70,7 @@ export class AccountsExtService {
 
           var column = ent.GetColumn("AccountDisabled")
                     //var assa = column.GetValue()
-          var plus = new PortalPersonAccountsPlus(persAcc, column)
+          var plus = new PortalPersonAccountsPlus(ent, column)
           newTotalRet.Data.push(plus)
 
           console.log('In getAccountsWithExtraColumns - processed ' + persAcc.AccountName.value);

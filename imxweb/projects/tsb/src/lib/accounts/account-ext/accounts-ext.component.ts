@@ -31,7 +31,7 @@ import { EuiLoadingService } from '@elemental-ui/core';
 import { CollectionLoadParameters, DisplayColumns, EntitySchema, IClientProperty, ValType } from 'imx-qbm-dbts';
 import { DataSourceToolbarSettings, DynamicTabDataProviderDirective, SettingsService } from 'qbm';
 import { AccountsExtService } from './account-ext.service';
-import { EntitySchemaNew } from './account-ext-declaration';
+//import { EntitySchemaNew } from './account-ext-declaration';
 
 @Component({
   templateUrl: './accounts-ext.component.html',
@@ -53,13 +53,13 @@ export class AccountsExtComponent implements OnInit {
   public entitySchemaAccount: EntitySchema;
 
   //P.S.
-  public entitySchemaAccountNew: EntitySchemaNew;
+  //public entitySchemaAccountNew: EntitySchemaNew;
 
 
   private displayColumns: IClientProperty[] = [];
   private navigationState: CollectionLoadParameters;
 
-  displayColumn: any;
+  disabledAccountColumn: any;
 
   constructor(
     private readonly busyService: EuiLoadingService,
@@ -71,17 +71,17 @@ export class AccountsExtComponent implements OnInit {
     this.navigationState = { PageSize: this.settingService.DefaultPageSize };
     this.entitySchemaAccount = accountsService.portalPersonAccountsSchema;
 
-    this.displayColumn = { ColumnName: "AccountDisabled", Description: "", Display: "Account Disabled", IsReadOnly: true, IsValidColumnForFiltering: false, Type: ValType.Bool }
+    this.disabledAccountColumn = { ColumnName: "AccountDisabled", Description: "", Display: "Account Disabled", IsReadOnly: true, IsValidColumnForFiltering: false, Type: ValType.Bool }
 
     //this.entitySchemaAccount.push(this.displayColumn)
 
-    this.entitySchemaAccountNew = new EntitySchemaNew(this.entitySchemaAccount, this.displayColumn)
+    //this.entitySchemaAccountNew = new EntitySchemaNew(this.entitySchemaAccount, this.displayColumn)
 
     this.displayColumns = [
       this.entitySchemaAccount.Columns.AccountName,
       this.entitySchemaAccount.Columns.UID_DPRNameSpace,
       this.entitySchemaAccount.Columns.UID_UNSRoot,
-      this.displayColumn
+      this.disabledAccountColumn
     ];
   }
 
@@ -112,7 +112,7 @@ export class AccountsExtComponent implements OnInit {
       this.dstSettings = {
         displayedColumns: this.displayColumns,
         dataSource: groupsPerIdentity,
-        entitySchema: this.entitySchemaAccountNew,
+        entitySchema: this.entitySchemaAccount,
         navigationState: this.navigationState
       };
     } finally {
