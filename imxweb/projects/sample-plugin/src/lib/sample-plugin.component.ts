@@ -15,7 +15,7 @@ export class SamplePluginComponent implements OnInit {
   
   caption: string = "View Personal Information"
   actionText: string = "";
-  description: string = "Logged in user can view his presonal information"
+  description: string = "View presonal information of the logged in user"
   private projectConfig: ProjectConfig;
   
   constructor(
