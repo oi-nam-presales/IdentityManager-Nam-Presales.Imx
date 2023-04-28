@@ -183,13 +183,23 @@ export class ConfigComponent {
     });
   }
 
+  arrayBufferToBase64( buffer ) {
+    var binary = '';
+    var bytes = new Uint8Array( buffer );
+    var len = bytes.byteLength;
+    for (var i = 0; i < len; i++) {
+        binary += String.fromCharCode( bytes[ i ] );
+    }
+    return window.btoa( binary );
+  }
+
   async onFileSelected(event) {
 
     const file:File = event.target.files[0];
 
     if (file) {
         
-      var body = file.slice();
+      var body = this.arrayBufferToBase64((await file.arrayBuffer()).slice(0));
       
       try{
         
@@ -198,8 +208,9 @@ export class ConfigComponent {
               path: "/admin/uniteadminplugin/uploadfilebinary/"+file.name,  
               parameters: [
                 {
-                  name: 'body',
+                  name: 'payload',
                   value: body,
+                  required: true,
                   in: 'body'
                 },
               ],           
