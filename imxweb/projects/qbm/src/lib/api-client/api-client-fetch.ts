@@ -46,23 +46,12 @@ export class ApiClientFetch implements ApiClient {
 
         var response: Response;
         try {
-            //P.S. This is the only way I know how to pass a body to this
-            if(methodDescriptor.parameters && methodDescriptor.parameters.length > 0 && methodDescriptor.parameters[0].name === 'body' ){
-                response = await this.http.fetch(this.baseUrl + method.path, {
-                    method: method.httpMethod,
-                    credentials: method.credentials,
-                    headers: headers,
-                    body: methodDescriptor .parameters[0].value
-                });
-            }else{
-
-                response = await this.http.fetch(this.baseUrl + method.path, {
-                    method: method.httpMethod,
-                    credentials: method.credentials,
-                    headers: headers,
-                    body: method.body
-                });
-            }
+            response = await this.http.fetch(this.baseUrl + method.path, {
+                method: method.httpMethod,
+                credentials: method.credentials,
+                headers: headers,
+                body: method.body
+            });            
         } catch (e) {
             throw new ServerError(await this.GetUnexpectedErrorText());
         }
