@@ -184,13 +184,9 @@ export class ConfigComponent {
   }
 
   arrayBufferToBase64( buffer ) {
-    var binary = '';
-    var bytes = new Uint8Array( buffer );
-    var len = bytes.byteLength;
-    for (var i = 0; i < len; i++) {
-        binary += String.fromCharCode( bytes[ i ] );
-    }
-    return window.btoa( binary );
+    var bytes = new Uint8Array( buffer );    
+    var str = String.fromCharCode.apply(null, bytes)
+    return window.btoa( str );
   }
 
   async onFileSelected(event) {
@@ -199,7 +195,7 @@ export class ConfigComponent {
 
     if (file) {
         
-      var body = this.arrayBufferToBase64((await file.arrayBuffer()).slice(0));
+      var body = this.arrayBufferToBase64(await file.arrayBuffer());
       
       try{
         
