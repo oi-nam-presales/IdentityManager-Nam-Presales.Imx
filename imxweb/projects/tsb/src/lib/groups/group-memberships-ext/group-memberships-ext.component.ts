@@ -66,12 +66,25 @@ export class GroupMembershipsExtComponent implements OnInit {
     this.referrer = dataProvider?.data;
     this.navigationState = { PageSize: this.settingService.DefaultPageSize };
     this.entitySchema = groupService.portalPersonGroupmembershipsSchema;
-    this.displayColumns = [
-      this.entitySchema.Columns.XOrigin,
-      this.entitySchema.Columns.XDateInserted,
-      this.entitySchema.Columns.OrderState,
-      this.entitySchema.Columns.ValidUntil,
-    ];
+
+    if(this.entitySchema.TypeName == "UNSAccountInUNSGroup" && this.entitySchema.Columns["UID_UNSRoot"] != null){
+
+      this.entitySchema.Columns.UID_UNSRoot.Display = "Target System" //P.S.
+      this.displayColumns = [
+        this.entitySchema.Columns.UID_UNSRoot, //P.S.
+        this.entitySchema.Columns.XOrigin,
+        this.entitySchema.Columns.XDateInserted,
+        this.entitySchema.Columns.OrderState,
+        this.entitySchema.Columns.ValidUntil,
+      ];
+    }else{
+      this.displayColumns = [
+        this.entitySchema.Columns.XOrigin,
+        this.entitySchema.Columns.XDateInserted,
+        this.entitySchema.Columns.OrderState,
+        this.entitySchema.Columns.ValidUntil,
+      ];
+    }
 
     this.displayedColumnsWithDisplay = [...[this.entitySchema.Columns[DisplayColumns.DISPLAY_PROPERTYNAME]], ...this.displayColumns];
   }

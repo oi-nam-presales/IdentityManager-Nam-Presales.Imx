@@ -72,12 +72,30 @@ export class IdentityRoleMembershipsComponent implements OnInit {
     this.withActions = this.roleMembershipsService.canAnalyseAssignment(this.referrer.tablename);
 
     this.navigationState = { PageSize: this.settingService.DefaultPageSize };
-    this.displayedColumns = [
-      this.entitySchema.Columns.XOrigin,
-      this.entitySchema.Columns.XDateInserted,
-      this.entitySchema.Columns.OrderState,
-      this.entitySchema.Columns.ValidUntil,
-    ];
+
+    //P.S.
+    if(this.entitySchema.TypeName == "PersonInOrg" || 
+        this.entitySchema.TypeName == "PersonInAERole"){ 
+          
+          //P.S. - System Roles (ESet) don't have same hierarchy as Org or AERole
+          //|| this.entitySchema.TypeName == "PersonHasESet"
+
+      //this.entitySchema.Columns.RoleFullPath.Display = "Business Role" //P.S.
+      this.displayedColumns = [
+        this.entitySchema.Columns.RoleFullPath, //P.S.
+        this.entitySchema.Columns.XOrigin,
+        this.entitySchema.Columns.XDateInserted,
+        this.entitySchema.Columns.OrderState,
+        this.entitySchema.Columns.ValidUntil,
+      ];
+    }else{
+      this.displayedColumns = [
+        this.entitySchema.Columns.XOrigin,
+        this.entitySchema.Columns.XDateInserted,
+        this.entitySchema.Columns.OrderState,
+        this.entitySchema.Columns.ValidUntil,
+      ];
+    }
 
     this.displayedColumnsWithDisplay = [...[this.entitySchema.Columns[DisplayColumns.DISPLAY_PROPERTYNAME]], ...this.displayedColumns];
   }
