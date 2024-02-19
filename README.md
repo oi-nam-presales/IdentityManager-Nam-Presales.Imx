@@ -3,6 +3,68 @@
 # Identity Manager HTML5 applications
 
 ## Change log
+### January 16, 2024
+The v92 branch has been updated with fixes for the following issues.
+- Bug 441844: In Filter Data sidesheet, within Custom Filters, picking a different limited value does not cause the form to be submittable
+- Bug 441185: Exception when trying to add entitlements to a role
+- Bug 427186: Exporting table views: "Export Data"-SideSheet: Names of columns to export ignores the user interface setting "Use profile language"=OFF
+- Bug 436033: Extra word in the no-data message for Archived Requests
+- Bug 439550: Tiles no longer update the number of open items
+- Bug 441967: Requests: Product bundles: Changes to product bundles are applied to overview table without saving 
+- Bug 439915: New request: Product bundles: Filter icon and search bar displayed incorrectly/cut
+- Bug 433912: In Edit Identity sidesheet, within Rule Violations tab, upon searching, filtering or paging, the data table gets more and more columns
+- Bug 441745: Search by keywords: Unnecessary space before colon
+- Bug 441753: User interface settings: When clicking on "Reset" not the default theme will be applied, but the Device Theme
+- Bug 441217: Github bug: Custom theming is ignored by default config parameter
+- Bug 441754: Manually reloading page resets the theme
+- Bug 441167: Compliance rules: Rule violations: Buttons are displayed although identity has no permission to decide
+- Bug 441122: Sorting: "Search" is not translated
+- Bug 441320: Inactive identities listed in "My Direct Reports" start page tile but not if you follow the "VIEW" link of that tile
+- Bug 440754: Compliance Rules: Defining filters on "View Compliance Rule Details sidesheet" also applies filter to "Compliance Rules" page; results in bugged out Material Chips and JS errors (TypeError: e is undefined)
+- Bug 440143: Grouping a data table, after additional columns were added, results in 400 Bad Request in most pages
+- Bug 441161: The "No Product Bundle Selected" information disappear 
+- Bug 439720: Drop-down CDR editor clears itself too easily
+- Bug 440478: HTML5-Web: Missing scrollbar in View Attestation Run Details\Attestors in OneIM 9.2.0 (issue does not exist in 9.1.1)
+- Bug 440952: Requests: Pending requests: Useless information in details of a request
+- Bug 439739: Duplicate service categories on the request page
+- Bug 441943: Logs - Time filter LDS key is wrong
+- Bug 441975: Chip container of Datasource-Toolbar is displayed in the same row together with search box and buttons
+- Bug 442118: Parameter filter tree does not work
+- Bug 442119: Changed permission notification: Several errors when clicking notification
+- Bug 439266: Data Explorer doesn't open
+- Bug 440720: Compliance Rules with custom view set as default - TypeError: Cannot read properties of undefined (reading 'headerCell')
+- Bug 326746: Application Governance: Cannot change publish state of automatically assigned entitlements
+- Bug 442711: Exception after closing filter: TypeError: Cannot read properties of undefined (reading 'dirty')
+- Bug 443104: In DataSource Toolbar, for grouped results, changing the column order results in seemingly arbitrary column ordering
+- Bug 439914: New request: Product bundles: Product bundle selection: Custom filters not working
+- Product Backlog Item 440711: Implemented proposals from git hub
+- Bug 442757: Admin Portal: The labeling of the Y-axis of the session charts is not recognizable
+- Bug 443316: ServiceCategoryComponent snackbar message are not translated
+
+### December 12, 2023
+- Added some [code samples](sdk_samples/README.md) with explanations.
+
+### December 7, 2023
+The v92 branch has been updated with fixes for the following issues.
+- Add missing translation keys
+- Bug 432754: In Filter Data Sidesheet, by toggling a predefined filter, client side validation can be bypassed, which causes frontend and backend errors.
+- Bug 432757: In Filter Data Sidesheet, by editing a custom filter, multiple copies of the same filter is appended to the url growing it to huge lengths.
+-  Bug 432826: In Data Explorer, Business Roles, custom filters cannot be added or removed, instead they raise JS errors.
+- Bug 435259: Portal: The title of the PeerGroupDiscardSelectedComponent dialog is not translated.
+- Bug 433890: In DataSource Toolbar, overriding an existing saved view adds a new saved view entry to the UI.
+- Bug 436537: 9.2 - Operations Portal: bug in Pending Provisioning Process.
+- Bug 433973: Configuration key "Request configuration / Products can be requested through reference user" has no effect.
+- Bug 433974: Configuration key "Request configuration / Product bundles can be used" has no effect.
+- Bug 433925: UI fix: My processes page crops content.
+- Bug 439229: Attestation Runs page simply does not apply the custom filters to the GET request.
+- Bug 434024: Special filtering, like User Accounts Target system based narrowing, does not properly work with other filters.
+- Bug 433599: Operations Support Portal: Password Tab is empty.
+- Bug 438828: Security Fix: Update crypto-js to version 4.2.0.
+- Bug 438829: Security Fix: Update @babel/traverse to version 7.23.2.
+- Bug 440143: Grouping a data table, after additional columns were added, results in 400 Bad Request in most pages.
+- Bug 440283: Error opening sidesheet in addressbook - TypeError: Reduce of empty array with no initial value.
+- Bug 440037: OpsWeb cannot be started (endless loop).
+
 
 ### October 20, 2023
 

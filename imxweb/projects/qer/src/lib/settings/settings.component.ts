@@ -29,11 +29,10 @@ import { MatDialogRef } from '@angular/material/dialog';
 import { EuiLoadingService, EuiTheme, EuiThemeService, EuiThemeSwitcherComponent } from '@elemental-ui/core';
 import { ProfileSettings} from 'imx-api-qer';
 import { CollectionLoadParameters, CompareOperator, EntityCollectionData, FilterType, IEntityColumn, MetaTableRelationData, ValType, ValueStruct } from 'imx-qbm-dbts';
-import { AppConfigService, BaseCdr, CustomThemeService, EntityService, SnackBarService, imx_SessionService } from 'qbm';
+import { AppConfigService, BaseCdr, CustomThemeService, EntityService, SnackBarService, SystemInfoService } from 'qbm';
 import { Subscription } from 'rxjs';
 import { QerApiService } from '../qer-api-client.service';
 import { DOCUMENT } from '@angular/common';
-import { PersonService } from '../person/person.service';
 
 const portalApp = 'PORTAL';
 const passwordResetApp = 'PASSWORDRESET';
@@ -54,6 +53,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
   private app: string;
   private readonly subscriptions: Subscription[] = [];
   private userCulture: string;
+  private defaultTheme: EuiTheme;
+  private previousTheme: EuiTheme;
 
   constructor(
     @Inject(DOCUMENT) private document: Document,
@@ -65,10 +66,11 @@ export class SettingsComponent implements OnInit, OnDestroy {
     private readonly themeService: EuiThemeService,
     private readonly entityService: EntityService,
     private readonly config: AppConfigService,
-    public dialogRef: MatDialogRef<SettingsComponent>,
-    private readonly session: imx_SessionService,
-    private readonly personService: PersonService
-    ) { }
+    private readonly systemInfoService: SystemInfoService,
+    public dialogRef: MatDialogRef<SettingsComponent>
+    ) {
+      this.subscriptions.push(this.dialogRef.backdropClick().subscribe(() => this.resetThemeToDefault()));
+    }
 
   public async ngOnInit() {
     this.app = this.config.Config.WebAppIndex.toUpperCase();
@@ -100,13 +102,14 @@ export class SettingsComponent implements OnInit, OnDestroy {
       }
 
       this.serverProfileSettings = JSON.parse(JSON.stringify(this.profileSettings));
-
+      this.defaultTheme = <EuiTheme>(await this.systemInfoService.getImxConfig()).DefaultHtmlTheme;
       this.timeZoneCdr = await this.createCdrForTimeZone();
     }
     catch (error) {
       this.errorHandler.handleError(error);
     }
     finally{
+      this.previousTheme = <EuiTheme>localStorage.getItem('eui-theme');
       this.euiLoadingService.hide(overlayRef);
     }
   }
@@ -120,6 +123,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
       } else {
         this.profileSettings.TimeZoneId = "";
       }
+
+      this.profileSettings.PreferredAppThemes = <EuiTheme>localStorage.getItem('eui-theme');
 
       try
       {
@@ -148,9 +153,17 @@ export class SettingsComponent implements OnInit, OnDestroy {
       }
   }
 
+  private resetThemeToDefault() {
+    this.themeService.setTheme(this.previousTheme);
+  }
+
+  public cancelProfileSettings() {
+    this.resetThemeToDefault();
+  }
+
   public async resetProfileSettings()
   {
-    this.themeService.setTheme(EuiTheme.AUTO);
+    this.themeService.setTheme(this.defaultTheme);
 
     let overlayRef = this.euiLoadingService.show();
     try

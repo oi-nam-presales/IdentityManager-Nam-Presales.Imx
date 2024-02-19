@@ -62,7 +62,7 @@ export class ItshopPatternComponent implements OnInit, OnDestroy {
 
   /**
    * the wrapper component for the  {@link DataSourceToolbar|dataSourceToolbar}.
-   */  
+   */
   public dstWrapper: DataSourceWrapper<PortalItshopPatternAdmin>;
 
   public dstSettings: DataSourceToolbarSettings;
@@ -175,7 +175,7 @@ export class ItshopPatternComponent implements OnInit, OnDestroy {
     }
   }
 
-  public async getData(parameter?: CollectionLoadParameters): Promise<void> {    
+  public async getData(parameter?: CollectionLoadParameters): Promise<void> {
     this.patternService.handleOpenLoader();
     try {
       const parameters = {
@@ -183,7 +183,7 @@ export class ItshopPatternComponent implements OnInit, OnDestroy {
         ...{ OrderBy: 'Ident_ShoppingCartPattern asc' }
       };
       this.dstSettings = await this.dstWrapper.getDstSettings(parameters);
-    } finally {      
+    } finally {
       this.patternService.handleCloseLoader();
     }
   }
@@ -220,7 +220,9 @@ export class ItshopPatternComponent implements OnInit, OnDestroy {
     const canEditAndDelete = this.canBeEditedAndDeleted(selectedPattern);
     const pattern = isMyPattern
       ? await this.patternService.getPrivatePattern(selectedPattern.GetEntity().GetKeys()[0])
-      : selectedPattern;
+      : (await this.patternService.getPublicPatterns()).Data.find(
+          (pattern) => pattern.GetEntity().GetKeys()[0] === selectedPattern.GetEntity().GetKeys()[0],
+        );
 
     const title = await this.translate.get(canEditAndDelete
       ? '#LDS#Heading Edit Product Bundle'
