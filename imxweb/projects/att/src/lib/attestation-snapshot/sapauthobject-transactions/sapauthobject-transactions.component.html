@@ -1,0 +1,24 @@
+
+
+
+<imx-data-source-toolbar #dst [options]="['search']"
+[settings]="dstSettings" data-imx-identifier="sap-roles-dst" >
+</imx-data-source-toolbar>
+
+
+<imx-data-table *ngIf="entitySchema" class="imx-pickcategory-table" [dst]="dst"  [selectable]="false"  
+mode="manual" [detailViewVisible]="false"
+data-imx-identifier="sap-auth-object-datatable">
+
+<imx-data-table-column data-imx-identifier="sap-authobject-column-transactiondisplay"  
+    [entityColumn]="entitySchema?.Columns['TransactionDisplay']"  columnLabel="Transaction"  >  
+</imx-data-table-column>
+
+<imx-data-table-column data-imx-identifier="sap-authobject-column-transactiondescription"  
+    [entityColumn]="entitySchema?.Columns['TransactionDescription']" columnLabel="Transaction Description" >  
+</imx-data-table-column>
+
+
+
+</imx-data-table>
+

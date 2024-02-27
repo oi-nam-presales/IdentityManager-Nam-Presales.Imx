@@ -1,0 +1,47 @@
+
+
+
+<imx-data-source-toolbar #dst [options]="['search']"
+[settings]="dstSettings" data-imx-identifier="sap-roles-dst" >
+</imx-data-source-toolbar>
+
+
+<!-- *ngIf="entitySchema" is put here to avoid error "reading 'ColumnName' property" -->
+<imx-data-table *ngIf="entitySchema?.Columns" class="imx-pickcategory-table" [dst]="dst"  [selectable]="false"  
+mode="manual" [detailViewVisible]="false"
+data-imx-identifier="sap-roles-datatable">
+
+<imx-data-table-column data-imx-identifier="sap-roles-column-profile"  
+    [entityColumn]="entitySchema?.Columns['ProfileName']" columnLabel="Profile" >
+
+  <ng-template let-data>
+    <div>{{ data.ProfileName.Column.GetDisplayValue() }}</div>
+    <div subtitle>{{ data.RoleName.Column.GetDisplayValue() }}</div>
+  </ng-template>
+</imx-data-table-column>
+
+<imx-data-table-column data-imx-identifier="sap-roles-column-auth"  
+    [entityColumn]="entitySchema?.Columns['AuthObjectDescription']"  columnLabel="Authorization"  >  
+</imx-data-table-column>
+
+<imx-data-table-column data-imx-identifier="sap-roles-column-sapfield"  
+      [entityColumn]="entitySchema?.Columns['SAPFieldName']"   columnLabel="SAP Field" >
+  <ng-template let-data>
+    <div>{{ data.SAPFieldName.Column.GetDisplayValue() }}</div>
+    <div subtitle>{{ data.SAPFieldDescription.Column.GetDisplayValue() }}</div>
+  </ng-template>
+</imx-data-table-column>
+
+<imx-data-table-column data-imx-identifier="sap-roles-column-value"  [entityColumn]="entitySchema?.Columns['Value']"  >  
+</imx-data-table-column>
+
+<imx-data-table-generic-column columnName="test" columnLabel="View Transactions">
+  <ng-template let-data>
+    <div>
+      <button class="link-button" (click)="openTemplates(data);">{{data.AuthObject.Column.GetDisplayValue()}}</button>
+    </div>
+  </ng-template>
+</imx-data-table-generic-column>
+
+</imx-data-table>
+

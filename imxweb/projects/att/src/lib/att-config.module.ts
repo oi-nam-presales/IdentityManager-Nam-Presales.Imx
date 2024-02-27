@@ -34,7 +34,7 @@ import { TranslateModule } from '@ngx-translate/core';
 import { EuiCoreModule } from '@elemental-ui/core';
 import { PolicyListComponent } from './policies/policy-list/policy-list.component';
 import { PolicyGroupListComponent } from './policy-group/policy-group-list/policy-group-list.component';
-import { ClassloggerService, HELP_CONTEXTUAL, HelpContextualModule, RouteGuardService } from 'qbm';
+import { ClassloggerService, DataSourceToolbarModule, DataTableModule, HELP_CONTEXTUAL, HelpContextualModule, RouteGuardService } from 'qbm';
 import { InitService } from './init.service';
 import { AttestationDecisionModule } from './decision/attestation-decision.module';
 import { AttestationDecisionComponent } from './decision/attestation-decision.component';
@@ -138,6 +138,8 @@ const routes: Routes = [
     MatListModule,
     TranslateModule,
     EuiCoreModule,
+    DataSourceToolbarModule,
+    DataTableModule
   ]
 })
 export class AttConfigModule {

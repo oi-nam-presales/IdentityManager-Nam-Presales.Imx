@@ -51,3 +51,4 @@ export {PolicyGroupModule} from './lib/policy-group/policy-group.module';
 export {PolicyGroupListComponent} from './lib/policy-group/policy-group-list/policy-group-list.component';
 export {EditPolicyGroupSidesheetComponent} from './lib/policy-group/edit-policy-group-sidesheet/edit-policy-group-sidesheet.component';
 export {OpenSidesheetComponent} from './lib/new-user/open-sidesheet.component';
+export {SapModsApiService} from './lib/sapmods-api.service'

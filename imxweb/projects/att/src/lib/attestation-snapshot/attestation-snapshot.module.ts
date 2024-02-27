@@ -30,12 +30,17 @@ import { MatButtonModule } from "@angular/material/button";
 import { MatCardModule } from "@angular/material/card";
 import { EuiCoreModule, EuiMaterialModule } from "@elemental-ui/core";
 import { TranslateModule } from "@ngx-translate/core";
-import { CdrModule, LdsReplaceModule } from "qbm";
+import { CdrModule, DataSourceToolbarModule, DataTableModule, LdsReplaceModule } from "qbm";
 import { AttestationSnapshotComponent } from "./attestation-snapshot.component";
+import { MatTabsModule } from '@angular/material/tabs';
+import { SAPRoleAuthorizationComponent } from "./saprole-authorization/saprole-authorization.component";
+import { SAPAuthObjectTransactionsComponent } from "./sapauthobject-transactions/sapauthobject-transactions.component";
 
 @NgModule({
   declarations: [
-    AttestationSnapshotComponent
+    AttestationSnapshotComponent,
+    SAPRoleAuthorizationComponent,
+    SAPAuthObjectTransactionsComponent
   ],
   imports: [
     CommonModule,
@@ -46,9 +51,14 @@ import { AttestationSnapshotComponent } from "./attestation-snapshot.component";
     TranslateModule,
     MatCardModule,
     MatButtonModule,
+    MatTabsModule,   
+    DataSourceToolbarModule,
+    DataTableModule, 
   ],
   exports: [
-    AttestationSnapshotComponent
+    AttestationSnapshotComponent,
+    SAPRoleAuthorizationComponent,
+    SAPAuthObjectTransactionsComponent
   ]
 })
 export class AttestationSnapshotModule {

@@ -1,13 +1,36 @@
 <ng-container *ngIf="snapshot">
+    
   <mat-accordion class="imx-snapshots" multi="false">
     <mat-expansion-panel class="mat-expansion-panel-spacing" *ngFor="let obj of snapshot.Objects" [attr.data-imx-identifier]="'attestation_snapshot_' + obj.Data.Display">
       <mat-expansion-panel-header>
         <mat-panel-title>
-          <span><strong>{{ obj.Data.Display }}</strong> - {{'#LDS#Object type' | translate}}: {{ obj.TableDisplay }}</span>
+          <span>
+            <strong>{{ obj.Data.Display }}</strong> - {{'#LDS#Object type' | translate}}: {{ obj.TableDisplay }}            
+          </span>          
         </mat-panel-title>
       </mat-expansion-panel-header>
       <div>
-        <ng-container *ngTemplateOutlet="singleSnapshot; context: { $implicit: obj }"></ng-container>
+
+        <!-- <ng-container *ngTemplateOutlet="singleSnapshot; context: { $implicit: obj }"></ng-container> -->
+
+        <span *ngIf=" obj.TableDisplay.toLowerCase()  == 'sap role'">
+
+          <button 
+            mat-flat-button             
+            color="primary" 
+            (click)="openSAPRoleAuthorization()" 
+            data-imx-identifier="identity-sidesheet-button-terminate">
+                <span translate > Authorization for SAP Role '{{ obj.Data.Display }}'</span>
+          </button>
+
+          <ng-container *ngTemplateOutlet="singleSnapshot; context: { $implicit: obj }"></ng-container>
+
+        </span>
+      
+        <span *ngIf=" obj.TableDisplay.toLowerCase()  != 'sap role'">
+          <ng-container *ngTemplateOutlet="singleSnapshot; context: { $implicit: obj }"></ng-container>
+        </span>
+        
       </div>
     </mat-expansion-panel>
   </mat-accordion>
