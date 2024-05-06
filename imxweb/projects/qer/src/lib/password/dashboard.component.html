@@ -50,3 +50,14 @@
     </button>
   </ng-template>
 </imx-icon-tile>
+
+<imx-icon-tile *ngIf="canUnlockAccount" data-imx-identifier="imx-password-unlock-ad-account" [caption]="'#LDS#Unlock AD Account' | translate"
+  [subtitle]="'#LDS#Here you can unlock AD account \'' + userName + '\''| translate"
+  [identifier]="'imx-password-unlock-ad-account'">
+  <ng-template #ActionTemplate>
+    <button mat-button color="primary"  (click)="doOnClickOperation()" >
+      <span>{{'#LDS#Unlock AD Account \'' + userName + '\''| translate}}</span>
+      <eui-icon size="m" icon="forward"></eui-icon>
+    </button>
+  </ng-template>
+</imx-icon-tile>

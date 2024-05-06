@@ -71,7 +71,7 @@
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "^14.2.12",
-    "@angular/cli": "^14.2.12",
+    "@angular/cli": "14.2",
     "@angular/compiler-cli": "^14.2.12",
     "@angular/language-service": "^14.2.12",
     "@compodoc/compodoc": "^1.1.10",
@@ -124,7 +124,8 @@
     "imx-api-saprolesplugin": "file:imx-modules/imx-api-saprolesplugin.tgz",
     "imx-api-tsb": "file:imx-modules/imx-api-tsb.tgz",
     "imx-api-uci": "file:imx-modules/imx-api-uci.tgz",
-    "imx-qbm-dbts": "file:imx-modules/imx-qbm-dbts.tgz"
+    "imx-qbm-dbts": "file:imx-modules/imx-qbm-dbts.tgz",
+    "imx-api-utilsplugin": "file:imx-modules/imx-api-utilsplugin.tgz"
   },
   "overrides": {
     "@babel/traverse": "7.22.6"

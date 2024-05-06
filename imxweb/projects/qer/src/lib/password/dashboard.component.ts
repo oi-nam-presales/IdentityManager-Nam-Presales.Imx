@@ -28,6 +28,7 @@ import { Component, OnInit } from '@angular/core';
 
 import { PasswordresetPasswordquestions } from 'imx-api-qer';
 import { PasswordService } from './password.service';
+import { imx_SessionService } from 'qbm';
 
 @Component({
   templateUrl: './dashboard.component.html',
@@ -37,14 +38,21 @@ export class PasswordDashboardComponent implements OnInit {
 
   public qaProfileVisible: boolean;
   public securityKeysVisible: boolean;
+  public canUnlockAccount: boolean = false;
 
   public qQuestions: PasswordresetPasswordquestions[] = [];
   public get hasAnyUnlockedQuestion(): boolean {
     return this.qQuestions && 0 < this.qQuestions.filter(i => !i.IsLocked.value).length;
   }
 
+  actionText: string = "Test";
+  userId: string = "";
+  userName: string = "";
+  adsAccountID: string = "";
+
   constructor(
-    private readonly passwordSvc: PasswordService
+    private readonly passwordSvc: PasswordService,
+    public readonly sessionService: imx_SessionService,
   ) { }
 
 
@@ -56,5 +64,37 @@ export class PasswordDashboardComponent implements OnInit {
 
     this.qQuestions = await this.passwordSvc.getQuestions();
 
+    this.userId =  (await this.sessionService.getSessionState()).UserUid
+    
+    var acc = await this.getADAccount(this.userId)
+    
+    if(acc){
+      this.canUnlockAccount = !acc.AccountDisabled.value
+      this.adsAccountID = acc.UID_ADSAccount.value
+      this.userName = acc.DisplayName.value
+    }else{
+      this.canUnlockAccount = false
+      this.adsAccountID = ""
+      this.userName = ""
+    }
+    //this.passwordSvc.openSnackbar("canUnlockAccount= " + this.canUnlockAccount ,"adsAccountID=" + this.adsAccountID);
+  }
+
+  public async doOnClickOperation(): Promise<void> {
+
+    if(this.adsAccountID != ""){
+      var ret = (await this.passwordSvc.unlockAccount(this.adsAccountID))
+    }
+    
+    this.passwordSvc.openSnackbar("Finished", ret);
+
+  }
+
+  public async getADAccount(uidPerson): Promise<any> {
+
+    var acc = (await this.passwordSvc.userGetAccount(this.userId)).Data[0]
+    //var accId = (await this.passwordSvc.userGetAccount(this.userId)).Data[0].ret.UID_UNSAccountB.value
+
+    return acc
   }
 }

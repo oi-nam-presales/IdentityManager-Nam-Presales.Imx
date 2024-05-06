@@ -26,17 +26,29 @@
 
 import { Injectable } from '@angular/core';
 
+import { AppConfigService, ImxTranslationProviderService, SnackBarService } from 'qbm';
 import { PasswordData, PasswordItemsData, PasswordresetPasswordquestions, PolicyValidationResult } from 'imx-api-qer';
 import { QerApiService } from '../qer-api-client.service';
+import { V2Client, TypedClient } from 'imx-api-utilsplugin';
 
 @Injectable({
   providedIn: 'root'
 })
 export class PasswordService {
 
+  private v2Client: V2Client;
+  private typedClient: TypedClient;
+
   constructor(
-    private readonly qerApiService: QerApiService
-  ) { }
+    private readonly qerApiService: QerApiService,
+    private readonly snackbar: SnackBarService,
+    private readonly appConfig: AppConfigService,
+    private readonly translationProvider: ImxTranslationProviderService
+  ) {
+    const schemaProvider = appConfig.client;
+    this.v2Client = new V2Client(appConfig.apiClient, schemaProvider);
+    this.typedClient = new TypedClient(this.v2Client, this.translationProvider);
+  }
 
   public async getPasswordItems(uidPerson?: string): Promise<PasswordItemsData> {
 
@@ -56,4 +68,25 @@ export class PasswordService {
     return (await this.qerApiService.typedClient.PasswordresetPasswordquestions.Get()).Data;
   }
 
+  public openSnackbar(message: string, action: string): void {
+    this.snackbar.open({ key: message }, action);
+  }
+
+  public async userGetAccount(uidPerson): Promise<any> {
+    try{
+      var x = await this.typedClient.PasswordresetImutilsGetadaccount.Get(uidPerson);
+      return x;
+    }catch(e) {
+      console.error(e);
+    }
+  }
+
+  public async unlockAccount(uidADSAccountB): Promise<string> {
+    try{
+      var x = await this.v2Client.passwordreset_imutils_unlockaccountscript_get(uidADSAccountB)
+      return 'OK';
+    }catch(e) {
+      return e.message;
+    }
+  }
 }
