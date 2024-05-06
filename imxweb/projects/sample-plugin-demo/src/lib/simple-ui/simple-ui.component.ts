@@ -50,6 +50,7 @@ export class SimpleUiComponent implements OnInit {
       this.testClient = new V2Client(this.appConfig.apiClient, this.appConfig.client)
       this.perInDeptWrapper = new PortalCandidatesPersonindepartmentWrapper(this.testClient, this.translationProvider)
       this.depts = await this.perInDeptWrapper.Get();
+      
   }
 
   navigateToStartPage():void{
