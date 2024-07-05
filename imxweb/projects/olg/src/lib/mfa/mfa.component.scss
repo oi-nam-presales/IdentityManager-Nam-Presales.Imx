@@ -1,0 +1,23 @@
+.imx-flex-sheet {
+  display: flex;
+  flex-direction: column;
+}
+
+imx-busy-indicator {
+  align-self: center;
+  justify-self: center;
+}
+
+
+eui-alert{
+  margin-bottom: 20px;
+}
+
+.mat-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.imx-info {
+  margin-bottom: 20px;
+}

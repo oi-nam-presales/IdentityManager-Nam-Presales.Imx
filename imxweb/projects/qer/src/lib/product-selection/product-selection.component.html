@@ -1,0 +1,240 @@
+<div class="imx-top-container">
+  <h1 class="mat-headline">
+    <span translate>#LDS#Heading New Request</span>
+    <span *ngIf="referenceUser || uidPersonPeerGroup"
+      >&nbsp;-
+      {{ (referenceUser ? '#LDS#Heading By Reference User' : '#LDS#Heading By Peer Group') | translate }}
+    </span>
+    <imx-help-contextual></imx-help-contextual>
+    <button [matMenuTriggerFor]="ToolbarButton1" mat-button class="imx-actions-button" data-imx-identifier="productselection-button-actions">
+      <eui-icon icon="ellipsisvertical"></eui-icon>
+    </button>
+    <mat-menu #ToolbarButton1="matMenu">
+      <button *ngIf="referenceUser || uidPersonPeerGroup" mat-menu-item (click)="cancelPeerOrReference()">
+        <ng-container *ngIf="referenceUser">{{ '#LDS#Cancel request by reference user' | translate }}</ng-container>
+        <ng-container *ngIf="uidPersonPeerGroup">{{ '#LDS#Cancel request by peer group' | translate }}</ng-container>
+      </button>
+      <button mat-menu-item (click)="goToHistory()">
+        {{ '#LDS#Heading Your Request History' | translate }}
+      </button>
+
+      <!-- 262857 hide these menu items
+          <button mat-menu-item (click)="showRequestsForRecipient()">
+              {{'#LDS#Check requests for this recipient' | translate}}</button>
+          <button mat-menu-item (click)="selectRequestTemplate()" *ngIf="canSelectFromTemplate">
+              {{'#LDS#Select a product bundle' | translate}}</button>
+          -->
+      <button mat-menu-item (click)="selectReferenceUser()" *ngIf="canSelectByRefUser">
+        {{ '#LDS#Select a reference user' | translate }}
+      </button>
+      <button mat-menu-item (click)="setPeerGroupPerson(recipients.value)" [disabled]="uidPersonPeerGroup" *ngIf="canSelectByRefUser && isSinglePersonRequest()">
+        {{ '#LDS#Show products other identities requested' | translate }}
+      </button>
+    </mat-menu>
+  </h1>
+
+  <!-- <eui-alert #infobox *ngIf="referenceUser || uidPersonPeerGroup" class="imx-helper-alert" type="info" [condensed]="true" [colored]="true" dismissable="true"  (dismissed)="infoboxVisible = false">
+    <div class="imx-flex-alert">
+      <div>
+        <span #dummyText>
+          <ng-container *ngIf="referenceUser; else peer">
+            <ng-container *ngIf="displayProducts; else refUserRolesText">
+              {{ '#LDS#The following products are assigned to {0}.' | translate | ldsReplace: referenceUser.DisplayValue }}
+            </ng-container>
+            <ng-template #refUserRolesText>
+              {{ '#LDS#{0} is a member of the following organizational structures.' | translate | ldsReplace: referenceUser.DisplayValue }}
+            </ng-template>
+          </ng-container>
+          <ng-template #peer>
+            <ng-container *ngIf="displayProducts; else peerGroupRolesText">
+              {{ '#LDS#Other identities of the peer group of {0} requested the following products.' | translate | ldsReplace: recipients.Column.GetDisplayValue() }}
+            </ng-container>
+            <ng-template #peerGroupRolesText>
+              {{
+                '#LDS#Other identities of the peer group of {0} are members of the following organizational structures.'
+                  | translate
+                  | ldsReplace: recipients.Column.GetDisplayValue()
+              }}
+            </ng-template>
+          </ng-template>
+        </span>
+        <span #dummyText *ngIf="displayProducts" translate>#LDS#Select the products you also want to request for the selected recipient.</span>
+        <span #dummyText *ngIf="!displayProducts" translate>#LDS#Select the organizational structures in which the selected recipient should also be a member.</span>
+      </div>
+    </div>
+  </eui-alert> -->
+  <div data-imx-identifier="recipient-and-actions" class="imx-recipients">
+    <ng-container *ngIf="canRequestForSomebodyElse && !uidPersonPeerGroup; else recipientsReadonly">
+      <mat-radio-group [(ngModel)]="recipientType" data-imx-identifier="recipient-type" (change)="selectedRecipientTypeChanged($event)">
+        <mat-radio-button [value]="'self'" data-imx-identifier="recipient-type-self">
+          {{ '#LDS#For me' | translate }}
+        </mat-radio-button>
+        <mat-radio-button [value]="'others'" data-imx-identifier="recipient-type-others">
+          {{ '#LDS#For others' | translate }}
+        </mat-radio-button>
+      </mat-radio-group>
+    </ng-container>
+    <ng-template #recipientsReadonly>
+      <imx-cdr-editor class="imx-recipients-readonly-cdr" [cdr]="cartItemRecipientsReadonly"></imx-cdr-editor>
+    </ng-template>
+  </div>
+
+  <imx-cdr-editor
+    class="imx-recipients-cdr"
+    [style.visibility]="recipientType === 'others' && canRequestForSomebodyElse && !uidPersonPeerGroup ? 'visible' : 'hidden'"
+    [cdr]="cartItemRecipients"
+    (valueChange)="onRecipientsChanged()"
+  ></imx-cdr-editor>
+
+  <eui-icon #infoIcon [style.visibility]="referenceUser || uidPersonPeerGroup ? 'visible' : 'hidden'" icon="info" class="imx-info-icon" [matTooltip]="infoboxTooltip"></eui-icon>
+
+  <imx-servicecategory-list
+    class="imx-categories"
+    *ngIf="!referenceUser && !uidPersonPeerGroup"
+    [recipients]="recipients"
+    (includeChildCategories)="onIncludeChildCategories($event)"
+    data-imx-identifier="productselection-servicecategory-list"
+    [selectedServiceCategory]="selectedCategory"
+    (serviceCategorySelected)="onServiceCategorySelected($event)"
+  >
+  </imx-servicecategory-list>
+</div>
+
+<!-- TODO later: a service category can be bookmarked / marked as a favorite.
+      to do this, the UID of the selected category may be encoded in the URL -->
+
+<ng-container *ngTemplateOutlet="referenceUser || uidPersonPeerGroup ? reference_or_peer : normal_request"></ng-container>
+
+<ng-template #normal_request>
+  <mat-tab-group *ngIf="canSelectFromTemplate; else serviceItemList" (selectedTabChange)="onTableChange($event)">
+    <mat-tab [label]="'#LDS#Heading Products' | translate">
+      <div class="imx-tab-body-content">
+        <ng-container *ngTemplateOutlet="serviceItemList"></ng-container>
+      </div>
+    </mat-tab>
+    <mat-tab [label]="'#LDS#Heading Product Bundles' | translate">
+      <ng-template matTabContent>
+        <div class="imx-tab-body-content">
+          <imx-pattern-item-list
+            data-imx-identifier="productselection-patternitem-list"
+            [keywords]="searchString"
+            [recipients]="recipients"
+            [itemActions]="patternItemActions"
+            (selectionChanged)="onTemplateSelectionChanged($event)"
+            (handleAction)="handlePatternItemAction($event)"
+            [dataSourceView]="dataSourceView"
+          ></imx-pattern-item-list>
+        </div>
+      </ng-template>
+    </mat-tab>
+  </mat-tab-group>
+</ng-template>
+
+<ng-template #reference_or_peer>
+  <mat-tab-group (selectedTabChange)="onTabChange($event)">
+    <mat-tab [label]="'#LDS#Heading Products' | translate">
+      <div class="imx-tab-body-content">
+        <ng-container *ngTemplateOutlet="serviceItemList"></ng-container>
+      </div>
+    </mat-tab>
+    <mat-tab [label]="'#LDS#Heading Organizational Structures' | translate">
+      <div class="imx-tab-body-content">
+        <imx-role-memberships
+          [recipients]="recipientsWrapper"
+          [referenceUser]="referenceUser"
+          [personPeerGroupUid]="uidPersonPeerGroup"
+          (selectionChanged)="onRoleSelectionChanged($event)"
+          (addItemToCart)="addRoleToCart($event)"
+          [dataSourceView]="getDataSourceView()"
+        >
+        </imx-role-memberships>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+</ng-template>
+
+<ng-template #serviceItemList>
+  <imx-serviceitem-list
+    data-imx-identifier="productselection-serviceitem-list"
+    [keywords]="searchString"
+    [recipients]="recipients"
+    [itemActions]="serviceItemActions"
+    (selectionChanged)="onSelectionChanged($event)"
+    (categoryRemoved)="onServiceCategorySelected($event)"
+    [referenceUserUid]="referenceUser?.DataValue"
+    [uidPersonPeerGroup]="uidPersonPeerGroup"
+    [selectedServiceCategory]="selectedCategory"
+    (handleAction)="handleServiceItemAction($event)"
+    [dataSourceView]="getDataSourceView()"
+    (openCategoryTree)="openCategoryTree()"
+  >
+  </imx-serviceitem-list>
+</ng-template>
+
+<ng-container>
+  <div data-imx-identifier="productselection-div-buttonbar" class="imx-button-bar">
+    <ng-container *ngIf="displayProducts; else selectedRolesDisplay">
+      <button mat-stroked-button (click)="onSelectall()" data-imx-identifier="productselection-select-all">{{ '#LDS#Select all on page' | translate }}</button>
+      <button
+        mat-stroked-button
+        (click)="onDeselectAll()"
+        data-imx-identifier="productselection-deselect-all"
+        [disabled]="selectedItems?.length === 0 && selectedTemplates?.length === 0"
+      >
+        {{ '#LDS#Deselect all' | translate }}
+      </button>
+    </ng-container>
+    <ng-template #selectedRolesDisplay>
+      <button mat-stroked-button (click)="selectAllRolesOnPage()" data-imx-identifier="productselection-roles-select-all">{{ '#LDS#Select all on page' | translate }}</button>
+      <button mat-stroked-button (click)="deselectAllRoles()" data-imx-identifier="productselection-roles-deselect-all" [disabled]="!selectedRoles?.length">
+        {{ '#LDS#Deselect all' | translate }}
+      </button>
+    </ng-template>
+
+    <imx-selected-elements [selectedElements]="showTemplates ? selectedTemplates : selectedItems"></imx-selected-elements>
+
+    <div class="imx-menu-spacer"></div>
+
+    <button
+      [disabled]="(!selectedItems?.length && !selectedTemplates?.length && !selectedRoles?.length) || !requesterSelected()"
+      mat-raised-button
+      color="primary"
+      (click)="onAddItemsToCart()"
+      data-imx-identifier="productselection-button-add-to-cart"
+    >
+      {{ '#LDS#Add to cart' | translate }}
+    </button>
+  </div>
+</ng-container>
+
+<ng-template #Call4>
+  <div mat-dialog-content>
+    <!-- TODO later -->
+    <!-- <h1 mat-dialog-title>{{accProductSelected.GetEntity().GetDisplay()}}</h1> -->
+
+    <h2>
+      {{ '#LDS#This product has already been assigned to {0}.' | translate | ldsReplace: recipients?.Column?.GetDisplayValue() }}
+      {{ '#LDS#You can still submit a request for the product. Please see the details about the assignmeht below.' | translate }}
+    </h2>
+    <!-- TODO later
+        <VI_Roles_EntitlementDetective [UID_Person]="recipients.value"
+            [ObjectKeyEntitlement]="from accproductstatusforperson select top 1 objectkeyentitlement where uid_accproduct = (from accproductcandidate select current uid_accproduct) and uid_person = this.recipients.value and status in ('PERSONHASOBJECT','PERSONHASASSIGNMENTORDER')">
+        </VI_Roles_EntitlementDetective>
+        -->
+  </div>
+  <mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close>{{ '#LDS#Close' | translate }}</button>
+  </mat-dialog-actions>
+</ng-template>
+
+<ng-template #CallAction12>
+  <h1 mat-dialog-title>{{ '#LDS#Select product bundle' | translate }}</h1>
+  <mat-dialog-content>
+    <!-- TODO later
+        <imx-itshop-patternselection></imx-itshop-patternselection>
+        -->
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close>{{ '#LDS#Close' | translate }}</button>
+  </mat-dialog-actions>
+</ng-template>

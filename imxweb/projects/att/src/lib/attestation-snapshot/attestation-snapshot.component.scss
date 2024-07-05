@@ -1,0 +1,47 @@
+@import '@elemental-ui/core/src/styles/_eui_palette.scss';
+
+:host {
+  margin-top: 20px;
+  display: block;
+}
+
+.helper-alert {
+  display: flex;
+  margin-bottom: 20px;
+
+  span {
+    display: block;
+  }
+}
+
+.property {
+  margin-bottom: 20px;
+  span {
+    display: block;
+    word-wrap: break-word;
+    &.column-display {
+      font-size: 12px;
+      color: $color-gray-40;
+      padding-bottom: 5px;
+    }
+  }
+}
+
+.mat-card {
+  margin-bottom: 1em;
+  height: 100%;
+  padding: 20px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.imx-snapshot-content {
+  font-size: 16px;
+  overflow: auto;
+  flex: 1 1 auto;
+}
+
+.imx-snapshots {
+  overflow-y: auto;
+}

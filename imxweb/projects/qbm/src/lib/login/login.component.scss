@@ -1,0 +1,241 @@
+@import "variables.scss";
+@import '@elemental-ui/core/src/styles/_eui_palette.scss';
+
+$inputWidth: calc(40vw + 2px);
+
+.imx-loginPage {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: $iris-blue;
+  color: $white;
+  align-items: center;
+}
+
+.imx-loginFormcontainer {
+  min-height: 400px;
+  position: absolute;
+  top: 50px;
+  left: 25px;
+  right: 25px;
+  bottom: 25px;
+  color: $white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  h1 {
+    text-align: center;
+  }
+
+
+}
+
+.imx-loginMask {
+  padding-top: 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.imx-loginInput {
+  margin: auto 12px;
+
+  ::ng-deep {
+    input {
+      width: $propertylabelwidth;
+      box-sizing: content-box;
+      margin-bottom: 9px;
+      height: 30px;
+      padding-left: 6px;
+      width: calc(40vw - 6px);
+    }
+
+    .mat-form-field-infix {
+      color: $VI_Common_Color_Font;
+    }
+
+    .mat-form-field-flex {
+      background-color: $white;
+      padding-left: 6px;
+    }
+
+    .mat-form-field-appearance-legacy .mat-form-field-underline {
+      bottom: $ImxLoginControlsMargin;
+    }
+
+    .mat-form-field-appearance-legacy .mat-form-field-wrapper {
+      padding-bottom: $ImxLoginControlsMargin;
+    }
+  }
+}
+
+.imx-loginButtonpanel {
+  text-align: center;
+  padding: 30px 0;
+  margin: 0 auto;
+  width: 100%;
+  display: inline-block;
+
+  button {
+    margin: 0 10px;
+  }
+}
+
+.imx-loginData {
+  display: table;
+  margin: 0 auto;
+}
+
+.imx-forgottenPassword {
+  text-align: center;
+  width: 512px;
+  margin: auto;
+}
+
+.imx-loginFooter {
+  text-align: center;
+  position: absolute;
+  bottom: 10px;
+  left: 0;
+  right: 0;
+  color: $white;
+}
+
+.imx-loginMessageContainer {
+  width: 100%;
+  text-align: center;
+}
+
+.imx-logoutOAuthInfo {
+  text-align: center;
+  width: 512px;
+  margin: 16px auto auto;
+}
+
+.imx-loginTextBox {
+  width: 224px;
+  color: $VI_Common_Color_Font !important;
+}
+
+a.imx-loginLink {
+  color: $white !important;
+}
+
+a.imx-loginLink:hover {
+  text-decoration: underline;
+}
+
+.imx-passwordreset-login .imx-loginMask {
+  margin: inherit;
+  padding: 0;
+  width: inherit;
+}
+
+.imx-passwordreset-login .imx-loginInput {
+  margin: 0 12px 0 0;
+  width: inherit;
+}
+
+.imx-passwordreset-login .imx-loginButtonpanel {
+  text-align: right;
+}
+
+.imx-passwordreset-login .imx-loginData {
+  margin: 0;
+}
+
+mat-form-field {
+  width: $inputWidth;
+}
+
+// on smaller screens
+@media screen and (max-width : 600px) {
+  .imx-loginInput {
+    width: 95%;
+    text-align: center;
+  }
+
+  .imx-forgottenPassword {
+    width: 100%;
+  }
+
+  .imx-loginMask {
+    width: 100%;
+    padding-top: 0;
+  }
+}
+
+@media screen and (max-height: 530px) {
+  .imx-loginFooter {
+    visibility: hidden;
+  }
+}
+
+.custom-logo {
+  max-width: 400px;
+  max-height: 150px;
+  margin-bottom: 1em;
+}
+
+.usermessage {
+  margin-top: 1em;
+}
+
+.eui-dark-theme {
+  :host{
+    .imx-loginPage{
+      background-color: $color-gray-80;
+    }
+    .imx-loginInput {
+      ::ng-deep {
+        input {
+          background-color: $color-gray-70;
+          border: none;
+          color: $color-gray-0;
+        }
+
+        .mat-form-field-infix {
+          color: $color-gray-0
+        }
+
+        .mat-form-field-flex {
+          background-color:$color-gray-70;
+        }
+
+      }
+    }
+
+  }
+}
+
+.eui-contrast-theme {
+  :host{
+    .imx-loginPage{
+      background-color: $color-gray-100;
+    }
+    .imx-loginInput {
+      ::ng-deep {
+        input {
+          background-color: $color-gray-90;
+          border: none;
+          color: $color-gray-0;
+        }
+
+        .mat-form-field-infix {
+          color: $color-gray-0
+        }
+
+        .mat-form-field-flex {
+          background-color:$color-gray-90;
+        }
+
+      }
+    }
+
+  }
+}

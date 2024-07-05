@@ -1,0 +1,78 @@
+<div class="imx-pattern-page">
+  <div class="heading-wrapper">
+    <h1 class="mat-headline">
+      <span>{{ '#LDS#Heading Product Bundles' | translate }}</span>
+      <imx-help-contextual [contextId]="helpContextId"></imx-help-contextual>
+    </h1>
+  </div>
+  <mat-card>
+    <div class="imx-table-container" *ngIf="dstWrapper && dstSettings">
+      <imx-data-source-toolbar
+        #dst
+        [options]="['search', 'settings']"
+        [settings]="dstSettings"
+        (search)="getData({ search: $event })"
+        (navigationStateChanged)="getData($event)"
+        data-imx-identifier="itshop-pattern-dst"
+        [itemStatus]="status"
+      >
+      </imx-data-source-toolbar>
+      <imx-data-table
+        #dataTable
+        [dst]="dst"
+        class="imx-patterns-table"
+        [detailViewVisible]="false"
+        mode="manual"
+        [selectable]="true"
+        [showSelectedItemsMenu]="false"
+        (selectionChanged)="onSelectionChanged($event)"
+        (highlightedEntityChanged)="onHighlightedEntityChanged($event)"
+        data-imx-identifier="itshop-pattern-datatable"
+      >
+        <imx-data-table-column data-imx-identifier="itshop-pattern-table-column-display" [entityColumn]="dstWrapper.propertyDisplay">
+          <ng-template let-item>
+            <div data-imx-identifier="itshop-pattern-table-display">{{ item.Ident_ShoppingCartPattern.Column.GetDisplayValue() }}</div>
+            <div subtitle data-imx-identifier="itshop-pattern-table-description">
+              {{ item.Description.Column.GetDisplayValue() }}
+            </div>
+          </ng-template>
+        </imx-data-table-column>
+        <imx-data-table-column data-imx-identifier="itshop-pattern-table-column-UidPerson" [entityColumn]="dstSettings.entitySchema?.Columns.UID_Person"> </imx-data-table-column>
+        <imx-data-table-column data-imx-identifier="itshop-pattern-table-column-isPublicPattern" [entityColumn]="dstSettings.entitySchema?.Columns.IsPublicPattern">
+        </imx-data-table-column>
+      </imx-data-table>
+      <imx-data-source-paginator data-imx-identifier="itshop-pattern-paginator" [dst]="dst"> </imx-data-source-paginator>
+    </div>
+  </mat-card>
+
+  <div class="imx-button-bar">
+    <imx-selected-elements [selectedElements]="selectedPatterns"></imx-selected-elements>
+    <div class="imx-menu-spacer"></div>
+    <button mat-stroked-button color="warn" data-imx-identifier="itshop-pattern-button-delete" [disabled]="!selectedItemsCanBeDeleted()" (click)="delete()">
+      <eui-icon icon="delete"></eui-icon>
+      {{ '#LDS#Delete' | translate }}
+    </button>
+    <button
+      mat-stroked-button
+      data-imx-identifier="itshop-pattern-button-view-publish"
+      *ngIf="adminMode"
+      [disabled]="!selectedItemsCanBeUnpublished()"
+      (click)="unpublish(selectedPatterns)"
+    >
+      {{ '#LDS#Unshare' | translate }}
+    </button>
+    <button
+      mat-stroked-button
+      data-imx-identifier="itshop-pattern-button-view-publish"
+      *ngIf="adminMode"
+      [disabled]="!selectedItemsCanBePublished()"
+      (click)="publish(selectedPatterns)"
+    >
+      {{ '#LDS#Share' | translate }}
+    </button>
+    <button mat-raised-button color="primary" data-imx-identifier="itshop-pattern-button-create" (click)="createNewPattern()">
+    <eui-icon icon="add"></eui-icon>
+      {{ '#LDS#Create product bundle' | translate }}
+    </button>
+  </div>
+</div>

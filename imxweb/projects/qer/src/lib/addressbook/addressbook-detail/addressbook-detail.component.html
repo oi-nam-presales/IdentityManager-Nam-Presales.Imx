@@ -1,0 +1,17 @@
+<div eui-sidesheet-content>
+  <mat-accordion>
+    <mat-expansion-panel *ngIf="isShowOrgChart">
+      <mat-expansion-panel-header>
+        <mat-panel-title>{{ '#LDS#Heading Organizational Overview' | translate }}</mat-panel-title>
+      </mat-expansion-panel-header>
+      <imx-orgchart [uidPerson]="data.personUid"></imx-orgchart>
+    </mat-expansion-panel>
+    <mat-expansion-panel [expanded]="true">
+      <mat-expansion-panel-header>
+        <mat-panel-title>{{ '#LDS#Heading Details' | translate }}</mat-panel-title>
+      </mat-expansion-panel-header>
+      <imx-property-viewer [properties]="data.columns"></imx-property-viewer>
+    </mat-expansion-panel>
+  </mat-accordion>
+</div>
+

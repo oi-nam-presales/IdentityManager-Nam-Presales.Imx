@@ -1,0 +1,99 @@
+@import "@elemental-ui/core/src/styles/_palette.scss";
+@import '@elemental-ui/core/src/styles/_eui_palette.scss';
+
+:host {
+  .imx-masthead-app-name {
+    display: inline-block;
+    margin-left: 10px;
+    margin-right: 5px;
+    cursor: pointer;
+  }
+
+  .imx-masthead-space {
+    flex: 1 1 auto;
+  }
+
+  .imx-masthead--controls {
+    button[mat-button] {
+      &:not(.imx-masthead-user-button) {
+        padding: 0;
+        width: 40px;
+        min-width: 40px;
+      }
+    }
+
+    .imx-masthead--icon-button {
+      min-width: 40px;
+
+      span {
+        display: none;
+      }
+    }
+  }
+}
+
+/* hide the logo inside the masthead if needed */
+::ng-deep eui-masthead.no-logo eui-logo {
+  display: none;
+}
+
+.custom-logo {
+  margin-left: -16px;
+  max-height: 50px;
+  max-width: 300px;
+  cursor: pointer;
+}
+
+@media only screen and (max-width: 768px) {
+  :host {
+    eui-masthead {
+      .mat-toolbar {
+        .mat-toolbar-row {
+          width: unset !important;
+          justify-content: center;
+        }
+
+        .imx-masthead-space,
+        .imx-masthead--controls {
+          display: none;
+        }
+      }
+    }
+
+    .eui-top-navigation-mobile {
+      .eui-top-navigation-mobile-footer {
+        .mat-button {
+          &.imx-masthead--icon-button {
+            width: 100%;
+
+            .mat-button-wrapper span {
+              display: inline-block;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+.eui-dark-theme {
+  :host {
+    .mat-toolbar.mat-primary {
+      background-color: $color-blue-80;
+      color: $color-gray-5;
+    }
+  }
+}
+
+.eui-contrast-theme {
+  :host {
+    ::ng-deep .eui-masthead {
+      background-color: $color-blue-80;
+    }
+
+    .mat-toolbar.mat-primary {
+      background-color: $color-blue-80;
+      color: $color-gray-0;
+    }
+  }
+}

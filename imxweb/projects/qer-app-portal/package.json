@@ -1,0 +1,7 @@
+{
+  "name": "qer-app-portal",
+  "version": "9.2.0",
+  "private": true,
+  "peerDependencies": {
+  }
+}

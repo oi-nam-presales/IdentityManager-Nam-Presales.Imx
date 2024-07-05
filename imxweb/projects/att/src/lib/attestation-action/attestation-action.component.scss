@@ -1,0 +1,51 @@
+.eui-sidesheet-content {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  height: 100%;
+  padding: 18px;
+}
+
+.eui-sidesheet-actions {
+  display: flex;
+  flex-direction: row;
+  margin-top: 5px;
+  justify-content: flex-end;
+}
+
+.imx-attestation-case-form {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;  
+  overflow: hidden;
+
+  .imx-bulk-editor {
+    flex: 1 1 auto;
+    overflow: auto;
+    padding: 2px;
+    margin-bottom: 30px;
+  }
+
+  .imx-decision-reason {
+    flex: 0 0 auto;
+  }
+}
+
+.mat-card .mat-divider-horizontal {
+  position: inherit;
+}
+
+.imx-additional-elements{
+  margin-bottom: 20px;
+}
+
+.imx-decision-card {
+  margin-bottom: 20px;
+  margin-left: 2px;
+  margin-right: 2px;
+}
+
+.imx-top-alert {
+  display: block;
+  margin: 1em 0;
+}

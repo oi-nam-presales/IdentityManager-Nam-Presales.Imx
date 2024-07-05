@@ -1,0 +1,78 @@
+@import '@elemental-ui/core/src/styles/_eui_palette.scss';
+:host {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  height: 100%;
+}
+
+.imx-tab-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+
+  .imx-tab-content-body {
+    display: flex;
+    flex-direction: column;
+
+    :first-child {
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      flex: 1 1 auto;
+    }
+  }
+
+  .eui-sidesheet-actions {
+    > :not(:last-child) {
+      margin-right: 12px;
+    }
+
+    .imx-menu-spacer {
+      flex: 1 1 auto;
+    }
+
+    imx-selected-elements {
+      margin-left: 10px;
+    }
+
+    eui-icon {
+      font-size: 14px;
+      margin-right: 4px;
+    }
+  }
+}
+
+.imx-subtext {
+  color: $color-gray-40;
+  font-size: smaller;
+}
+
+:host {
+  .coloredIcon {
+    color: $color-blue-60;
+  }
+}
+
+.eui-dark-theme {
+  :host {
+    .imx-action-buttons {
+      background-color: $color-gray-70;
+    }
+    .coloredIcon {
+      color: $color-blue-40;
+    }
+  }
+}
+
+.eui-contrast-theme {
+  :host {
+    .imx-action-buttons {
+      background-color: $color-gray-90;
+    }
+
+    .coloredIcon {
+      color: $color-blue-40;
+    }
+  }
+}

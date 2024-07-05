@@ -1,0 +1,235 @@
+<mat-tab-group #tabs (selectedTabChange)="updateButtonInformation($event)">
+  <mat-tab [label]="'#LDS#Information' | translate">
+    <div eui-sidesheet-content>
+      <mat-card class="imx-attestation-case-information">
+        <eui-alert *ngIf="showRecommendation" class="helper-alert" type="info" condensed="true" [colored]="true" [dismissable]="true">
+          <span *ngIf="case.PeerGroupFactor.value >= approvalThreshold" translate
+            >#LDS#Based on the peer group analysis, it is recommended that you approve this attestation case.</span
+          >
+          <span *ngIf="case.PeerGroupFactor.value < approvalThreshold" translate
+            >#LDS#Based on the peer group analysis, it is recommended that you deny this attestation case.</span
+          >
+        </eui-alert>
+
+        <div *ngIf="parameters.length > 0" class="imx-property-container">
+          <!-- TODO 255463: Bearbeiten der Attestierungsparameter - save -->
+          <imx-cdr-editor *ngFor="let cdr of parameters" [cdr]="cdr"></imx-cdr-editor>
+        </div>
+
+        <!-- TODO later: Show Question -->
+
+        <div *ngIf="propertyInfo.length > 0" class="imx-property-container">
+          <imx-cdr-editor *ngFor="let cdr of propertyInfo" [cdr]="cdr"></imx-cdr-editor>
+        </div>
+      </mat-card>
+      <ng-container *ngIf="reportType != 'PDF' && case != null">
+        <imx-attestation-snapshot [uidCase]="case.key" [date]="case.GetEntity().GetColumn('XDateInserted').GetDisplayValue()"></imx-attestation-snapshot>
+      </ng-container>
+    </div>
+  </mat-tab>
+  <mat-tab [label]="'#LDS#Workflow' | translate">
+    <div eui-sidesheet-content>
+      <mat-card class="imx-attestation-case-workflow">
+        <ul class="imx-eventbar">
+          <imx-decision-history-item *ngFor="let workflowHistoryEntity of workflowHistoryData" [workflowHistoryEntity]="workflowHistoryEntity"> </imx-decision-history-item>
+          <imx-approvers *ngIf="approvers" [approvers]="approvers"></imx-approvers>
+        </ul>
+      </mat-card>
+    </div>
+  </mat-tab>
+
+  <mat-tab *ngIf="data.autoRemovalScope" [label]="'#LDS#Heading Entitlement Loss' | translate">
+    <ng-template matTabContent>
+      <div class="imx-mat-tab-container-full">
+        <div class="imx-attestation-case-loss-preview">
+          <imx-loss-preview-table [lossPreview]="data.lossPreview"></imx-loss-preview-table>
+        </div>
+      </div>
+    </ng-template>
+  </mat-tab>
+  <mat-tab *ngIf="case.data?.CanSeeComplianceViolations && case.data?.ComplianceViolations.length > 0" [label]="complianceTabTitle">
+    <div class="imx-mat-tab-container">
+      <div class="imx-attestation-case-compliance-violation">
+        <imx-decision-compliance-violation [mitigatingControlsPerViolation]="mitigatingControlsPerViolation" [complianceViolations]="case.data.ComplianceViolations">
+        </imx-decision-compliance-violation>
+      </div>
+    </div>
+  </mat-tab>
+
+  <mat-tab *ngIf="case.data?.CanSeePolicyViolations && case.data?.PolicyViolations.length > 0" [label]="policyTabTitle">
+    <div class="imx-mat-tab-container">
+      <div class="imx-attestation-case-compliance-violation">
+        <imx-decision-policy-violation [mitigatingControlsPerViolation]="mitigatingControlsPerViolation" [policyViolations]="case.data.PolicyViolations">
+        </imx-decision-policy-violation>
+      </div>
+    </div>
+  </mat-tab>
+  <mat-tab label="{{'#LDS#Heading Hyperview' | translate}}" *ngIf="this.relatedOptions?.length > 1">
+    <ng-template matTabContent>
+      <div eui-sidesheet-content class="imx-attestation-case-hyperview">
+        <mat-form-field appearance="outline">
+          <mat-label>{{ '#LDS#Related objects' | translate }}</mat-label>
+          <mat-select required (selectionChange)="onHyperviewOptionSelected()" [(value)]="selectedOption">
+            <mat-option *ngFor="let relatedOption of relatedOptions" [value]="relatedOption">
+              {{ relatedOption.Display }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+        <imx-object-hyperview *ngIf="!!selectedOption"
+          [objectType]="selectedHyperviewType"
+          [objectUid]="selectedHyperviewUID">
+        </imx-object-hyperview>
+      </div>
+    </ng-template>
+  </mat-tab>
+</mat-tab-group>
+<div eui-sidesheet-actions>
+  <ng-container *ngIf="!data.isInquiry">
+    <button class="imx-justify-right" *ngIf="case?.UID_Person?.value && case?.ObjectKeyBase?.value" mat-stroked-button data-imx-identifier="attestation-case-button-assignment-analysis" (click)="viewSource()">
+      {{ '#LDS#View assignment analysis' | translate }}
+    </button>
+
+    <button mat-stroked-button data-imx-identifier="attestation-case--button-actions" title="{{ '#LDS#Actions' | translate }}" [matMenuTriggerFor]="actionsMenu">
+      <eui-icon icon="ellipsisvertical"></eui-icon>
+      <span translate>#LDS#Actions</span>
+    </button>
+
+    <mat-menu yPosition="above" xPosition="before" data-imx-identifier="requests-history-actions-menu" #actionsMenu="matMenu">
+      <button *ngIf="reportType === 'PDF'" mat-menu-item [euiDownload]="reportDownload" data-imx-identifier="attestation-case-button-download-report">
+        {{ '#LDS#Download report' | translate }}
+      </button>
+      <button *ngIf="case?.UID_QERTermsOfUse?.value" mat-menu-item (click)="showTermsOfUse()" data-imx-identifier="attestation-case-button-terms-of-use">
+        {{ '#LDS#View terms of use' | translate }}
+      </button>
+      <button *ngIf="canEditMitigationControl" mat-menu-item data-imx-identifier="attestation-case-button-edit-mitigation-controls" (click)="editMitigatingControls()">
+        {{ '#LDS#Assign mitigating controls' | translate }}
+      </button>
+      <button *ngIf="canAnalyzeRisk" (click)="analyzeRisk()" mat-menu-item data-imx-identifier="attestation-case-button-analyze-risk">
+        {{ '#LDS#Analyze risk' | translate }}
+      </button>
+      <button
+        mat-menu-item
+        *ngIf="case.canRerouteDecision(userUid)"
+        (click)="attestationAction.directDecision([case], userUid)"
+        data-imx-identifier="attestation-case-direct-decision-button"
+      >
+        {{ '#LDS#Reroute approval' | translate }}
+      </button>
+      <button
+        mat-menu-item
+        *ngIf="case.canAddApprover(userUid)"
+        (click)="attestationAction.addAdditionalAttestor([case])"
+        data-imx-identifier="attestation-case-add-additional-attestor-button"
+      >
+        {{ '#LDS#Add attestor' | translate }}
+      </button>
+      <button
+        mat-menu-item
+        *ngIf="case.canDelegateDecision(userUid)"
+        (click)="attestationAction.delegateDecision([case])"
+        data-imx-identifier="attestation-case-delegate-decision-button"
+      >
+        {{ '#LDS#Delegate approval' | translate }}
+      </button>
+      <button
+        mat-menu-item
+        *ngIf="case.canWithdrawAddApprover(userUid)"
+        (click)="attestationAction.revokeAdditional([case])"
+        data-imx-identifier="attestation-case-revoke-delegation-button"
+      >
+        {{ '#LDS#Withdraw additional attestor' | translate }}
+      </button>
+      <button mat-menu-item *ngIf="case.canDenyApproval(userUid)" (click)="attestationAction.denyDecisions([case])" data-imx-identifier="attestation-case-deny-decision-button">
+        {{ '#LDS#Reject approval' | translate }}
+      </button>
+      <button
+        mat-menu-item
+        *ngIf="case.canEscalateDecision(userUid)"
+        data-imx-identifier="attestation-case-escalate-decision-button"
+        (click)="attestationAction.escalateDecisions([case])"
+      >
+        {{ '#LDS#Escalate approval' | translate }}
+      </button>
+      <button
+        mat-menu-item
+        *ngIf="case.canAskAQuestion"
+        data-imx-identifier="attestation-case-ask-question-button"
+        title="{{ '#LDS#Sends an inquiry about this attestation case to an identity' | translate }}"
+        (click)="attestationAction.sendInquiry([case], userUid)"
+      >
+        {{ '#LDS#Send inquiry' | translate }}
+      </button>
+      <button
+        mat-menu-item
+        *ngIf="case.IsReserved.value && case.hasAskedLastQuestion(userUid)"
+        data-imx-identifier="attestation-case-button-recall-last-question"
+        title="{{ '#LDS#Withdraws the inquiry about this attestation case' | translate }}"
+        (click)="attestationAction.recallInquiry([case])"
+      >
+        {{ '#LDS#Withdraw inquiry' | translate }}
+      </button>
+
+      <button
+        mat-menu-item
+        *ngIf="case.IsReserved.value && (case.hasAskedLastQuestion(userUid) || isUserEscalationApprover)"
+        data-imx-identifier="attestation-case-button-reset-reservation"
+        title="{{ '#LDS#Cancels the reservation for this attestation case' | translate }}"
+        (click)="attestationAction.resetReservation([case])"
+      >
+        {{ '#LDS#Cancel reservation' | translate }}
+      </button>
+
+    </mat-menu>
+    <button mat-flat-button color="warn" data-imx-identifier="attestation-case-button-deny" (click)="attestationAction.deny([case])">
+      <mat-icon>not_interested</mat-icon>
+      <span translate>#LDS#Deny</span>
+    </button>
+    <button mat-flat-button color="primary" data-imx-identifier="attestation-case-button-approve" (click)="attestationAction.checkForViolations([case])">
+      <eui-icon icon="check"></eui-icon>
+      <span translate>#LDS#Approve</span>
+    </button>
+  </ng-container>
+
+  <button
+    mat-flat-button
+    *ngIf="data.isInquiry"
+    color="primary"
+    data-imx-identifier="attestation-case-button-answer-question-approval"
+    title="{{ '#LDS#Sends a reply to the inquiry' | translate }}"
+    (click)="attestationAction.answerQuestion(case)"
+  >
+    {{ '#LDS#Reply to inquiry' | translate }}
+  </button>
+</div>
+
+<!-- TODO Later:
+
+         <LoadTable DataTable="AttestationCaseSameObject" ScriptItemUID="LoadTable1" LoadNew="true" RemoveDeleted="true" RevertExisting="true" Type="DbObject"
+         WhereClause="from attestationcase select current
+format("objectkeybase = {0} and {1} and {2} and {3}",
+sqlformatvalue(ObjectKeyBase, "string", "NonUnicodeLiterals"),
+sqlcompare("uid_attestationcase", uid_attestationcase, "string", "notequal", "NonUnicodeLiterals"),
+sqlcompare("uid_attestationpolicy", uid_attestationpolicy, "string","equal","NonUnicodeLiterals"),
+sqlcompare("UID_PersonHead", "", "string","notequal","NonUnicodeLiterals")
+)">
+DbObjectLoadType({"ScriptItemUID":"DbObjectLoadType7","LoadTypeBulk":"false","LoadTypeBulkReadOnly":"false","LoadTypeForeignDisplays":"true","LoadTypeForeignDisplaysEvenWhenExpensive":"false","LoadTypeForeignDisplaysForAllColumns":"true","LoadTypeSlim":"false"});
+</LoadTable>
+
+<p *ngIf="0 == AttestationCaseSameObject.length">
+   {{'#LDS#This object has been attested previously. The following view shows the historical attestation cases for this object.'|translate}}
+</p>
+
+<p *ngIf="0 == AttestationCaseSameObject.length">
+   {{'#LDS#This object has not been previously attested.' | translate }}</p>
+
+<GridBand DataTable="AttestationCaseSameObject" OrderBy="'XDateInserted desc'" ScriptItemUID="GridBand2"
+   DataSourceType="Collection" RowSelection="false">
+
+   <imx-data-table-column ScriptItemUID="Column18" entityColumn="IsGranted">
+   </imx-data-table-column>
+   <imx-data-table-column ScriptItemUID="Column17" entityColumn="UID_PersonHead">
+   </imx-data-table-column>
+   <imx-data-table-column ScriptItemUID="Column19" entityColumn="DateHead">
+   </imx-data-table-column>
+</GridBand>
+-->

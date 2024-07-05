@@ -1,0 +1,61 @@
+@import '@elemental-ui/core/src/styles/_eui_palette.scss';
+@import '../../../../../shared/scss/common-table.scss';
+.data-explorer {
+  &.data-explorer--accounts {
+    > :nth-child(2) {
+      flex: 0 0 auto;
+    }
+
+    .imx-data-explorer-content {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      flex: 1 1 auto;
+    }
+  }
+}
+
+.eui-dark-theme {
+  :host {
+    background-color: $color-gray-80;
+    .data-explorer.data-explorer--accounts .data-explorer-card-header .data-explorer-card-header-bg {
+      background-color: $color-blue-80;
+    }
+  }
+}
+
+div[subtitle] {
+  font-size: smaller;
+  color: $color-gray-40;
+}
+
+.imx-ellipse-column {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.data-explorer-bottom-button-row {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  margin-top: 15px;
+  align-self: end;
+
+  .mat-stroked-button {
+    @include imx-icon-for-image-button();
+  }
+}
+
+.hidden {
+  display: none;
+}
+
+.eui-contrast-theme {
+  :host {
+    background-color: $color-gray-100;
+    .data-explorer.data-explorer--accounts .data-explorer-card-header .data-explorer-card-header-bg {
+      background-color: $color-gray-100;
+    }
+  }
+}

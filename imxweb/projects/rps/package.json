@@ -1,0 +1,8 @@
+{
+  "name": "rps",
+  "version": "9.2.0",
+  "private": true,
+  "bundledDependencies": [
+    "imx-api-rps"
+  ]
+}

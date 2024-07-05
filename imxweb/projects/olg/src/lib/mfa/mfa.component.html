@@ -1,0 +1,19 @@
+<div eui-sidesheet-content class="imx-flex-sheet">
+  <eui-alert class="imx-info" type="info" condensed="true" colored="true">
+    <span>{{ '#LDS#You must authenticate before you can proceed. To do this, use one of the following multi-factor authentication methods.' | translate }}</span>
+  </eui-alert>
+  <mat-card>
+    <imx-busy-indicator *ngIf="isLoading"></imx-busy-indicator>
+    <eui-alert type="error" [condensed]="true" [colored]="true" *ngIf="!isLoading && !hasAuthenticators">
+      {{ '#LDS#There are no authentication methods defined for you. Contact your administrator.' | translate }}
+    </eui-alert>
+    <form [formGroup]="authForm">
+      <imx-mfa-form-control
+        formControlName="authenticator"
+        [busyService]="busyService"
+        [itemId]="data.workflowActionId"
+        (loaded)="hasAuthenticators = $event"
+      ></imx-mfa-form-control>
+    </form>
+  </mat-card>
+</div>

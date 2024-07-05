@@ -1,0 +1,40 @@
+@import '@elemental-ui/core/src/styles/_eui_palette.scss';
+
+:host {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+}
+
+.mat-button-toggle-group {
+  margin-bottom: 10px;
+
+  .mat-button-toggle-checked {
+    background-color: $color-orange-20;
+  }
+}
+
+::ng-deep .mat-checkbox-disabled {
+  cursor: not-allowed;
+}
+
+
+.helper-alert  {
+  margin: 20px 2px;
+}
+
+@media screen and (max-width: 768px) {
+  .mat-button-toggle-group {
+    width: 100%;
+  }
+}
+
+.eui-dark-theme {
+  :host {
+    ::ng-deep.mat-button-toggle-group {
+      .mat-button-toggle-checked {
+        background-color: $color-gray-60;
+      }
+    }
+  }
+}

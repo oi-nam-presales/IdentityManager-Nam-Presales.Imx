@@ -1,0 +1,10 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  flex: 1 1 auto;
+
+  .imx-toolbar-margin {
+    margin-bottom: 16px;
+  }
+}

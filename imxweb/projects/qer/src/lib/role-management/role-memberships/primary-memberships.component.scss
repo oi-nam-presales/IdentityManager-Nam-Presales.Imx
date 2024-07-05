@@ -1,0 +1,12 @@
+/* You can add global styles to this file, and also import other style files */
+*:host {
+  flex: 1 1 auto;
+}
+
+.mat-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+

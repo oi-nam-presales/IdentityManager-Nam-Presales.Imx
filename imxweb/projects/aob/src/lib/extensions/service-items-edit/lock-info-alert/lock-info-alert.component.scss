@@ -1,0 +1,9 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  
+  .imx-helper-alert {
+    margin-bottom: 20px;
+    width: 100%;
+  }
+}

@@ -1,0 +1,35 @@
+@import '@elemental-ui/core/src/styles/_palette.scss';
+@import '@elemental-ui/core/src/styles/_eui_palette.scss';
+
+.imx-request-detail {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  height: 100%;
+}
+
+.eui-sidesheet-actions {
+  button:not(:last-of-type) {
+    margin-right: 10px;
+  }
+}
+
+.eui-dark-theme {
+  :host {
+    .imx-request-detail {
+      background-color: $color-gray-80;
+    }
+  }
+}
+
+.eui-contrast-theme {
+  :host {
+    .imx-request-detail {
+      background-color: $color-gray-100;
+    }
+    .imx-button-bar{
+      color: $color-gray-2;
+      background-color: $color-gray-90;
+    }
+  }
+}

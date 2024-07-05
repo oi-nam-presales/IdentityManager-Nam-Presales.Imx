@@ -1,0 +1,48 @@
+@import "variables.scss";
+
+table.LayoutpPropItems {
+  cursor: pointer;
+  width: 100%;
+}
+
+.LayoutpPropRow {
+  display: flex;
+  min-height: $propcellminheight;
+}
+
+.LayoutpPropCol {
+  min-height: $propcellminheight;
+  padding: 2px 4px 3px 0;
+  vertical-align: top;
+}
+
+.LayoutpPropCol:nth-child(1) {
+  width: $propertylabelwidth;
+}
+
+.LayoutpPropCol0 {
+  padding: 0;
+  width: 150px;
+  font-weight: lighter;
+}
+
+.LayoutpPropCol1 {
+  padding: 0;
+  width: 200px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.imx-hyperview-deleted {
+  text-decoration: line-through;
+}
+
+.imx-layoutpanel-cell {
+  display: table-cell;
+}
+
+.endsSection {
+  border-bottom: solid 1px lightgray;
+  margin-bottom: .5em;
+}

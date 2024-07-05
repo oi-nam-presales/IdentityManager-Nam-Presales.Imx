@@ -1,0 +1,114 @@
+@import 'variables.scss';
+
+:host {
+  min-width: 800px;
+  margin-bottom: 1em;
+}
+
+.buttonbar {
+  margin-top: 1em;
+}
+
+.config-summary {
+  display: flex;
+  flex-direction: row;
+}
+
+.config-changes {
+  flex: 1 1 auto;
+  text-align: right;
+
+  button {
+    margin: 0 0 0 1em;
+  }
+}
+
+.flex-container {
+  position: absolute;
+  top: 32px;
+  bottom: 32px;
+  left: 32px;
+  right: 32px;
+  display: flex;
+  flex-flow: column;
+  align-items: stretch;
+}
+
+.section-header {
+  margin-top: 1em;
+  margin-bottom: 0.5em;
+}
+
+.section-subtitle {
+  font-size: smaller;
+  color: $black-9;
+}
+
+.key-path {
+  font-family: monospace;
+  font-size: smaller;
+  text-align: right;
+  color: $VI_Common_Color_Gray;
+}
+
+.setting-novalue {
+  font-style: italic;
+}
+
+.right-aligned-description {
+  flex-grow: 0;
+}
+
+.project-selector {
+  min-width: 450px;
+}
+
+.wide-field {
+  min-width: 450px;
+  margin-right: 1em;
+}
+
+.scroll-container {
+  padding: 0.5em 0.5em 0.5em 0;
+  flex: 1 1 auto;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+
+  &.loading {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .loading {
+    display: flex;
+    justify-content: center;
+    flex: 1;
+    align-content: center;
+    flex-flow: wrap;
+  }
+}
+
+.no-results {
+  text-align: center;
+  margin: 20px 0;
+
+  .eui-icon {
+    font-size: 100px;
+    color: rgba($black-c, 0.55);
+  }
+
+  p {
+    margin: 0;
+    font-size: 18px;
+    color: $black-9;
+  }
+}
+.mat-expansion-panel-header,
+.mat-expansion-panel-header.mat-expanded {
+  height: 50px;
+}
+.cdk-virtual-scroll-viewport {
+  flex-grow: 1;
+}

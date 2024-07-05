@@ -1,0 +1,6 @@
+<imx-entitlement-edit
+  [entitlement]="data?.entitlement"
+  [serviceItem]="data?.serviceItem"
+  (controlCreated)="form.addControl('entitlementedit', $event)"
+  (saved)="afterSave($event)">
+</imx-entitlement-edit>

@@ -1,0 +1,71 @@
+@import "@elemental-ui/core/src/styles/_palette.scss";
+@import '@elemental-ui/core/src/styles/_eui_palette.scss';
+
+:host {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  overflow: hidden;
+  height: 100%;
+
+  ::ng-deep .mat-list-base {
+    .mat-list-item.imx-list-item {
+      height: auto;
+    }
+  }
+
+  ::ng-deep .mat-menu-panel {
+    padding: 10px;
+    max-width: 500px;
+  }
+}
+
+.imx-dialog-content {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.imx-filtertree-buttons {
+  display: flex;
+  flex-direction: row;
+}
+
+.imx-current-filter {
+  > :first-child {
+    font-weight: 600;
+    margin-right: 1rem;
+  }
+}
+
+
+.imx-badge {
+  background-color: $white;
+}
+
+.imx-spacer {
+  flex: 1 1 auto;
+}
+
+.imx-selected-item-element {
+  margin: 5px 0;
+}
+.mat-dialog-actions{
+  padding-bottom: 16px;
+}
+
+.eui-dark-theme {
+  :host {
+    .imx-badge {
+      background-color: $color-gray-80;
+    }
+  }
+}
+
+.eui-contrast-theme {
+  :host {
+    .imx-badge {
+      background-color: $color-gray-100;
+    }
+  }
+}
