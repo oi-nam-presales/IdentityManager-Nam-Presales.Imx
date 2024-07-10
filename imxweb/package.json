@@ -123,6 +123,7 @@
     "imx-api-sac": "file:imx-modules/imx-api-sac.tgz",
     "imx-api-tsb": "file:imx-modules/imx-api-tsb.tgz",
     "imx-api-uci": "file:imx-modules/imx-api-uci.tgz",
+    "imx-api-utilsplugin": "file:imx-modules/imx-api-utilsplugin.tgz",
     "imx-qbm-dbts": "file:imx-modules/imx-qbm-dbts.tgz"
   },
   "overrides": {

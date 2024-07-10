@@ -4,5 +4,7 @@
     "git.ignoreLimitWarning": true,
     "cSpell.words": [
         "requestable"
-    ]
+    ],
+    "files.autoSave": "afterDelay",
+    "search.useIgnoreFiles": false
 }

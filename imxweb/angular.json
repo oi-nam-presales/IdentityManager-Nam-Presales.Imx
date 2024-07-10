@@ -2049,6 +2049,67 @@
           }
         }
       }
+    },
+    "utils-plugin": {
+      "root": "projects/utils-plugin",
+      "sourceRoot": "projects/utils-plugin/src",
+      "projectType": "library",
+      "prefix": "imx",
+      "schematics": {
+        "@schematics/angular:component": {
+          "style": "scss"
+        }
+      },
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-angular:ng-packagr",
+          "options": {
+            "tsConfig": "projects/utils-plugin/tsconfig.lib.json",
+            "project": "projects/utils-plugin/ng-package.json"
+          },
+          "configurations": {
+            "production": {
+              "tsConfig": "projects/utils-plugin/tsconfig.lib.prod.json"
+            },
+            "development": {
+              "tsConfig": "projects/utils-plugin/tsconfig.lib.json"
+            },
+            "dynamic": {
+              "project": "projects/utils-plugin/ng-package.dynamic.json"
+            },
+            "remote-dev": {
+              "tsConfig": "projects/utils-plugin/tsconfig.lib.json"
+            },
+            "remote-qs": {
+              "tsConfig": "projects/utils-plugin/tsconfig.lib.json"
+            }
+          }
+        },
+        "test": {
+          "builder": "@angular-devkit/build-angular:karma",
+          "options": {
+            "main": "projects/utils-plugin/src/test.ts",
+            "tsConfig": "projects/utils-plugin/tsconfig.spec.json",
+            "karmaConfig": "projects/utils-plugin/karma.conf.js",
+            "stylePreprocessorOptions": {
+              "includePaths": [
+                "./shared/assets",
+                "./shared/scss",
+                "./node_modules",
+                "./node_modules/@elemental-ui/cadence-icon",
+                "./node_modules/@elemental-ui/core"
+              ]
+            }
+          }
+        },
+        "lint": {
+          "builder": "@angular-devkit/build-angular:tslint",
+          "options": {
+            "tsConfig": ["projects/utils-plugin/tsconfig.lib.json", "projects/utils-plugin/tsconfig.spec.json"],
+            "exclude": ["**/node_modules/**", "**/*.spec.ts", "**/*.json"]
+          }
+        }
+      }
     }
   },
   "cli": {

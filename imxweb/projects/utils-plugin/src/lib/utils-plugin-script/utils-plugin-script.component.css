@@ -1,0 +1,70 @@
+table {
+  width: 100%;
+}
+
+.mat-table {
+  overflow: auto;
+  max-height: 500px;
+  border: 1px solid black;
+}
+
+.mat-cell
+{
+  border: 1px solid black;
+  text-align: center;
+}
+
+.mat-header-cell
+{
+  border: 1px solid black;
+  font-size: larger;
+  text-align: center;
+}
+
+.mat-header-row
+{
+  background-color:lightblue;
+  border: 1px solid black;
+}
+
+
+.mat-form-field {
+  width: 100%;
+}
+
+button {
+  margin-top: 16px;
+}
+
+.mat-elevation-z8 {
+  margin-top: 16px;
+}
+
+.mat-row:nth-child(even){
+  background-color:white;
+}
+
+.mat-row:nth-child(odd){
+  background-color:beige;
+}
+
+.summary-card {
+  /*border: 1px solid #399df5; /* Border color */
+  background-color: beige;
+  font-family: 'Arial, sans-serif'; /* Custom font */
+  font-size: 20px;
+  color: #333; /* Custom text color */
+  margin-top: 16px; /* Spacing above the card */
+  padding: 16px; /* Padding inside the card */
+}
+
+.summary-card-content {
+  font-size: 16px; /* Font size */
+  color: #091048; /* Text color */
+}
+
+.query-card-content {
+  font-size: 12px; /* Font size */
+  color: #08218c; /* Text color */
+  font-weight: 200;
+}

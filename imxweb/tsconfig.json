@@ -33,7 +33,9 @@
       "aad": ["dist/aad"],
       "aad/*": ["dist/aad/*"],
       "apc": ["dist/apc"],
-      "apc/*": ["dist/apc/*"]
+      "apc/*": ["dist/apc/*"],
+      "utils-plugin": ["dist/utils-plugin"],
+      "utils-plugin/*": ["dist/utils-plugin/*"]
     },
     "noFallthroughCasesInSwitch": true,
     "sourceMap": true,
