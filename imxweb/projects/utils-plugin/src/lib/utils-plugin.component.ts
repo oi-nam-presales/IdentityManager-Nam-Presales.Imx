@@ -29,7 +29,7 @@ export class UtilsPluginComponent implements OnInit {
   async ngOnInit(): Promise<void> {
     console.log("UtilsPluginComponent -> onInit")
     this.userId =  (await this.sessionService.getSessionState()).UserUid
-    this.actionText =  "User " + (await this.sessionService.getSessionState()).Username + " - start conversation"
+    this.actionText =  "Start conversation"
   }
 
   public async doOnClickOperation(): Promise<void> {
