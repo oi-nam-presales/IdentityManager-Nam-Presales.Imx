@@ -1,7 +1,7 @@
 <div>
   <mat-form-field appearance="fill">
     <mat-label>Enter request</mat-label>
-    <input matInput [(ngModel)]="userRequest" placeholder="Enter query">
+    <textarea matInput [(ngModel)]="userRequest" placeholder="Enter request"></textarea>
   </mat-form-field>
   <button mat-raised-button color="primary" (click)="userGetAIResponse()">Execute</button>
 </div>
