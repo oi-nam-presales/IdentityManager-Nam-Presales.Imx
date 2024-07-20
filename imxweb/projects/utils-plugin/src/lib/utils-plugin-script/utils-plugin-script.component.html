@@ -2,29 +2,20 @@
 <div style="display: flex; align-items: center;">
   <mat-form-field appearance="fill" style="flex-grow: 1; margin-right: 10px;">
     <mat-label>Request history</mat-label>
-    <textarea disabled matInput [(ngModel)]="userRequest" placeholder="Request history" required></textarea>
+    <textarea disabled matInput [(ngModel)]="requestHistory" placeholder="Request history" required></textarea>
   </mat-form-field>
 </div>
 
 <div style="display: flex; align-items: flex-start;">
   <mat-form-field appearance="fill" style="flex-grow: 1; margin-right: 10px;">
     <mat-label>Enter request</mat-label>
-    <textarea matInput [(ngModel)]="followUpRequest" placeholder="Enter request" required></textarea>
+    <textarea matInput [(ngModel)]="userRequest" placeholder="Enter request" ></textarea>
   </mat-form-field>
   <div style="display: flex; flex-direction: column;">
     <button mat-raised-button color="primary" class="buttons-class" (click)="userGetAIResponse()" >New Conversation</button>
     <button mat-raised-button color="primary" class="buttons-class" (click)="userGetFollowUpAIResponse()" >Follow Up Question</button>
   </div>
 </div>
-
-<!-- <div style="display: flex; align-items: center;">
-  <mat-form-field appearance="fill" style="flex-grow: 1; margin-right: 10px;">
-    <mat-label>Continue conversation</mat-label>
-    <textarea matInput [(ngModel)]="additionalRequest" placeholder="Continue conversation" required></textarea>
-  </mat-form-field>
-  <button mat-button color="primary" (click)="userGetAIResponse()">Start conversation</button>
-</div> -->
-<!-- ======================================================================= -->
 
 <mat-card appearance="outlined" class="summary-card"  *ngIf="aiSummary.length > 0">
   <mat-card-header>
@@ -48,6 +39,17 @@
   </mat-card-content>
 </mat-card>
 
+<mat-card appearance="outlined" class="summary-card"  *ngIf="errorMessage.length > 0">
+  <mat-card-header>
+    <mat-card-title> Error </mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    <p class="error-card-content">
+      {{errorMessage}}
+    </p>
+  </mat-card-content>
+</mat-card>
+
 <div  *ngIf="data.length > 0">
   <table mat-table [dataSource]="data" class="mat-elevation-z8">
 
@@ -61,17 +63,4 @@
   </table>
 </div>
 
-<!-- <input type="text" [(ngModel)]="userRequest" placeholder="Enter request">
-<input type="button" (click)="userGetAIResponse(userRequest)" value="Get AI Response">
-<table>
-  <thead>
-    <tr>
-      <th *ngFor="let column of columns">{{ column }}</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr *ngFor="let row of data">
-      <td *ngFor="let column of columns">{{ row[column] }}</td>
-    </tr>
-  </tbody>
-</table> -->
+

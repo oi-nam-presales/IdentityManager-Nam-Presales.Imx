@@ -58,7 +58,7 @@ export class UtilsPluginComponent implements OnInit {
 
     const config: EuiSidesheetConfig = {
       title: title,
-      width: '900px',
+      width: '1200px',
       headerColour: 'green',
       data: this.userId,
     };

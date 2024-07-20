@@ -21,10 +21,10 @@ export class UtilsPluginScriptComponent implements OnInit {
  displayedColumns: string[] = [];
  aiSummary: string = '';
  aiQuery: string = '';
+ requestHistory: string = '';
  userRequest: string = '';
- followUpRequest: string = '';
  errorMessage: string = '';
- history: any[] = [];
+ history: string = '';
 
 
   constructor(
@@ -42,26 +42,26 @@ export class UtilsPluginScriptComponent implements OnInit {
     this.data = [];
     this.response = [];
 
-    if(this.userRequest == "" && this.followUpRequest == ""){
+    if(this.userRequest == ""){
       return;
     }
 
-    if(this.userRequest == "" && this.followUpRequest != ""){
-      this.userRequest = this.followUpRequest
+    if(this.requestHistory == "" ){
+      this.requestHistory = "-" + this.userRequest
+    }else{
+      this.requestHistory = this.requestHistory + "\n" + "-" + this.userRequest
     }
 
-    if(this.userRequest != "" && this.followUpRequest != ""){
-      this.userRequest = this.userRequest + "\n" + this.followUpRequest
-    }
-
-    //return;
+    this.errorMessage = '';
 
     let overlayRef: OverlayRef;
     setTimeout(() => (overlayRef = this.busyService.show()));
     try {
       try{
           //const reqData = "show me all users working from San Diego"
-        this.response = await this.utilsPluginService.userGetAIResponse(this.followUpRequest, this.history)
+        this.response = await this.utilsPluginService.userGetAIResponse(this.userRequest, this.history)
+        this.userRequest = '';
+
         this.history = this.response.Result.history;
 
         if(this.response.Result.query){
@@ -72,6 +72,9 @@ export class UtilsPluginScriptComponent implements OnInit {
           this.aiSummary = this.response.Result.summary
         }
 
+        if(this.response.Result.errorMessage){
+          this.errorMessage = this.response.Result.errorMessage;
+        }
 
         if (this.response.Result.data.length > 0) {
           this.columns = Object.keys(this.response.Result.data[0]);
@@ -92,18 +95,19 @@ export class UtilsPluginScriptComponent implements OnInit {
 
    async userGetAIResponse(): Promise<any> {
 
-    if(this.userRequest == "" && this.followUpRequest == ""){
+    if(this.userRequest == ""){
       return;
     }
-
-    this.userRequest = this.followUpRequest
-
 
       //Clear data
       this.aiSummary = '';
       this.aiQuery = '';
       this.data = [];
       this.response = [];
+      this.history = '';
+      this.errorMessage = '';
+
+      this.requestHistory = "-" + this.userRequest;
 
       let overlayRef: OverlayRef;
       setTimeout(() => (overlayRef = this.busyService.show()));
@@ -112,20 +116,26 @@ export class UtilsPluginScriptComponent implements OnInit {
         try{
             //const reqData = "show me all users working from San Diego"
           this.response = await this.utilsPluginService.userGetAIResponse(this.userRequest, this.history)
+          this.userRequest = '';
 
-          if(this.response.query){
-            this.aiQuery = this.response.query
+          this.history = this.response.Result.history;
+
+          if(this.response.Result.query){
+            this.aiQuery = this.response.Result.query
           }
 
-          if(this.response.summary){
-            this.aiSummary = this.response.summary
+          if(this.response.Result.summary){
+            this.aiSummary = this.response.Result.summary
           }
 
+          if(this.response.Result.errorMessage){
+            this.errorMessage = this.response.Result.errorMessage;
+          }
 
-          if (this.response.data.length > 0) {
-            this.columns = Object.keys(this.response.data[0]);
+          if (this.response.Result.data.length > 0) {
+            this.columns = Object.keys(this.response.Result.data[0]);
             this.displayedColumns = [...this.columns];
-            this.data = this.response.data
+            this.data = this.response.Result.data
           }else{
             this.columns = []
             this.displayedColumns = [];

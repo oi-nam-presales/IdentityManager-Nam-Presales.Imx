@@ -54,11 +54,7 @@ export class UtilsPluginService {
           request: encodeURIComponent(userRequest)
       }
 
-
-
-      //var data = await this.v2Client.portal_imutils_ai_get(args)
-
-      var data = await this.v2Client.portal_imutils_ai_conversation_post(btoa(history), args)
+      var data = await this.v2Client.portal_imutils_ai_conversation_post(history, args)
 
       return data;
     }catch(e) {

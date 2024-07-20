@@ -69,6 +69,12 @@ button {
   font-weight: 200;
 }
 
+.error-card-content {
+  font-size: 12px; /* Font size */
+  color: #b41c0b; /* Text color */
+  font-weight: 200;
+}
+
 .buttons-class {
     height: 24px !important;
     /* width: 140px !important; */
