@@ -68,3 +68,11 @@ button {
   color: #08218c; /* Text color */
   font-weight: 200;
 }
+
+.buttons-class {
+    height: 24px !important;
+    /* width: 140px !important; */
+    display: flex ;
+    align-items: center;
+    justify-content: center;
+}
