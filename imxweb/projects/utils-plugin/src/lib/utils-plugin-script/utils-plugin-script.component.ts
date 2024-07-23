@@ -46,8 +46,14 @@ export class UtilsPluginScriptComponent implements OnInit {
   }
 
   async saveSystemMessage(): Promise<any> {
-    await this.utilsPluginService.getUpdateAISystemMessage(this.systemMessage);
-    this.requestsService.openSnackbar('System message updated', 'Done');
+    try{
+      const ret = await this.utilsPluginService.getUpdateAISystemMessage(this.systemMessage);
+
+      this.requestsService.openSnackbar('System message updated', 'Done');
+
+    }catch(e){
+      this.requestsService.openSnackbar('Error saving system message', 'Done');
+    }
   }
 
   async userGetFollowUpAIResponse(): Promise<any> {

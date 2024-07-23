@@ -82,6 +82,11 @@ button {
     align-items: center;
     justify-content: center;
 }
+
+::ng-deep .mat-secondary {
+  background-color: rgb(194, 182, 9) !important;
+}
+
 /* ============================================================ */
 
  .adminContent {

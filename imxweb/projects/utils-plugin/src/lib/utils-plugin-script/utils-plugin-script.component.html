@@ -2,7 +2,7 @@
   <mat-tab >
 
     <ng-template mat-tab-label>
-      <span class="tab-label-class">Ask AI</span>
+      <span class="tab-label-class">Ask One Identity AI</span>
     </ng-template>
 
     <div style="display: flex; align-items: center">
@@ -19,7 +19,7 @@
       </mat-form-field>
       <div style="display: flex; flex-direction: column">
         <button mat-raised-button color="primary" class="buttons-class" (click)="userGetAIResponse()">New Conversation</button>
-        <button mat-raised-button color="primary" class="buttons-class" (click)="userGetFollowUpAIResponse()">Follow Up Question</button>
+        <button mat-raised-button color="secondary" class="buttons-class" [disabled]="history.length == 0" (click)="userGetFollowUpAIResponse()">Follow Up Question</button>
       </div>
     </div>
 
@@ -78,7 +78,7 @@
 <mat-tab *ngIf="hasAdminRole">
 
   <ng-template mat-tab-label>
-    <span class="tab-label-class">AI Administration</span>
+    <span class="tab-label-class">One Identity AI Administration</span>
   </ng-template>
 
 <div class="content">

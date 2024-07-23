@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Input } from '@angular/core';
 import { Route, Router } from '@angular/router';
 import { AppConfigService, ExtService,  ImxTranslationProviderService } from 'qbm';
 import { UtilsPluginComponent } from './utils-plugin.component';
@@ -53,12 +53,16 @@ export class UtilsPluginService {
   async getUpdateAISystemMessage(systemMessage): Promise<string> {
     try{
 
-      var data = await this.v2Client.portal_imutils_ai_admin_systemmessage_post(btoa(systemMessage));
+      const posted = {
+        Input: btoa(systemMessage)
+      }
+
+      var data = await this.v2Client.portal_imutils_ai_admin_systemmessage_post(posted);
 
     } catch(e) {
       console.error(e);
     }
-    return data;
+    return data.Message;
   }
 
   async userGetAIResponse(userRequest, history): Promise<any> {
@@ -68,7 +72,11 @@ export class UtilsPluginService {
           request: encodeURIComponent(userRequest)
       }
 
-      var data = await this.v2Client.portal_imutils_ai_conversation_post(history, args)
+      const postedHistory = {
+        Input:history
+      }
+
+      var data = await this.v2Client.portal_imutils_ai_conversation_post(postedHistory, args)
 
       return data;
     }catch(e) {
