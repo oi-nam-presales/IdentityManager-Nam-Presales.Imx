@@ -36,15 +36,29 @@ export class UtilsPluginService {
     this.router.resetConfig(config);
   }
 
-  userHasRole(uidPerson): Promise<boolean> {
+  userHasRole(uidPerson, roleType): Promise<boolean> {
     try{
 
-      var data =  this.v2Client.portal_imutils_ai_hasaiuserrole_get(uidPerson)
+    const args: any = {
+      roletype: encodeURIComponent(roleType)
+    }
+      var data =  this.v2Client.portal_imutils_ai_hasairole_get(uidPerson,args)
 
       return data;
     }catch(e) {
       console.error(e);
     }
+  }
+
+  async getUpdateAISystemMessage(systemMessage): Promise<string> {
+    try{
+
+      var data = await this.v2Client.portal_imutils_ai_admin_systemmessage_post(btoa(systemMessage));
+
+    } catch(e) {
+      console.error(e);
+    }
+    return data;
   }
 
   async userGetAIResponse(userRequest, history): Promise<any> {

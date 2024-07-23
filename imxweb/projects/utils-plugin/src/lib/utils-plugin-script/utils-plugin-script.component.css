@@ -82,3 +82,56 @@ button {
     align-items: center;
     justify-content: center;
 }
+/* ============================================================ */
+
+ .adminContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin: 16px;
+}
+
+.textarea-full {
+  height: 80%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.textarea-small {
+  flex: 1;
+  resize: none;
+  overflow-y: auto;
+  height: calc(100vh - 400px); /* Adjust this value based on your header and footer height */
+  /* color: #091048; */
+
+  background-color: beige;
+  /* font-family: 'Arial, sans-serif'; Custom font */
+  font-size: 14px;
+  color: #333; /* Custom text color */
+  margin-top: 16px; /* Spacing above the card */
+  padding: 16px; /* Padding inside the card */
+
+}
+
+.adminFooter {
+  display: flex;
+  justify-content: flex-end;
+  padding: 12px;
+}
+
+::ng-deep .mat-tab-label-active
+{
+    color: #1c78a6 !important;
+    font-weight: bold;
+    font-size: larger;
+}
+
+::ng-deep .mat-tab-label-inactive
+{
+    color: #090909 !important;
+    font-weight: normal;
+    font-size: normal;
+}
+
+

@@ -36,20 +36,7 @@ export class UtilsPluginComponent implements OnInit {
     this.userId =  (await this.sessionService.getSessionState()).UserUid
     this.actionText =  "Start conversation"
 
-    this.hasRole = await this.utilsPluginService.userHasRole(this.userId);
-
-    // var options = {
-    //   PageSize: 500
-    // };
-
-    //var roles = await this.qerApiClient.client.portal_person_rolememberships_AERole_get(this.userId) //, options)
-
-    // roles.Entities.forEach(role => {
-    //   if(role.Display == "AI"){
-    //     this.hasRole = true;
-    //     return;
-    //     }
-    // });
+    this.hasRole = await this.utilsPluginService.userHasRole(this.userId, "User");
   }
 
   public async doOnClickOperation(): Promise<void> {

@@ -1,10 +1,9 @@
-import {MatTableModule} from '@angular/material/table';
-import { FormsModule } from '@angular/forms';
 import { Component, Inject, OnInit } from '@angular/core';
 import { EuiSidesheetRef, EuiSidesheetService, EUI_SIDESHEET_DATA, EuiLoadingService } from '@elemental-ui/core';
 import { UtilsPluginService } from '../utils-plugin.service';
 import { Router } from '@angular/router';
 import { OverlayRef } from '@angular/cdk/overlay';
+import { RequestsService } from 'qer';
 
 
 @Component({
@@ -25,16 +24,31 @@ export class UtilsPluginScriptComponent implements OnInit {
  userRequest: string = '';
  errorMessage: string = '';
  history: string = '';
-
+ hasAdminRole: boolean = false;
+ systemMessage: string = '';
 
   constructor(
     public readonly router: Router,
+    public requestsService: RequestsService,
     private sidesheetService: EuiSidesheetService,
     private sidesheetRef: EuiSidesheetRef,
     public utilsPluginService: UtilsPluginService,
     private readonly busyService: EuiLoadingService,
     @Inject(EUI_SIDESHEET_DATA) public sidesheetdata?: any
   ) {}
+
+  async ngOnInit(): Promise<void> {
+    this.hasAdminRole = await this.utilsPluginService.userHasRole(this.sidesheetdata, "Admin");
+
+    if(this.hasAdminRole){
+      this.systemMessage = await this.utilsPluginService.getUpdateAISystemMessage('');
+    }
+  }
+
+  async saveSystemMessage(): Promise<any> {
+    await this.utilsPluginService.getUpdateAISystemMessage(this.systemMessage);
+    this.requestsService.openSnackbar('System message updated', 'Done');
+  }
 
   async userGetFollowUpAIResponse(): Promise<any> {
     this.aiSummary = '';
@@ -149,9 +163,6 @@ export class UtilsPluginScriptComponent implements OnInit {
       }
   }
 
-  async ngOnInit(): Promise<void> {
-
-  }
 
 
 
