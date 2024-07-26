@@ -6,9 +6,10 @@ import { UtilsPluginScriptComponent } from './utils-plugin-script/utils-plugin-s
 import { MatTableModule } from '@angular/material/table';
 import {MatTabsModule, MatTabGroup} from '@angular/material/tabs';
 import { FormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
-import { CommonModule } from '@angular/common';
+import { MatExpansionModule } from '@angular/material/expansion';
 //import { BrowserModule } from '@angular/platform-browser';
 
 
@@ -28,9 +29,11 @@ import { CommonModule } from '@angular/common';
         MatButtonModule,
         MatTableModule,
         MatTabsModule,
+        MatExpansionModule,
         DataSourceToolbarModule,
         DataTableModule
-    ]
+    ],
+    bootstrap: [UtilsPluginScriptComponent]
 })
 export class UtilsPluginModule {
   constructor(private readonly initializer: UtilsPluginService) {

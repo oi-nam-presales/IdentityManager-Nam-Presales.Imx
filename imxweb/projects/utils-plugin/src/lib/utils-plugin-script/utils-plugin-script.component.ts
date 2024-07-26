@@ -6,13 +6,14 @@ import { OverlayRef } from '@angular/cdk/overlay';
 import { RequestsService } from 'qer';
 
 
+
 @Component({
   selector: 'imx-utils-plugin-script',
   templateUrl: './utils-plugin-script.component.html',
   styleUrls: ['./utils-plugin-script.component.css']
+
 })
 export class UtilsPluginScriptComponent implements OnInit {
-
 
  response: any;
  data: any[] = [];
@@ -26,6 +27,9 @@ export class UtilsPluginScriptComponent implements OnInit {
  history: string = '';
  hasAdminRole: boolean = false;
  systemMessage: string = '';
+ systemMessageOriginal: string = '';
+ sysMessageDisabled: boolean = true;
+ buttonsDisabled: boolean = true;
 
   constructor(
     public readonly router: Router,
@@ -42,17 +46,49 @@ export class UtilsPluginScriptComponent implements OnInit {
 
     if(this.hasAdminRole){
       this.systemMessage = await this.utilsPluginService.getUpdateAISystemMessage('');
+      this.systemMessageOriginal = this.systemMessage;
     }
   }
 
   async saveSystemMessage(): Promise<any> {
     try{
-      const ret = await this.utilsPluginService.getUpdateAISystemMessage(this.systemMessage);
 
-      this.requestsService.openSnackbar('System message updated', 'Done');
+      if(window.confirm('Are sure you want to save the new system message ?')){
+        const ret = await this.utilsPluginService.getUpdateAISystemMessage(this.systemMessage);
+
+        this.requestsService.openSnackbar('System message updated', 'Done');
+        this.sysMessageDisabled = true;
+        this.buttonsDisabled = true;
+      }
 
     }catch(e){
       this.requestsService.openSnackbar('Error saving system message', 'Done');
+    }
+  }
+
+  async restoreOriginalSystemMessage(): Promise<void> {
+    if(this.hasAdminRole){
+      this.systemMessage = await this.utilsPluginService.restoreOriginalSystemMessage();
+      this.systemMessageOriginal = this.systemMessage;
+    }
+  }
+
+  toggleEdit(): void {
+
+    if(this.buttonsDisabled){
+      this.sysMessageDisabled = !this.sysMessageDisabled;
+    }
+  }
+
+  doEnableSaveButton(): void {
+    this.buttonsDisabled = false;
+  }
+
+  doCancel(): void {
+    if(window.confirm('Are sure you want to disregard changes to system message? You will lose any unsaved changes.')){
+      this.systemMessage = this.systemMessageOriginal;
+      this.sysMessageDisabled = true;
+      this.buttonsDisabled = true;
     }
   }
 

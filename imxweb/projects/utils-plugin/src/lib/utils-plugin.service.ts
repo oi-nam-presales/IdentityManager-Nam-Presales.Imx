@@ -65,6 +65,17 @@ export class UtilsPluginService {
     return data.Message;
   }
 
+  async restoreOriginalSystemMessage(): Promise<string> {
+    try{
+
+      var data = await this.v2Client.portal_imutils_ai_admin_restoreoriginalsystemmessage_get()
+
+    } catch(e) {
+      console.error(e);
+    }
+    return data;
+  }
+
   async userGetAIResponse(userRequest, history): Promise<any> {
     try{
 
