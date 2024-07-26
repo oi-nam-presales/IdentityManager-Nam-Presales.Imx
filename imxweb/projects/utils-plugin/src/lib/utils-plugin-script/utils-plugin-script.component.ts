@@ -52,13 +52,14 @@ export class UtilsPluginScriptComponent implements OnInit {
 
   async saveSystemMessage(): Promise<any> {
     try{
+      if(this.hasAdminRole){
+        if(window.confirm('Save new system message?')){
+          const ret = await this.utilsPluginService.getUpdateAISystemMessage(this.systemMessage);
 
-      if(window.confirm('Are sure you want to save the new system message ?')){
-        const ret = await this.utilsPluginService.getUpdateAISystemMessage(this.systemMessage);
-
-        this.requestsService.openSnackbar('System message updated', 'Done');
-        this.sysMessageDisabled = true;
-        this.buttonsDisabled = true;
+          this.requestsService.openSnackbar('System message updated', 'Done');
+          this.sysMessageDisabled = true;
+          this.buttonsDisabled = true;
+        }
       }
 
     }catch(e){
@@ -68,20 +69,27 @@ export class UtilsPluginScriptComponent implements OnInit {
 
   async restoreOriginalSystemMessage(): Promise<void> {
     if(this.hasAdminRole){
-      this.systemMessage = await this.utilsPluginService.restoreOriginalSystemMessage();
-      this.systemMessageOriginal = this.systemMessage;
+      if(window.confirm('Are sure you want to restore the original system message? All changes will be lost.')){
+        this.systemMessage = await this.utilsPluginService.restoreOriginalSystemMessage();
+        this.systemMessageOriginal = this.systemMessage;
+      }
     }
   }
 
   toggleEdit(): void {
-
-    if(this.buttonsDisabled){
-      this.sysMessageDisabled = !this.sysMessageDisabled;
+    if(this.hasAdminRole){
+      if(this.buttonsDisabled){
+        this.sysMessageDisabled = !this.sysMessageDisabled;
+      }
     }
   }
 
   doEnableSaveButton(): void {
-    this.buttonsDisabled = false;
+    if(this.systemMessage != this.systemMessageOriginal){
+      this.buttonsDisabled = false;
+    }else{
+      this.buttonsDisabled = true;
+    }
   }
 
   doCancel(): void {
