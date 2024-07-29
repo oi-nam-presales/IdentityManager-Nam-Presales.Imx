@@ -30,6 +30,7 @@ export class UtilsPluginScriptComponent implements OnInit {
  systemMessageOriginal: string = '';
  sysMessageDisabled: boolean = true;
  buttonsDisabled: boolean = true;
+ exportDataType: string = 'CSV';
 
   constructor(
     public readonly router: Router,
@@ -213,7 +214,72 @@ export class UtilsPluginScriptComponent implements OnInit {
       }
   }
 
+  exportDataFile(): void {
+    //console.log("Exporting data file to CSV." + this.exportDataType);
+    let outData: string = ''
+    let fileName : string = ''
+    let dataType : string = ''
+    
+    if(this.exportDataType == "CSV"){
+      const items = this.response.Result.data
+
+        const header = Object.keys(items[0])
+        outData = [
+          header.join(','), // header row first
+          ...items.map(row => header.map(fieldName => JSON.stringify(row[fieldName], this.replacer)).join(','))
+        ].join('\r\n')
+
+        console.log(outData)
+
+        fileName = "IMAIdata.csv"
+        dataType = "text/csv"
+
+    }else if(this.exportDataType == "JSON"){
+      outData = JSON.stringify(this.response.Result.data)
+      fileName = "IMAIdata.json"
+      dataType = "application/json"
+    }
+
+    this.downloadFile(outData, fileName, dataType);
+
+  }
 
 
+  replacer(key, value: string) {
+
+    let ret = ''
+
+    if(value === null){
+      ret = '';
+    } else{
+      ret = value;
+     } // specify how you want to handle null values here
+
+     if(typeof value === 'string' && value.includes('"')){
+      ret = value.replace(/"/g, "'");
+     }
+
+     return ret;
+
+  }
+
+
+  downloadFile(data: string, filename: string, type: string) {
+
+    let newVariable: any = window.navigator;
+
+    const blob = new Blob([data], { type: type });
+    if (newVariable.msSaveOrOpenBlob) {
+      newVariable.msSaveBlob(blob, filename);
+    } else {
+      const link = document.createElement('a');
+      link.setAttribute('href', URL.createObjectURL(blob));
+      link.setAttribute('download', filename);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  }
 
 }

@@ -59,6 +59,20 @@
           </mat-expansion-panel>
         </mat-accordion>
       </div>
+
+      <div class="exportBar"  *ngIf="data.length > 0">
+        <span>&nbsp;</span>
+
+        <input type="radio" id="exportJSON" name="export" [(ngModel)]='exportDataType' color="primary" value="JSON">
+        <label stile="font-size: 12px" for="exportJSON">JSON</label>
+        <span>&nbsp;&nbsp;</span>
+        <input type="radio" id="exportCSV" name="export" [(ngModel)]='exportDataType' color="primary" value="CSV">
+        <label stile="font-size: 12px" for="exportCSV">CSV</label>
+
+        <span>&nbsp;&nbsp;</span>
+        <button mat-raised-button color="primary" (click)="exportDataFile()">Export data</button>
+      </div>
+
       <div class="table-container" *ngIf="data.length > 0">
         <!--div class="table-container" *ngIf="data.length > 0" -->
         <table mat-table [dataSource]="data" class="mat-elevation-z8">
