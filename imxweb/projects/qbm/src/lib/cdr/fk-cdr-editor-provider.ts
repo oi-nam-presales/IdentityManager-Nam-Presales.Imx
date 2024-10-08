@@ -32,9 +32,21 @@ import { CdrEditor } from './cdr-editor.interface';
 import { EditFkComponent } from './edit-fk/edit-fk.component';
 import { EditFkMultiComponent } from './edit-fk/edit-fk-multi.component';
 
+/**
+ * A special provider for foreign key columns.
+ * The provider determines, if the column has foreign key information attached.
+ * If that's the case, it creates an CdrEditor for a single or a multi foreign key.
+ * If no such information is given, it returns null
+ *  */
 export class FkCdrEditorProvider implements CdrEditorProvider {
   constructor() {}
 
+  /**
+   * Creates a CDR editor for single and multi foreign key columns and binds it to the column
+   * @param parent The view container used for rendering the editor into.
+   * @param cdref  A column dependent reference that contains the data for the editor.
+   * @returns An instance of {@link CdrEditor}, that can be used or editing data, or null, if no foreign key information is given.
+   */
   public createEditor(parent: ViewContainerRef, cdref: ColumnDependentReference): ComponentRef<CdrEditor> {
     if (this.hasFkRelations(cdref)) {
       return cdref.column.GetMetadata().IsMultiValue()
@@ -45,8 +57,12 @@ export class FkCdrEditorProvider implements CdrEditorProvider {
     return null;
   }
 
+  /**
+   * @ignore only used internally.
+   * Creates the component and binds its value.
+   */
   private createBound<T extends CdrEditor>(
-    type:  Type<T>,
+    type: Type<T>,
     parent: ViewContainerRef,
     cdref: ColumnDependentReference
   ): ComponentRef<CdrEditor> {
@@ -55,6 +71,11 @@ export class FkCdrEditorProvider implements CdrEditorProvider {
     return result;
   }
 
+  /**
+   * Determines, if there are fk relations present or not.
+   * @param cdref The column dependent reference, that needs to be checked
+   * @returns 
+   */
   private hasFkRelations(cdref: ColumnDependentReference): boolean {
     const fkRelations = cdref.column.GetMetadata().GetFkRelations();
     if (fkRelations == null) {

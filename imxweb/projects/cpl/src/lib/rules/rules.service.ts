@@ -28,22 +28,28 @@ import { OverlayRef } from '@angular/cdk/overlay';
 import { Injectable } from '@angular/core';
 import { EuiLoadingService } from '@elemental-ui/core';
 import { ComplianceFeatureConfig, PortalRules, V2ApiClientMethodFactory } from 'imx-api-cpl';
-import {  } from 'imx-api-cpl';
-import { CollectionLoadParameters, DataModel, EntityCollectionData, EntitySchema, ExtendedTypedEntityCollection, MethodDefinition, MethodDescriptor } from 'imx-qbm-dbts';
+import {} from 'imx-api-cpl';
+import {
+  CollectionLoadParameters,
+  DataModel,
+  EntityCollectionData,
+  EntitySchema,
+  ExtendedTypedEntityCollection,
+  MethodDefinition,
+  MethodDescriptor,
+} from 'imx-qbm-dbts';
 import { AppConfigService, DataSourceToolbarExportMethod } from 'qbm';
 import { ApiService } from '../api.service';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class RulesService {
+  public abortController = new AbortController();
+
   private busyIndicator: OverlayRef;
 
-  constructor(
-    private apiservice: ApiService,
-    private busyService: EuiLoadingService,
-    private appConfig: AppConfigService
-  ) { }
+  constructor(private apiservice: ApiService, private busyService: EuiLoadingService, private appConfig: AppConfigService) {}
 
   public get ruleSchema(): EntitySchema {
     return this.apiservice.typedClient.PortalRules.GetSchema();
@@ -53,9 +59,8 @@ export class RulesService {
     return this.apiservice.client.portal_compliance_config_get();
   }
 
-  public async getRules(parameter?: CollectionLoadParameters)
-    : Promise<ExtendedTypedEntityCollection<PortalRules, unknown>> {
-    return this.apiservice.typedClient.PortalRules.Get(parameter);
+  public async getRules(parameter?: CollectionLoadParameters): Promise<ExtendedTypedEntityCollection<PortalRules, unknown>> {
+    return this.apiservice.typedClient.PortalRules.Get(parameter, { signal: this.abortController.signal });
   }
 
   public exportRules(parameter: CollectionLoadParameters): DataSourceToolbarExportMethod {
@@ -64,13 +69,13 @@ export class RulesService {
       getMethod: (withProperties: string, PageSize?: number) => {
         let method: MethodDescriptor<EntityCollectionData>;
         if (PageSize) {
-          method = factory.portal_rules_get({...parameter, withProperties, PageSize, StartIndex: 0})
+          method = factory.portal_rules_get({ ...parameter, withProperties, PageSize, StartIndex: 0 });
         } else {
-          method = factory.portal_rules_get({...parameter, withProperties})
+          method = factory.portal_rules_get({ ...parameter, withProperties });
         }
         return new MethodDefinition(method);
-      }
-    }
+      },
+    };
   }
 
   public async getDataModel(): Promise<DataModel> {
@@ -101,4 +106,8 @@ export class RulesService {
     }
   }
 
+  public abortCall(): void {
+    this.abortController.abort();
+    this.abortController = new AbortController();
+  }
 }

@@ -29,25 +29,45 @@ import { CdrEditorProvider } from './cdr-editor-provider.interface';
 import { ViewContainerRef, ComponentRef, ComponentFactoryResolver } from '@angular/core';
 import { ColumnDependentReference } from './column-dependent-reference.interface';
 
+/**
+ * A base implementation of the interface {@link CdrEditorProvider}.
+ * It can create an editor, according to a given {@link ColumnDependentReference | column dependent reference}.
+ * To extend this class you only need to implement the 'accept' method
+ */
 export abstract class BaseCdrEditorProvider<T extends CdrEditor> implements CdrEditorProvider {
+  protected abstract tCtor: new (...args: any[]) => T;
+  constructor(private componentFactoryResolver: ComponentFactoryResolver) {}
 
-    protected abstract tCtor: new (...args: any[]) => T;
-    constructor(private componentFactoryResolver: ComponentFactoryResolver) {}
-
-    public createEditor(parent: ViewContainerRef, cdref: ColumnDependentReference): ComponentRef<CdrEditor> {
-        if (!this.accept(cdref)) {
-            return null;
-        }
-
-        const view = parent.createComponent(this.componentFactoryResolver.resolveComponentFactory(this.tCtor));
-        this.configure(view.instance, cdref);
-
-        return view;
+  /**
+   * Creates an editor, depending on the given CDR and renders it to the UI
+   * @param parent The view container used for rendering the editor into.
+   * @param cdref  A column dependent reference that contains the data for the editor.
+   * @returns An instance of {@link CdrEditor}, that can be used for editing data.
+   */
+  public createEditor(parent: ViewContainerRef, cdref: ColumnDependentReference): ComponentRef<CdrEditor> {
+    if (!this.accept(cdref)) {
+      return null;
     }
 
-    protected abstract accept(cdref: ColumnDependentReference): boolean;
+    const view = parent.createComponent(this.componentFactoryResolver.resolveComponentFactory(this.tCtor));
+    this.configure(view.instance, cdref);
 
-    protected configure(editor: T, cdref: ColumnDependentReference): void {
-        editor.bind(cdref);
-    }
+    return view;
+  }
+
+  /**
+   * A method, that is used to check, whether a CDR is suitable for this provider or not.
+   * @param cdref A column dependent reference that contains the data for the editor.
+   * @returns True, if the CDR fits the criteria of the provider, otherwise false.
+   */
+  protected abstract accept(cdref: ColumnDependentReference): boolean;
+
+  /**
+   * Binds an editor to a CDR.
+   * @param editor The editor, that is needed for the process.
+   * @param cdref The CDR, that handles the data.
+   */
+  protected configure(editor: T, cdref: ColumnDependentReference): void {
+    editor.bind(cdref);
+  }
 }

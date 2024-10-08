@@ -88,6 +88,8 @@ export class RoleService {
 
   private readonly targets = [this.LocalityTag, this.ProfitCenterTag, this.DepartmentTag, this.AERoleTag];
 
+  private abortController = new AbortController();
+
   constructor(
     protected readonly api: QerApiService,
     public readonly session: imx_SessionService,
@@ -153,13 +155,31 @@ export class RoleService {
 
     // Role Objects for Admin (useable by tree)
     this.targetMap.get(this.LocalityTag).admin = {
-      get: async (parameter: any) => this.api.client.portal_admin_role_locality_get(parameter),
+      get: async (parameter: any) => {
+        if (parameter?.search !== undefined) {
+          // abort the request only while searching
+          this.abortCall();
+        }
+        return this.api.client.portal_admin_role_locality_get(parameter, { signal: this.abortController.signal });
+      },
     };
     this.targetMap.get(this.ProfitCenterTag).admin = {
-      get: async (parameter: any) => this.api.client.portal_admin_role_profitcenter_get(parameter),
+      get: async (parameter: any) => {
+        if (parameter?.search !== undefined) {
+          // abort the request only while searching
+          this.abortCall();
+        }
+        return this.api.client.portal_admin_role_profitcenter_get(parameter, { signal: this.abortController.signal });
+      },
     };
     this.targetMap.get(this.DepartmentTag).admin = {
-      get: async (parameter: any) => this.api.client.portal_admin_role_department_get(parameter),
+      get: async (parameter: any) => {
+        if (parameter?.search !== undefined) {
+          // abort the request only while searching
+          this.abortCall();
+        }
+        return this.api.client.portal_admin_role_department_get(parameter, { signal: this.abortController.signal });
+      },
     };
 
     // Entity Schema for Admin
@@ -390,7 +410,7 @@ export class RoleService {
     navigationState?: CollectionLoadParameters
   ): Promise<TypedEntityCollectionData<TypedEntity>> {
     if (this.exists(tableName)) {
-      return isAdmin ? await this.getEntities(tableName, navigationState) : await this.targetMap.get(tableName).resp.Get(navigationState);
+      return isAdmin ? await this.getEntities(tableName, navigationState) : await this.getRespEntities(tableName, navigationState);
     }
     return null;
   }
@@ -472,7 +492,11 @@ export class RoleService {
     return dataModel?.getModel(undefined, isAdmin);
   }
 
-  public canCreate(tableName: string, isAdmin: boolean): boolean {
+  public canCreate(tableName: string, isAdmin: boolean, userCanCreateAeRole: boolean): boolean {
+    if (tableName === this.AERoleTag && !userCanCreateAeRole) { // special case, that the user can't create application roles at all
+      return false;
+    } 
+
     return isAdmin ? this.targetMap.get(tableName)?.adminCanCreate : this.targetMap.get(tableName).respCanCreate;
   }
 
@@ -642,11 +666,27 @@ export class RoleService {
     return builder.buildReadWriteEntities(data, this.targetMap.get(tableName).adminSchema);
   }
 
+  private async getRespEntities(
+    tableName: string,
+    navigationState: CollectionLoadParameters
+  ): Promise<TypedEntityCollectionData<TypedEntity>> {
+    if (navigationState?.search !== undefined) {
+      // abort the request only while searching
+      this.abortCall();
+    }
+    return await this.targetMap.get(tableName).resp.Get(navigationState, { signal: this.abortController.signal });
+  }
+
   public getSplitTargets(): string[] {
     return [...this.targetMap].filter((m) => m[1].canBeSplitTarget).map((m) => m[0]);
   }
 
   public getRoleTranslateKeys(tableName: string): RoleTranslateKeys {
     return this.targetMap.get(tableName).translateKeys;
+  }
+
+  private abortCall(): void {
+    this.abortController.abort();
+    this.abortController = new AbortController();
   }
 }

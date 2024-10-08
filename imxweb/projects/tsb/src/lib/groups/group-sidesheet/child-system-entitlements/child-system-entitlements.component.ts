@@ -47,7 +47,6 @@ export class ChildSystemEntitlementsComponent implements OnInit {
   public readonly entitySchemaUnsGroupMemberships: EntitySchema;
 
   private groupDisplayedColumns: IClientProperty[] = [];
-  private dataModel: DataModel;
 
   constructor(
     private readonly busyService: EuiLoadingService,
@@ -65,14 +64,6 @@ export class ChildSystemEntitlementsComponent implements OnInit {
       this.entitySchemaUnsGroupMemberships.Columns.XDateInserted,
     ];
 
-    let overlayRef: OverlayRef;
-    setTimeout(() => (overlayRef = this.busyService.show()));
-
-    try {
-      this.dataModel = await this.groupsService.getDataModel(this.isAdmin);
-    } finally {
-      setTimeout(() => this.busyService.hide(overlayRef));
-    }
     await this.groupNavigate();
   }
 
@@ -95,7 +86,6 @@ export class ChildSystemEntitlementsComponent implements OnInit {
         dataSource: this.groupsGroupMembershipData,
         entitySchema: this.entitySchemaUnsGroupMemberships,
         navigationState: this.navigationState,
-        dataModel: this.dataModel
       };
     } finally {
       setTimeout(() => this.busyService.hide(overlayRef));

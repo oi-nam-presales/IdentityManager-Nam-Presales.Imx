@@ -31,7 +31,10 @@ import { EditorBase } from '../editor-base';
 import { ClassloggerService } from '../../classlogger/classlogger.service';
 
 /**
- * A component for viewing / editing limited value columns
+ * Provides a {@link CdrEditor | CDR editor} for editing / viewing limited value columns.
+ * 
+ * To change the value it uses an Angular Material select component.
+ * When set to read-only, it uses a {@link ViewPropertyComponent | view property component} to display the content. 
  */
 @Component({
   selector: 'imx-edit-limited-value',
@@ -39,13 +42,19 @@ import { ClassloggerService } from '../../classlogger/classlogger.service';
   styleUrls: ['./edit-limited-value.component.scss'],
 })
 export class EditLimitedValueComponent extends EditorBase<string | number> {
+  /**
+   * The form control associated with the editor.
+   */
   public readonly control = new UntypedFormControl(undefined, { updateOn: 'blur' });
 
   constructor(logger: ClassloggerService) {
     super(logger);
   }
 
-  public removeAssignment(evt: Event){
+  /**
+   * Removes the current assignment and writes the 'empty' value to the form control.
+   */
+  public removeAssignment(evt: Event) {
     evt.stopPropagation();
     this.control.setValue('');
     this.control.markAsDirty();

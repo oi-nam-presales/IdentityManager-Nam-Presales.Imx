@@ -29,12 +29,25 @@ import { Injectable } from '@angular/core';
 import { ValueConstraint } from 'imx-qbm-dbts';
 import { NumberError } from './number-error.interface';
 
+/**
+ * A service for providing a number validation.
+ */
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class NumberValidatorService {
   private readonly regexPatternInteger = /^[-+]?\d+$/;
 
+  /**
+   * Validates the value by checking two things:
+   * <ol>
+   * <ul>The value is a valid number.</ul>
+   * <ul>The value is inside the range, given by a {@link ValueConstraint}.</ul>
+   * </ol>
+   * @param value The value that needs to be checked.
+   * @param range The {@link ValueConstraint}, that determines the bounds.
+   * @returns
+   */
   public validate(value: any, range: ValueConstraint): NumberError | null {
     if (value == null) {
       return null;
@@ -45,11 +58,11 @@ export class NumberValidatorService {
     }
 
     if (range) {
-      if (range.MinValue != null && (value < range.MinValue)) {
+      if (range.MinValue != null && value < range.MinValue) {
         return { rangeMin: true };
       }
 
-      if (range.MaxValue != null && (value > range.MaxValue)) {
+      if (range.MaxValue != null && value > range.MaxValue) {
         return { rangeMax: true };
       }
     }

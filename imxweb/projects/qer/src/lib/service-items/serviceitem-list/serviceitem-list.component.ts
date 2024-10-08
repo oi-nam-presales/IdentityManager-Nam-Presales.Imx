@@ -80,11 +80,11 @@ export class ServiceitemListComponent implements AfterViewInit, OnChanges, OnDes
   @Input() public referenceUserUid: string;
   @Input() public uidPersonPeerGroup: string;
   @Input() public dataSourceView = { selected: 'cardlist' };
-  @Input() public itemActions: DataTileMenuItem[];  
+  @Input() public itemActions: DataTileMenuItem[];
   @Input() public patternItemsMode: boolean = false;
 
   @Output() public selectionChanged = new EventEmitter<PortalShopServiceitems[]>();
-  @Output() public handleAction = new EventEmitter<{ item: PortalShopServiceitems, name: string }>();
+  @Output() public handleAction = new EventEmitter<{ item: PortalShopServiceitems; name: string }>();
   @Output() public categoryRemoved = new EventEmitter<PortalShopCategories>();
   @Output() public readonly openCategoryTree = new EventEmitter<void>();
 
@@ -103,7 +103,7 @@ export class ServiceitemListComponent implements AfterViewInit, OnChanges, OnDes
     getImagePath: async (prod: PortalShopServiceitems): Promise<string> => this.image.getPath(prod),
   };
   public peerGroupSize: number;
-  
+
   public busyService = new BusyService();
 
   public get options(): string[] {
@@ -122,7 +122,7 @@ export class ServiceitemListComponent implements AfterViewInit, OnChanges, OnDes
     private readonly dialog: MatDialog,
     private readonly image: ImageService,
     private readonly translate: TranslateService,
-    settingsService: SettingsService,
+    settingsService: SettingsService
   ) {
     this.navigationState = { PageSize: settingsService.DefaultPageSize, StartIndex: 0 };
     this.entitySchema = serviceItemsProvider.PortalShopServiceItemsSchema;
@@ -132,7 +132,7 @@ export class ServiceitemListComponent implements AfterViewInit, OnChanges, OnDes
         ColumnName: 'actions',
         Type: ValType.String,
         afterAdditionals: true,
-        untranslatedDisplay: '#LDS#Actions'
+        untranslatedDisplay: '#LDS#Actions',
       },
     ];
   }
@@ -169,6 +169,7 @@ export class ServiceitemListComponent implements AfterViewInit, OnChanges, OnDes
   }
 
   public async onSearch(keywords: string): Promise<void> {
+    this.serviceItemsProvider.abortCall();
     const navigationState = {
       PageSize: this.navigationState.PageSize,
       StartIndex: 0,
@@ -210,7 +211,7 @@ export class ServiceitemListComponent implements AfterViewInit, OnChanges, OnDes
           displayedColumns: this.displayedColumns,
           entitySchema: this.entitySchema,
           navigationState: this.navigationState,
-          dataModel: this.dataModel
+          dataModel: this.dataModel,
         };
 
         this.peerGroupSize = data.extendedData?.PeerGroupSize;
@@ -228,8 +229,6 @@ export class ServiceitemListComponent implements AfterViewInit, OnChanges, OnDes
         } else {
           this.noDataText = '#LDS#No data';
         }
-      } else {
-        this.dstSettings = undefined;
       }
     } finally {
       isBusy.endBusy();
@@ -259,7 +258,7 @@ export class ServiceitemListComponent implements AfterViewInit, OnChanges, OnDes
   }
 
   public emitAction(item: DataTileMenuItem, serviceItem?: PortalShopServiceitems): void {
-    this.handleAction.emit({ item: serviceItem ?? item.typedEntity as PortalShopServiceitems, name: item.name });
+    this.handleAction.emit({ item: serviceItem ?? (item.typedEntity as PortalShopServiceitems), name: item.name });
   }
 
   public async onRemoveChip(): Promise<void> {

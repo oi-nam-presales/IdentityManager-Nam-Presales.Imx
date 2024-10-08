@@ -4,13 +4,12 @@
   </imx-cdr-editor>
   <mat-card class="imx-table-container" *ngIf="dstWrapper && dstSettings">
     <span>{{'#LDS#Assigned identities' | translate}}</span>
-    <imx-data-source-toolbar #dst [options]="['search']"
-      [settings]="dstSettings" (search)="getData({ search: $event })" (navigationStateChanged)="getData($event)"
-      data-imx-identifier="pick-category-sidesheet-dst">
+    <imx-data-source-toolbar #dst [options]="['search']" [settings]="dstSettings" (search)="onSearch($event )"
+      (navigationStateChanged)="getData($event)" data-imx-identifier="pick-category-sidesheet-dst">
     </imx-data-source-toolbar>
-    <imx-data-table [dst]="dst" [detailViewVisible]="false" mode="manual" [selectable]="data.pickCategory?.IsManual?.value"
-      [showSelectedItemsMenu]="false" (selectionChanged)="onSelectionChanged($event)"
-      data-imx-identifier="pick-category-sidesheet-datatable"
+    <imx-data-table [dst]="dst" [detailViewVisible]="false" mode="manual"
+      [selectable]="data.pickCategory?.IsManual?.value" [showSelectedItemsMenu]="false"
+      (selectionChanged)="onSelectionChanged($event)" data-imx-identifier="pick-category-sidesheet-datatable"
       noDataText="{{(data.pickCategory?.IsManual?.value ? '#LDS#There are currently no identities assigned.' : '#LDS#The associated identities are calculated automatically.')}}"
       noMatchingDataText="#LDS#There are no identities matching your search.">
       <imx-data-table-column data-imx-identifier="pick-category-sidesheet-table-column-display"
@@ -32,9 +31,9 @@
     </div>
   </mat-card>
 </div>
-<div eui-sidesheet-actions color="white">
+<div eui-sidesheet-actions>
   <button mat-flat-button color="primary" data-imx-identifier="pick-category-sidesheet-details-button-save"
-       (click)="saveChanges()" [disabled]="form.invalid || form.pristine">
-       {{ '#LDS#Save' | translate}}
-    </button>
+    (click)="saveChanges()" [disabled]="form.invalid || form.pristine">
+    {{ '#LDS#Save' | translate}}
+  </button>
 </div>

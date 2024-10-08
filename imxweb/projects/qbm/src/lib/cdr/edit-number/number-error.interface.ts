@@ -24,8 +24,22 @@
  *
  */
 
+/**
+ * Represents an error state, that can be caused by a number value.
+ */
 export interface NumberError {
+  /**
+   * Indicates, that the number is not a number at all.
+   */
   invalidInteger?: boolean;
+
+  /**
+   * Indicates, that the value is out of the lower bound.
+   */
   rangeMin?: boolean;
+
+  /**
+   * Indicates, that the value is out of the upper bound.
+   */
   rangeMax?: boolean;
 }

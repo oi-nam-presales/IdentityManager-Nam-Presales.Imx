@@ -3,6 +3,7 @@
     <imx-cdr-editor
       *ngFor="let cdr of columns; let i = index"
       [cdr]="cdr"
+      [validateOnlyOnChange]="true"
       (controlCreated)="onFormControlCreated(cdr.column.ColumnName + '_' + i, $event)"
       [attr.data-imx-identifier]="'column_' + cdr.column.ColumnName + '_' + i"
     >
@@ -27,7 +28,7 @@
       >
       </imx-cdr-editor>
     </ng-container>
-    
+
     <imx-cdr-editor
       *ngFor="let cdr of requestParameterColumns; let i = index"
       [cdr]="cdr"

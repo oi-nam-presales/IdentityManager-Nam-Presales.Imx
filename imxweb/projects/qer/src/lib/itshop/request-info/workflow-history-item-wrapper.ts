@@ -73,8 +73,14 @@ export class WorkflowHistoryItemWrapper {
     ];
 
     const customDisplays = {
-      UID_PersonRelated: historyItem.DecisionType.value === 'AddInsteadOf' ? '#LDS#Delegated approver' :
-        ['Query', 'AddAdditional'].includes(historyItem.DecisionType.value) ? '#LDS#Recipient' : undefined
+      UID_PersonRelated:
+        historyItem.DecisionType.value === 'AddInsteadOf'
+          ? '#LDS#Delegated approver'
+          : historyItem.DecisionType.value === 'AddAdditional'
+          ? '#LDS#Additional approver'
+          : historyItem.DecisionType.value === 'Query'
+          ? '#LDS#Recipient'
+          : undefined,
     };
 
     return properties.filter(property => this.isToView(property)).map(property =>

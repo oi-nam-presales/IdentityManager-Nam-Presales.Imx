@@ -1,24 +1,11 @@
-# Qer
+# Identity management base module
 
-This library was generated with [Angular CLI](https://github.com/angular/angular-cli) version 7.2.0.
+This library contains the basic components for identity management. 
+That includes, but is not limited to, role management, the IT shop and identity administration.
 
-## Code scaffolding
+See the following pages for more details on the code structure.
 
-Run `ng generate component component-name --project qer` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module --project qer`.
-> Note: Don't forget to add `--project qer` or else it will be added to the default project in your `angular.json` file. 
-
-## Build
-
-Run `ng build qer` to build the project. The build artifacts will be stored in the `dist/` directory.
-
-## Publishing
-
-After building your library with `ng build qer`, go to the dist folder `cd dist/qer` and run `npm publish`.
-
-## Running unit tests
-
-Run `ng test qer` to execute the unit tests via [Karma](https://karma-runner.github.io).
-
-## Further help
-
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI README](https://github.com/angular/angular-cli/blob/master/README.md).
+- [Identity Management](additional-documentation/identity-management.html)
+- [Role management](additional-documentation/role-management.html)
+- [IT shop](additional-documentation/it-shop.html)
+- [Other components and services](additional-documentation/other-reusable-components.html)

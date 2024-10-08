@@ -38,6 +38,7 @@ import { RequestActionComponent } from './request-action.component';
 import { RequestHistoryService } from '../request-history.service';
 import { JustificationService } from '../../justification/justification.service';
 import { JustificationType } from '../../justification/justification-type.enum';
+import { UserModelService } from '../../user/user-model.service';
 
 @Injectable({
   providedIn: 'root',
@@ -56,6 +57,7 @@ export class RequestActionService {
     private readonly justificationService: JustificationService,
     private readonly errorHandler: ErrorHandler,
     private readonly messageService: UserMessageService,
+    private readonly userService: UserModelService,
     private readonly ldsReplace: LdsReplacePipe
   ) {}
 
@@ -133,8 +135,10 @@ export class RequestActionService {
 
     const unsubscribeProperty = this.requestHistoryService.PortalItshopRequestsSchema.Columns.ValidUntilUnsubscribe;
     unsubscribeProperty.IsReadOnly = false;
+    const today = new Date();
+    today.setHours(0,0,0,0);
     const unsubscription = new BaseCdr(
-      this.entityService.createLocalEntityColumn(unsubscribeProperty, undefined, { ValueConstraint: { MinValue: new Date() } })
+      this.entityService.createLocalEntityColumn(unsubscribeProperty, undefined, { ValueConstraint: { MinValue: today } })
     );
 
     return this.editAction({
@@ -331,6 +335,7 @@ export class RequestActionService {
           type: 'error',
         });
       }
+      await this.userService.reloadPendingItems();
       this.applied.next();
     }
   }
@@ -358,7 +363,8 @@ export class RequestActionService {
         success = true;
       } catch (error) {
         this.errorHandler.handleError(error);
-      } finally {
+      } finally {     
+        await this.userService.reloadPendingItems();
         setTimeout(() => this.busyService.hide(busyIndicator));
       }
 
@@ -367,6 +373,7 @@ export class RequestActionService {
           key: config.message,
           parameters: [config.data.requests.length],
         });
+        await this.userService.reloadPendingItems();
         this.applied.next();
       }
     } else {
@@ -379,7 +386,7 @@ export class RequestActionService {
       ColumnName: 'ReasonHead',
       Type: ValType.Text,
       IsMultiLine: true,
-      MinLen: required ? 0 : 1,
+      MinLen: required ? 1 : 0,
     });
 
     return new BaseCdr(column, display);

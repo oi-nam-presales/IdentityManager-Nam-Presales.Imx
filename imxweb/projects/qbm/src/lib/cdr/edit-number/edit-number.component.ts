@@ -34,27 +34,35 @@ import { NumberError } from './number-error.interface';
 import { NumberValidatorService } from './number-validator.service';
 
 /**
- * A component for viewing / editing number columns
+ * Provides a {@link CdrEditor | CDR editor} for editing / viewing number value columns.
+ * 
+ * To change the value, it uses an input field, that is typed as 'number'.
+ * When set to read-only, it uses a {@link ViewPropertyComponent | view property component} to display the content.
  */
 @Component({
   selector: 'imx-edit-number',
   templateUrl: './edit-number.component.html',
-  styleUrls: ['./edit-number.component.scss']
+  styleUrls: ['./edit-number.component.scss'],
 })
 export class EditNumberComponent extends EditorBase<number> implements AfterViewInit {
+  /**
+   * The form control associated with the editor.
+   */
   public readonly control = new UntypedFormControl(undefined, { updateOn: 'blur' });
 
-  constructor(
-    logger: ClassloggerService,
-    private readonly numberValidator: NumberValidatorService,
-  ) {
+  constructor(logger: ClassloggerService, private readonly numberValidator: NumberValidatorService) {
     super(logger);
   }
 
+  /**
+   * Sets the validators according to the data type, after the 'AfterViewInit' hook is triggered
+   */
   public ngAfterViewInit(): void {
-    if (this.columnContainer.type === ValType.Int ||
+    if (
+      this.columnContainer.type === ValType.Int ||
       this.columnContainer.type === ValType.Long ||
-      this.columnContainer.type === ValType.Short) {
+      this.columnContainer.type === ValType.Short
+    ) {
       this.control.setValidators(this.control.validator ? [this.control.validator, this.checkIntegerValue()] : this.checkIntegerValue());
     }
   }

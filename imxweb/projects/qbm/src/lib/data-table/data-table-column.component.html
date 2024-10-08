@@ -7,7 +7,7 @@
       {{ translateProvider.GetColumnDisplay(entityColumn?.ColumnName, entitySchema) }}
     </ng-container>
   </th>
-  <td class="imx-table-column"  mat-cell *matCellDef="let entity" [style.text-align]="align">
+  <td class="imx-table-column" mat-cell *matCellDef="let entity" [style.text-align]="align">
     <ng-content [ngIf]="templateRef" *ngTemplateOutlet="templateRef; context: { $implicit: entity }"></ng-content>
     <ng-container *ngIf="!templateRef">
       <imx-data-table-cell [entity]="entity" [property]="entityColumn"></imx-data-table-cell>

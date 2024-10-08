@@ -47,10 +47,9 @@ import { UntypedFormGroup } from '@angular/forms';
 @Component({
   selector: 'imx-pick-category-sidesheet',
   templateUrl: './pick-category-sidesheet.component.html',
-  styleUrls: ['./pick-category-sidesheet.component.scss']
+  styleUrls: ['./pick-category-sidesheet.component.scss'],
 })
 export class PickCategorySidesheetComponent implements OnInit {
-
   public readonly dstWrapper: DataSourceWrapper<PortalPickcategoryItems>;
   public readonly form = new UntypedFormGroup({});
   public dstSettings: DataSourceToolbarSettings;
@@ -62,8 +61,9 @@ export class PickCategorySidesheetComponent implements OnInit {
   private uidPickCategory: string;
 
   constructor(
-    @Inject(EUI_SIDESHEET_DATA) public data: {
-      pickCategory: PortalPickcategory
+    @Inject(EUI_SIDESHEET_DATA)
+    public data: {
+      pickCategory: PortalPickcategory;
     },
     private readonly sidesheet: EuiSidesheetService,
     private readonly snackBar: SnackBarService,
@@ -75,7 +75,7 @@ export class PickCategorySidesheetComponent implements OnInit {
     const entitySchema = this.pickCategoryService.pickcategoryItemsSchema;
 
     this.dstWrapper = new DataSourceWrapper(
-      state => this.pickCategoryService.getPickCategoryItems(this.uidPickCategory, state),
+      (state, requestOpts) => this.pickCategoryService.getPickCategoryItems(this.uidPickCategory, state, requestOpts),
       [entitySchema.Columns[DisplayColumns.DISPLAY_PROPERTYNAME]],
       entitySchema
     );
@@ -91,16 +91,22 @@ export class PickCategorySidesheetComponent implements OnInit {
   public async getData(newState?: CollectionLoadParameters): Promise<void> {
     this.pickCategoryService.handleOpenLoader();
     try {
-      this.dstSettings = await this.dstWrapper.getDstSettings(newState);
+      const dstSettings = await this.dstWrapper.getDstSettings(newState, { signal: this.pickCategoryService.abortController.signal });
+      if (dstSettings) {
+        this.dstSettings = dstSettings;
+      }
     } finally {
       this.pickCategoryService.handleCloseLoader();
     }
   }
 
   public selectedItemsCanBeDeleted(): boolean {
-    return this.selectedPickedItems != null &&
-      this.selectedPickedItems.length > 0 &&
-      this.data.pickCategory.IsManual.value;
+    return this.selectedPickedItems != null && this.selectedPickedItems.length > 0 && this.data.pickCategory.IsManual.value;
+  }
+
+  public onSearch(keywords: string): Promise<void> {
+    this.pickCategoryService.abortCall();
+    return this.getData({ search: keywords });
   }
 
   public onSelectionChanged(items: PortalPickcategoryItems[]): void {
@@ -109,15 +115,18 @@ export class PickCategorySidesheetComponent implements OnInit {
   }
 
   public async assignPickedItems(): Promise<void> {
-    const selection = await this.sidesheet.open(PickCategorySelectIdentitiesComponent, {
-      title: await this.translate.get('#LDS#Heading Assign Identities').toPromise(),
-      subTitle: this.data.pickCategory.GetEntity().GetDisplay(),
-      padding: '0px',
-      width: '700px',
-      disableClose: false,
-      testId: 'pick-category-select-identities',
-      data: this.dstSettings.dataSource.Data
-    }).afterClosed().toPromise();
+    const selection = await this.sidesheet
+      .open(PickCategorySelectIdentitiesComponent, {
+        title: await this.translate.get('#LDS#Heading Assign Identities').toPromise(),
+        subTitle: this.data.pickCategory.GetEntity().GetDisplay(),
+        padding: '0px',
+        width: '700px',
+        disableClose: false,
+        testId: 'pick-category-select-identities',
+        data: this.dstSettings.dataSource.Data,
+      })
+      .afterClosed()
+      .toPromise();
 
     if (selection && (await this.pickCategoryService.createPickedItems(selection, this.uidPickCategory)) > 0) {
       await this.getData();
@@ -125,11 +134,13 @@ export class PickCategorySidesheetComponent implements OnInit {
   }
 
   public async removePickedItems(): Promise<void> {
-    if (await this.confirmationService.confirm({
-      Title: '#LDS#Heading Remove Identities',
-      Message: '#LDS#Are you sure you want to remove the selected identities?'
-    })) {
-      if (await this.pickCategoryService.deletePickedItems(this.uidPickCategory, this.selectedPickedItems) > 0) {
+    if (
+      await this.confirmationService.confirm({
+        Title: '#LDS#Heading Remove Identities',
+        Message: '#LDS#Are you sure you want to remove the selected identities?',
+      })
+    ) {
+      if ((await this.pickCategoryService.deletePickedItems(this.uidPickCategory, this.selectedPickedItems)) > 0) {
         await this.getData();
         this.table?.clearSelection();
       }
@@ -149,5 +160,4 @@ export class PickCategorySidesheetComponent implements OnInit {
       }
     }
   }
-
 }

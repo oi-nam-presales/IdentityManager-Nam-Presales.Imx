@@ -30,15 +30,35 @@ import { ColumnDependentReference } from './column-dependent-reference.interface
 import { Subject } from 'rxjs';
 
 /**
- * Generic implementation of a ColumnDependentReference.
+ * Generic implementation of a {@link ColumnDependentReference | column dependent reference}.
+ * @examples
+ * const value = new BaseCdr(columnToUse, optionalDisplay, renderedReadonlyOrNot); // Build a CDR with an optional display and a give readOnly state
+ * const value = new BaseCdr(columnToUse, optionalDisplay);  // Build a CDR with an optional display
+ * const value = new BaseCdr(columnToUse, undefined, renderedReadonlyOrNot ); // Build a CDR with a give readOnly state
  */
 export class BaseCdr implements ColumnDependentReference {
+
+  /**
+   * A small hint, that is displayed on a hint icon
+   */
   public hint: string;
+
+  /**
+   * A minimal size of the content, that differs from the minLength of the column.
+   */
   public minLength?: number;
+
+  /**
+   * A subject to listen for changes of the minLength
+   */
   public minlengthSubject = new Subject<number>();
 
   constructor(public readonly column: IEntityColumn, public readonly display?: string, public readonly isReadOnlyColumn?: boolean) {}
 
+  /**
+   * Checks, whether a CDR should be rendered as read-only
+   * @returns True, if the CDR needs to be show as 'read-only', otherwise false.
+   */
   public isReadOnly(): boolean {
     if (this.isReadOnlyColumn !== undefined) {
       return this.column == null || this.isReadOnlyColumn || !this.column.GetMetadata().CanEdit();
@@ -47,6 +67,10 @@ export class BaseCdr implements ColumnDependentReference {
     }
   }
 
+  /**
+   * Can be used to update the minimal size, that controls the mandatory state of the CDR.
+   * It calls the minLengthSubject, too.
+   * */
   public updateMinLength(value: number): void {
     this.minLength = value;
     this.minlengthSubject.next(value);

@@ -27,14 +27,7 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { EUI_SIDESHEET_DATA } from '@elemental-ui/core';
 import { TranslateService } from '@ngx-translate/core';
-import {
-  DataModelFilterOption,
-  DbObjectKey,
-  DisplayColumns,
-  EntitySchema,
-  IClientProperty,
-  TypedEntity
-} from 'imx-qbm-dbts';
+import { DataModelFilterOption, DbObjectKey, DisplayColumns, EntitySchema, IClientProperty, TypedEntity } from 'imx-qbm-dbts';
 import { MetadataService } from '../../base/metadata.service';
 import { CdrFactoryService } from '../../cdr/cdr-factory.service';
 import { DataSourceToolbarFilter } from '../../data-source-toolbar/data-source-toolbar-filters.interface';
@@ -45,10 +38,9 @@ import { TypedEntityTableFilter } from './typed-entity-table-filter.interface';
 
 @Component({
   templateUrl: './typed-entity-candidate-sidesheet.component.html',
-  styleUrls: ['./typed-entity-candidate-sidesheet.component.scss']
+  styleUrls: ['./typed-entity-candidate-sidesheet.component.scss'],
 })
 export class TypedEntityCandidateSidesheetComponent implements OnInit {
-
   public readonly DisplayColumns = DisplayColumns; // Enables use of this static class in Angular Templates.
   public dstSettings: DataSourceToolbarSettings;
   public readonly entitySchemaCandidates: EntitySchema;
@@ -59,43 +51,43 @@ export class TypedEntityCandidateSidesheetComponent implements OnInit {
   private readonly sortedEntities: TypedEntity[];
   private searchedEntities: TypedEntity[];
 
-  private filters: DataSourceToolbarFilter[]
+  private filters: DataSourceToolbarFilter[];
 
   constructor(
     @Inject(EUI_SIDESHEET_DATA) public readonly data: TypedEntityCandidateSidesheetParameter,
     private translate: TranslateService,
-    private metaData: MetadataService
+    private metaData: MetadataService,
   ) {
-
     this.entitySchemaCandidates = CandidateEntity.GetEntitySchema();
-    this.displayedColumns = [
-      this.entitySchemaCandidates.Columns[DisplayColumns.DISPLAY_PROPERTYNAME]
-    ];
-    this.sortedEntities = data.entities?.sort(
-      (a, b) => a.GetEntity().GetDisplay().localeCompare(b.GetEntity().GetDisplay()));
-
+    this.displayedColumns = [this.entitySchemaCandidates.Columns[DisplayColumns.DISPLAY_PROPERTYNAME]];
+    this.sortedEntities = data.entities?.sort((a, b) => a.GetEntity().GetDisplay().localeCompare(b.GetEntity().GetDisplay()));
   }
 
   public async ngOnInit(): Promise<void> {
     this.searchedEntities = [...this.sortedEntities];
     if (this.data.tables && this.data.tables.length > 1) {
-      this.metaData.update(this.data.tables);
+      this.metaData.updateNonExisting(this.data.tables);
     }
-    this.filters = this.data.tables && this.data.tables.length > 1 ? [{
-      Name: 'table',
-      Description: await this.translate.get('#LDS#Type').toPromise(),
-      Options: this.getOptionsForFilter()
-    }] : [];
+    this.filters =
+      this.data.tables && this.data.tables.length > 1
+        ? [
+            {
+              Name: 'table',
+              Description: await this.translate.get('#LDS#Type').toPromise(),
+              Options: this.getOptionsForFilter(),
+            },
+          ]
+        : [];
     this.navigate(this.navigationState);
-
   }
 
   public search(key: string): void {
     if (key === '') {
       this.searchedEntities = [...this.sortedEntities];
     } else {
-      this.searchedEntities = this.sortedEntities.filter(elem =>
-        elem.GetEntity().GetDisplay().toLocaleLowerCase().includes(key.toLocaleLowerCase()));
+      this.searchedEntities = this.sortedEntities.filter((elem) =>
+        elem.GetEntity().GetDisplay().toLocaleLowerCase().includes(key.toLocaleLowerCase()),
+      );
     }
     this.navigate({ StartIndex: 0, search: key });
   }
@@ -103,7 +95,9 @@ export class TypedEntityCandidateSidesheetComponent implements OnInit {
   public navigate(source: TypedEntityTableFilter): void {
     this.navigationState = { ...this.navigationState, ...source };
     const possible = source.table
-      ? this.searchedEntities.filter(elem => CdrFactoryService.tryGetColumn(elem.GetEntity(), 'XObjectKey')?.GetValue()?.includes(source.table))
+      ? this.searchedEntities.filter(
+          (elem) => CdrFactoryService.tryGetColumn(elem.GetEntity(), 'XObjectKey')?.GetValue()?.includes(source.table),
+        )
       : this.searchedEntities;
 
     const data = possible.slice(this.navigationState.StartIndex, this.navigationState.StartIndex + this.navigationState.PageSize);
@@ -111,16 +105,18 @@ export class TypedEntityCandidateSidesheetComponent implements OnInit {
       displayedColumns: this.displayedColumns,
       dataSource: {
         Data: data,
-        totalCount: possible.length
+        totalCount: possible.length,
       },
       filters: this.filters,
       entitySchema: this.entitySchemaCandidates,
-      navigationState: this.navigationState
+      navigationState: this.navigationState,
     };
   }
 
   public getTable(entity: TypedEntity): string {
-    if (!this.data.tables || this.data.tables.length <= 1) { return ''; }
+    if (!this.data.tables || this.data.tables.length <= 1) {
+      return '';
+    }
     const column = CdrFactoryService.tryGetColumn(entity.GetEntity(), 'XObjectKey');
     if (!column) {
       return '';
@@ -131,9 +127,11 @@ export class TypedEntityCandidateSidesheetComponent implements OnInit {
 
   private getOptionsForFilter(): DataModelFilterOption[] {
     return this.data.tables
-      .map(elem => ({ Value: elem, Display: this.metaData.tables[elem]?.DisplaySingular }))
-      .filter(elem =>
-        this.data.entities.some(entity => CdrFactoryService.tryGetColumn(entity.GetEntity(), 'XObjectKey')?.GetValue().includes(elem.Value)
-        ));
+      .map((elem) => ({ Value: elem, Display: this.metaData.tables[elem]?.DisplaySingular }))
+      .filter((elem) =>
+        this.data.entities.some(
+          (entity) => CdrFactoryService.tryGetColumn(entity.GetEntity(), 'XObjectKey')?.GetValue().includes(elem.Value),
+        ),
+      );
   }
 }

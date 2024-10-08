@@ -112,8 +112,8 @@ export class EntitlementsComponent implements OnChanges {
    */
   public readonly status = {
     getBadges: (entitlement: PortalEntitlement): DataTileBadge[] => this.entitlementsProvider.getEntitlementBadges(entitlement),
-    enabled: (entitlement: PortalEntitlement): boolean => {
-      return !entitlement.IsDynamic.value;
+    enabled: (_: PortalEntitlement): boolean => {
+      return true;
     },
   };
 
@@ -135,7 +135,7 @@ export class EntitlementsComponent implements OnChanges {
     private readonly settingsService: SettingsService,
     private readonly systemInfo: SystemInfoService,
     private readonly metadata: MetadataService,
-    private readonly autoAddService: EntitlementEditAutoAddService
+    private readonly autoAddService: EntitlementEditAutoAddService,
   ) {
     this.entitySchema = entitlementsProvider.entitlementSchema;
     this.displayedColumns = [
@@ -309,7 +309,7 @@ export class EntitlementsComponent implements OnChanges {
         try {
           this.logger.debug(
             this,
-            `Publishing entitlement(s)/role(s) ${publishData.date && publishData.publishFuture ? `on ${publishData.date}` : 'now'}`
+            `Publishing entitlement(s)/role(s) ${publishData.date && publishData.publishFuture ? `on ${publishData.date}` : 'now'}`,
           );
 
           const publishCount = await this.entitlementsProvider.publish(selectedEntitlements, publishData);
@@ -477,7 +477,7 @@ export class EntitlementsComponent implements OnChanges {
       return;
     }
 
-    this.unassignedDisabled = false;
+    this.unassignedDisabled = selection.some((elem) => elem.IsDynamic.value === true);
 
     let foundPublished = false;
     let foundUnpublished = false;
@@ -556,7 +556,7 @@ export class EntitlementsComponent implements OnChanges {
     if (success) {
       this.snackbar.open(
         { key: '#LDS#The application entitlements have been successfully merged into the system role and added to application.' },
-        '#LDS#Close'
+        '#LDS#Close',
       );
       await this.getData();
     }
@@ -598,7 +598,7 @@ export class EntitlementsComponent implements OnChanges {
     }
     this.updatedTableNames.push(...newTableNamesForUpdate);
     this.logger.trace(this, 'following items are added to the list of table names', newTableNamesForUpdate);
-    return this.metadata.update([...new Set(newTableNamesForUpdate)]);
+    return this.metadata.updateNonExisting([...new Set(newTableNamesForUpdate)]);
   }
 
   private async createEntitlementWrapper(entitlement: PortalEntitlement): Promise<EntitlementWrapper> {

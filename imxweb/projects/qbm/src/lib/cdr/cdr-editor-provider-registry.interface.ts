@@ -38,7 +38,7 @@ export interface CdrEditorProviderRegistry extends CdrEditorProvider {
 
     /**
      * Registers an editor provider for column dependent references.
-     * @param provider The editor provider to register
+     * @param provider The editor provider to register.
      */
     register(provider: CdrEditorProvider): void;
 }

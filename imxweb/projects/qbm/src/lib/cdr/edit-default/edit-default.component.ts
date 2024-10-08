@@ -30,7 +30,10 @@ import { UntypedFormControl } from '@angular/forms';
 import { EditorBase } from '../editor-base';
 
 /**
- * The fallback component, used for viewing / editing a column dependent reference
+ * Provides a fallback component for editing / viewing a column dependent reference, by extending {@link EditorBase}.
+ * 
+ * It changes its value by using an input field.
+ * When set to read-only, it uses a {@link ViewPropertyComponent | view property component} to display the content.
  */
 @Component({
   selector: 'imx-edit-default',

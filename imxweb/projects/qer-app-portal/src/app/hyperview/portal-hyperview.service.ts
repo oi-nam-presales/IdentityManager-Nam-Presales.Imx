@@ -29,18 +29,24 @@ import { Injectable } from '@angular/core';
 import { ShapeData } from 'imx-api-qer';
 
 import { ApiClientService } from 'qbm';
-import { ObjectHyperviewService, QerApiService } from 'qer';
+import { ObjectHyperviewService, ProjectConfigurationService, QerApiService } from 'qer';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class PortalHyperviewService implements ObjectHyperviewService {
-
   constructor(
     private readonly apiClient: QerApiService,
-    private readonly apiProvider: ApiClientService) { }
+    private readonly apiProvider: ApiClientService,
+    private readonly configService: ProjectConfigurationService
+  ) {}
 
   public async get(tableName: string, uid: string, nodeName?: string): Promise<ShapeData[]> {
     return this.apiProvider.request(() => this.apiClient.client.portal_hyperview_get(tableName, uid, { node: nodeName }));
+  }
+
+  public async getNavigationPermission(): Promise<boolean> {
+    const projectConfig = await this.configService.getConfig();
+    return !projectConfig?.DisableHyperViewNavigation;
   }
 }

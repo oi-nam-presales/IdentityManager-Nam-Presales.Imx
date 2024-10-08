@@ -4,21 +4,21 @@
   <span *ngIf="selectedCategory == null" class="imx-request-label-value" translate>#LDS#Root category (all products)</span>
 </div>
 <imx-data-source-toolbar
-  *ngIf="selectedView === SelectedProductSource.AllProducts"
+  *ngIf="selectedView === SelectedProductSource.AllProducts && !disableSearch"
   imxElementVisibility (elementVisibile)="onVisibility($event)"
   data-imx-identifier="dst-allproducts"
   [settings]="orchestration.dstSettingsAllProducts"
   [searchBoxText]="searchBoxText | translate"
+  [keywords]="orchestration.keywords"
   [isStandaloneToolbar]="true"
   [alwaysVisible]="true"
   [useThemedStyle]="true"
-  [disableSearch]="disableSearch"
   [options]="['search']"
   [searchApi]="searchApi"
   (navigationStateChanged)="onNavigationChanged($event)"
 ></imx-data-source-toolbar>
 <imx-data-source-toolbar
-  *ngIf="selectedView === SelectedProductSource.PeerGroupProducts"
+  *ngIf="selectedView === SelectedProductSource.PeerGroupProducts && !disableSearch"
   imxElementVisibility (elementVisibile)="onVisibility($event)"
   data-imx-identifier="dst-peergroupproducts"
   [settings]="orchestration.dstSettingsPeerGroupProducts"
@@ -26,13 +26,12 @@
   [isStandaloneToolbar]="true"
   [alwaysVisible]="true"
   [useThemedStyle]="true"
-  [disableSearch]="disableSearch"
   [options]="['search']"
   [searchApi]="searchApi"
   (navigationStateChanged)="onNavigationChanged($event)"
 ></imx-data-source-toolbar>
 <imx-data-source-toolbar
-  *ngIf="selectedView === SelectedProductSource.PeerGroupOrgs"
+  *ngIf="selectedView === SelectedProductSource.PeerGroupOrgs && !disableSearch"
   imxElementVisibility (elementVisibile)="onVisibility($event)"
   data-imx-identifier="dst-peergrouporgs"
   [settings]="orchestration.dstSettingsPeerGroupOrgs"
@@ -40,13 +39,12 @@
   [isStandaloneToolbar]="true"
   [alwaysVisible]="true"
   [useThemedStyle]="true"
-  [disableSearch]="disableSearch"
   [options]="['search']"
   [searchApi]="searchApi"
   (navigationStateChanged)="onNavigationChanged($event)"
 ></imx-data-source-toolbar>
 <imx-data-source-toolbar
-  *ngIf="selectedView === SelectedProductSource.ReferenceUserProducts"
+  *ngIf="selectedView === SelectedProductSource.ReferenceUserProducts && !disableSearch"
   imxElementVisibility (elementVisibile)="onVisibility($event)"
   data-imx-identifier="dst-referenceuserproducts"
   [settings]="orchestration.dstSettingsReferenceUserProducts"
@@ -54,13 +52,12 @@
   [isStandaloneToolbar]="true"
   [alwaysVisible]="true"
   [useThemedStyle]="true"
-  [disableSearch]="disableSearch"
   [options]="['search']"
   [searchApi]="searchApi"
   (navigationStateChanged)="onNavigationChanged($event)"
 ></imx-data-source-toolbar>
 <imx-data-source-toolbar
-  *ngIf="selectedView === SelectedProductSource.ReferenceUserOrgs"
+  *ngIf="selectedView === SelectedProductSource.ReferenceUserOrgs && !disableSearch"
   imxElementVisibility (elementVisibile)="onVisibility($event)"
   data-imx-identifier="dst-referenceuserorgs"
   [settings]="orchestration.dstSettingsReferenceUserOrgs"
@@ -68,13 +65,12 @@
   [isStandaloneToolbar]="true"
   [alwaysVisible]="true"
   [useThemedStyle]="true"
-  [disableSearch]="disableSearch"
   [options]="['search']"
   [searchApi]="searchApi"
   (navigationStateChanged)="onNavigationChanged($event)"
 ></imx-data-source-toolbar>
 <imx-data-source-toolbar
-  *ngIf="selectedView === SelectedProductSource.ProductBundles"
+  *ngIf="selectedView === SelectedProductSource.ProductBundles && !disableSearch"
   imxElementVisibility (elementVisibile)="onVisibility($event)"
   data-imx-identifier="dst-productbundles"
   [settings]="orchestration.dstSettingsProductBundles"
@@ -82,7 +78,20 @@
   [isStandaloneToolbar]="true"
   [alwaysVisible]="true"
   [useThemedStyle]="true"
-  [disableSearch]="disableSearch"
+  [options]="['search']"
+  [searchApi]="searchApi"
+  (navigationStateChanged)="onNavigationChanged($event)"
+></imx-data-source-toolbar>
+<imx-data-source-toolbar
+  *ngIf="disableSearch"
+  imxElementVisibility (elementVisibile)="onVisibility($event)"
+  data-imx-identifier="dst-productbundles"
+  [settings]="orchestration.dstSettingsProductBundles"
+  [searchBoxText]="searchBoxText | translate"
+  [isStandaloneToolbar]="true"
+  [alwaysVisible]="true"
+  [useThemedStyle]="true"
+  [disableSearch]="true"
   [options]="['search']"
   [searchApi]="searchApi"
   (navigationStateChanged)="onNavigationChanged($event)"

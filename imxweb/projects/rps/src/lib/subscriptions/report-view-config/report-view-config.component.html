@@ -20,7 +20,7 @@
             </mat-radio-button>
           </mat-radio-group>
           <imx-cdr-editor
-            *ngIf="formatCdr && reportFormGroup.controls.viewType.value === 'export'"
+            *ngIf="formatCdr && (reportFormGroup.controls.viewType.value === 'export' || !isListReport)"
             [cdr]="formatCdr"
             (controlCreated)="reportFormGroup.controls.exportType = $event"
           >

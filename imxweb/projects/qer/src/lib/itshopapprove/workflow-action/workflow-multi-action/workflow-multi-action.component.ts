@@ -91,7 +91,10 @@ export class WorkflowMultiActionComponent implements OnInit {
         }
       }
 
-      bulkItem.properties.unshift(this.stepService.getCurrentStepCdr(item, item.pwoData,'#LDS#Current approval step'));
+      const step = this.stepService.getCurrentStepCdr(item, item.pwoData, '#LDS#Current approval step');
+      if (step != null) {
+        bulkItem.properties.unshift(step);
+      }
 
       item.parameterColumns.forEach((column) =>
         bulkItem.properties.push(this.data.approve ? new BaseCdr(column) : new BaseReadonlyCdr(column))

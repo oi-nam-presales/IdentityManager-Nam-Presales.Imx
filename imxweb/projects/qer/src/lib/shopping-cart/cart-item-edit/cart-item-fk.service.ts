@@ -31,36 +31,41 @@ import { FkProviderItem, IFkCandidateProvider, InteractiveEntityWriteData } from
 import { QerApiService } from '../../qer-api-client.service';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class CartItemFkService {
-  constructor(private readonly qerClient: QerApiService) { }
+  constructor(private readonly qerClient: QerApiService) {}
 
   public getFkProviderItemsInteractive(
     interactiveEntity: { InteractiveEntityWriteData: InteractiveEntityWriteData },
     parameterData: ParameterData
   ): IFkCandidateProvider {
-    
     const qerClient = this.qerClient;
 
-    return new class implements IFkCandidateProvider {
+    return new (class implements IFkCandidateProvider {
+      // AbortController
+      private abortController = new AbortController();
+
       getProviderItem(_columnName, fkTableName) {
         if (parameterData.Property.FkRelation) {
-          return this.getFkProviderItemInteractive(interactiveEntity, parameterData.Property.ColumnName, parameterData.Property.FkRelation.ParentTableName);
+          return this.getFkProviderItemInteractive(
+            interactiveEntity,
+            parameterData.Property.ColumnName,
+            parameterData.Property.FkRelation.ParentTableName
+          );
         }
 
         if (parameterData.Property.ValidReferencedTables) {
-          const t = parameterData.Property.ValidReferencedTables.map(parentTableRef =>
+          const t = parameterData.Property.ValidReferencedTables.map((parentTableRef) =>
             this.getFkProviderItemInteractive(interactiveEntity, parameterData.Property.ColumnName, parentTableRef.TableName)
-          ).filter(t => t.fkTableName == fkTableName);
-          if (t.length == 1)
-            return t[0];
+          ).filter((t) => t.fkTableName == fkTableName);
+          if (t.length == 1) return t[0];
           return null;
         }
 
         return null;
       }
-    
+
       private getFkProviderItemInteractive(
         interactiveEntity: { InteractiveEntityWriteData: InteractiveEntityWriteData },
         columnName: string,
@@ -69,30 +74,36 @@ export class CartItemFkService {
         return {
           columnName,
           fkTableName,
-          parameterNames: [
-            'OrderBy',
-            'StartIndex',
-            'PageSize',
-            'filter',
-            'search'
-          ],
+          parameterNames: ['OrderBy', 'StartIndex', 'PageSize', 'filter', 'search'],
           load: async (__, parameters?) => {
+            if (parameters?.search !== undefined) {
+              // abort the request only while searching
+              this.abortCall();
+            }
             return qerClient.client.portal_cartitem_interactive_parameter_candidates_post(
               columnName,
               fkTableName,
               interactiveEntity.InteractiveEntityWriteData,
-              parameters
+              parameters,
+              { signal: this.abortController.signal }
             );
           },
           getDataModel: async () => ({}),
           getFilterTree: async (__, parentkey) => {
             return qerClient.client.portal_cartitem_interactive_parameter_candidates_filtertree_post(
-              columnName, fkTableName, interactiveEntity.InteractiveEntityWriteData, { parentkey: parentkey }
+              columnName,
+              fkTableName,
+              interactiveEntity.InteractiveEntityWriteData,
+              { parentkey: parentkey }
             );
-          }
+          },
         };
       }
-    };
-  }
 
+      private abortCall(): void {
+        this.abortController.abort();
+        this.abortController = new AbortController();
+      }
+    })();
+  }
 }

@@ -30,19 +30,19 @@ import { PortalServicecategories } from 'imx-api-qer';
 import { CollectionLoadParameters, EntitySchema, ExtendedTypedEntityCollection } from 'imx-qbm-dbts';
 
 import { QerApiService } from '../../qer-api-client.service';
+import { NewRequestOrchestrationService } from '../new-request-orchestration.service';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class NewRequestCategoryApiService {
-
-  constructor(private readonly qerApi: QerApiService) { }
+  constructor(private readonly orchestration: NewRequestOrchestrationService, private readonly qerApi: QerApiService) {}
 
   public get schema(): EntitySchema {
     return PortalServicecategories.GetEntitySchema();
   }
 
   public async get(parameters: CollectionLoadParameters = {}): Promise<ExtendedTypedEntityCollection<any, unknown>> {
-    return await this.qerApi.typedClient.PortalShopCategories.Get(parameters);
+    return await this.qerApi.typedClient.PortalShopCategories.Get(parameters, { signal: this.orchestration.serviceCategoryAbortController.signal });
   }
 }

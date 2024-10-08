@@ -21,7 +21,7 @@
         <span>{{getCount('conflicted')}}</span>
       </div>
     </div>
-    <imx-data-source-toolbar #dst [settings]="settings" [options]="[]">
+    <imx-data-source-toolbar #dst [settings]="settings" (navigationStateChanged)="navigate($event)" [options]="[]"> 
     </imx-data-source-toolbar>
 
     <div class="imx-table-container">
@@ -49,10 +49,12 @@
           columnLabel="{{'#LDS#Already assigned to following application' | translate }}">
         </imx-data-table-column>
       </imx-data-table>
+    <imx-data-source-paginator [dst]="dst" data-imx-identifier="mapped-entitlements-preview-paginator"> </imx-data-source-paginator>
+
     </div>
   </mat-card>
 </div>
-<div eui-sidesheet-actions color="white" *ngIf="data.withSave">
+<div eui-sidesheet-actions  *ngIf="data.withSave">
   <mat-slide-toggle class="justify-start" #mappedslider checked="true"
     data-imx-identifier="mapped-entitlements-preview-slider-with-mapping">
     {{'#LDS#Assign application entitlements after saving' |translate}}

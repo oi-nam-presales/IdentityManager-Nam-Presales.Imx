@@ -37,7 +37,10 @@ import { ClassloggerService } from '../../classlogger/classlogger.service';
 import { DateFormat } from 'imx-qbm-dbts';
 
 /**
- * A component for viewing / editing date columns
+ * Provides a {@link CdrEditor | CDR editor} for editing / viewing date value columns
+ * 
+ * It uses a {@link DateComponent | date component} for editing the value.
+ * When set to read-only, it uses a {@link ViewPropertyComponent | view property component} to display the content.
  */
 @Component({
   selector: 'imx-edit-date',
@@ -45,19 +48,37 @@ import { DateFormat } from 'imx-qbm-dbts';
   styleUrls: ['./edit-date.component.scss'],
 })
 export class EditDateComponent implements CdrEditor, OnDestroy {
+  /**
+   * The form control associated with the editor.
+   */
   public readonly control = new UntypedFormControl(undefined, { updateOn: 'blur' });
 
+  /**
+   * The container that wraps the column functionality.
+   */
   public readonly columnContainer = new EntityColumnContainer<Date>();
 
+  /**
+   * Event that is emitted, after a value has been changed.
+   */
   public readonly valueHasChanged = new EventEmitter<ValueHasChangedEventArg>();
 
+  /**
+   * A subject for triggering an update of the editor.
+   */
   public readonly updateRequested = new Subject<void>();
 
+  /**
+   * Indicator that the component is loading data from the server.
+   */
   public isBusy = false;
 
   private readonly subscribers: Subscription[] = [];
   private isWriting = false;
 
+  /**
+   * Determines, if a time control should be added.
+   */
   public get withTime(): boolean {
     // try to get the date format detail from metadata; defaulting to DateTime.
     const dateFormat = this.columnContainer.metaData?.GetDateFormat() ?? DateFormat.DateTime;
@@ -67,12 +88,16 @@ export class EditDateComponent implements CdrEditor, OnDestroy {
 
   public constructor(private readonly errorHandler: ErrorHandler, private logger: ClassloggerService) {}
 
+  /**
+   * Unsubscribes all events, after the 'OnDestroy' hook is triggered.
+   */
   public ngOnDestroy(): void {
     this.subscribers.forEach((s) => s.unsubscribe());
   }
 
   /**
-   * Binds a column dependent reference to the component
+   * Binds a column dependent reference to the component.
+   * Subscribes to subjects from the column dependent reference and its container.
    * @param cdref a column dependent reference
    */
   public bind(cdref: ColumnDependentReference): void {
@@ -144,8 +169,8 @@ export class EditDateComponent implements CdrEditor, OnDestroy {
   }
 
   /**
-   * updates the value for the CDR
-   * @param value the new value
+   * Updates the value for the CDR.
+   * @param value The Moment object, that is used as the new value for the control.
    */
   private async writeValue(value: Moment): Promise<void> {
     if (this.control.errors) {
@@ -154,6 +179,7 @@ export class EditDateComponent implements CdrEditor, OnDestroy {
 
     // Beware: the columnContainer used date while the date editor uses moment!!
     const date = value == null ? undefined : value.toDate();
+    const resetValue = this.columnContainer.value;
     this.logger.debug(this, 'writeValue called with value', date);
     if (!this.columnContainer.canEdit || this.columnContainer.value === date) {
       return;
@@ -167,6 +193,7 @@ export class EditDateComponent implements CdrEditor, OnDestroy {
       await this.columnContainer.updateValue(date);
     } catch (error) {
       this.errorHandler.handleError(error);
+      this.control?.setValue(resetValue ? moment(resetValue) : undefined);
     } finally {
       this.isBusy = false;
       this.isWriting = false;

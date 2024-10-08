@@ -41,6 +41,12 @@ import { LdsReplacePipe } from '../../lds-replace/lds-replace.pipe';
 import { MultiValueService } from '../../multi-value/multi-value.service';
 import { FkHierarchicalDialogComponent } from '../../fk-hierarchical-dialog/fk-hierarchical-dialog.component';
 
+/**
+ * Provides a {@link CdrEditor | CDR editor} for editing / viewing multi foreign key value columns.
+ * 
+ * Its value is changed by clicking on the 'select' / 'change' button. Then a side sheet is opened for selecting multiple values.
+ * When set to read-only, it uses a {@link ViewPropertyComponent | view property component} to display the content.
+ */
 @Component({
   selector: 'imx-edit-fk-multi',
   templateUrl: './edit-fk-multi.component.html',
@@ -62,10 +68,10 @@ export class EditFkMultiComponent implements CdrEditor, OnInit, OnDestroy {
   private readonly subscribers: Subscription[] = [];
 
   /**
-   * Creates a new EditFkMultiComponent for column dependent reference with a foreign key relation.
+   * Creates a new EditFkMultiComponent.
    * @param logger Log service.
-   * @param sidesheet Dialog to open the pickerdialog for selecting objects.
-   */
+   * @param sidesheet Side sheet, that opens the picker dialog for selecting objects.
+   */ 
   constructor(
     private readonly logger: ClassloggerService,
     private readonly sidesheet: EuiSidesheetService,
@@ -167,17 +173,17 @@ export class EditFkMultiComponent implements CdrEditor, OnInit, OnDestroy {
    * Sets Validators.required, if the control is mandatory, else it's set to null.
    * @ignore used internally
    */
-  private setValidators():void{
-      if (this.columnContainer.isValueRequired && this.columnContainer.canEdit) {
-        this.control.setValidators((control) => (control.value == null || control.value.length === 0 ? { required: true } : null));
-      } else {
-        this.control.setValidators(null);
-      }
+  private setValidators(): void {
+    if (this.columnContainer.isValueRequired && this.columnContainer.canEdit) {
+      this.control.setValidators((control) => (control.value == null || control.value.length === 0 ? { required: true } : null));
+    } else {
+      this.control.setValidators(null);
+    }
   }
 
   /**
    * @ignore
-   * Opens a dialog for selecting fk objects
+   * Opens a side sheet for selecting fk objects.
    */
   public async editAssignment(): Promise<void> {
     const dialogRef = this.sidesheet.open(this.isHierarchical ? FkHierarchicalDialogComponent : FkAdvancedPickerComponent, {
@@ -223,8 +229,8 @@ export class EditFkMultiComponent implements CdrEditor, OnInit, OnDestroy {
   }
 
   /**
-   * updates the value for the CDR
-   * @param value the new value
+   * Updates the value for the CDR.
+   * @param value The new value struct, that is used for the new value of the component.
    */
   private async writeValue(value: ValueStruct<string>): Promise<void> {
     this.logger.debug(this, 'writeValue - called with', value);

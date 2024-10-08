@@ -89,8 +89,8 @@ export class ConnectionComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Creates cdr list based on the system users
-   * @returns List of read-only cdrs
+   * Creates CDR list based on the system users
+   * @returns List of read-only CDR
    */
   private createCdrList(): BaseReadonlyCdr[] {
     const cdrList: BaseReadonlyCdr[] = [];

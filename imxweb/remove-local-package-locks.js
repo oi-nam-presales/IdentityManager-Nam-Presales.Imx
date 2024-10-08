@@ -1,5 +1,7 @@
 const path = './package-lock.json';
+const fs = require('fs');
 var data = require(path);
+
 var anyChanges = false;
 for (const name of [
 
@@ -31,8 +33,14 @@ for (const name of [
   'imx-api-olg',
   'imx-api-o3e'
 ]) {
-  if (data.dependencies[name]) {
+  if (data?.dependencies && data.dependencies[name]) {
     delete data.dependencies[name];
+    anyChanges = true;
+  }
+
+  const nodeModuleName = 'node_modules/' + name;
+  if (data.packages[nodeModuleName]) {
+    delete data.packages[nodeModuleName];
     anyChanges = true;
   }
 }
@@ -41,12 +49,11 @@ if (!anyChanges) {
   console.log(`No local packages to remove`);
   return;
 }
-const fs = require('fs');
 
 // write JSON with the same indentation as npm; trimming the last line feed
 var toWrite = JSON.stringify(data, null, 2) + '\n';
 var error;
-fs.writeFile(path, toWrite, 'utf8', err => {
+fs.writeFile(path, toWrite, 'utf8', (err) => {
   if (err) {
     console.log(`Error writing file: ${err}`);
     error = err;

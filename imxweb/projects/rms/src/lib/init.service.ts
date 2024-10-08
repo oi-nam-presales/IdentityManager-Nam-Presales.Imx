@@ -29,7 +29,16 @@ import { Route, Router } from '@angular/router';
 import { RoleExtendedDataWrite } from 'imx-api-qer';
 
 import { PortalAdminRoleEset, PortalPersonRolemembershipsEset, PortalRespEset, V2ApiClientMethodFactory } from 'imx-api-rms';
-import { EntitySchema, ExtendedTypedEntityCollection, TypedEntity, WriteExtTypedEntity, CollectionLoadParameters, MethodDescriptor, EntityCollectionData, MethodDefinition } from 'imx-qbm-dbts';
+import {
+  EntitySchema,
+  ExtendedTypedEntityCollection,
+  TypedEntity,
+  WriteExtTypedEntity,
+  CollectionLoadParameters,
+  MethodDescriptor,
+  EntityCollectionData,
+  MethodDefinition,
+} from 'imx-qbm-dbts';
 import { DynamicMethodService, ImxTranslationProviderService, imx_SessionService, MenuService, HELP_CONTEXTUAL } from 'qbm';
 import {
   DataExplorerRegistryService,
@@ -56,6 +65,7 @@ export interface test {
 @Injectable({ providedIn: 'root' })
 export class InitService {
   private esetTag = 'ESet';
+  private abortController = new AbortController();
 
   constructor(
     private readonly router: Router,
@@ -118,21 +128,29 @@ export class InitService {
       resp: this.api.typedClient.PortalRespEset,
       adminType: PortalAdminRoleEset,
       admin: {
-        get: async (parameter: any) =>
-          this.api.client.portal_admin_role_eset_get({
-            OrderBy: parameter.OrderBy,
-            StartIndex: parameter.StartIndex,
-            PageSize: parameter.PageSize,
-            filter: parameter.filter,
-            search: parameter.search,
-            risk: parameter.risk,
-            esettype: parameter.esettype,
-          }),
+        get: async (parameter: any) => {
+          if (parameter?.search !== undefined) {
+            // abort the request only while searching
+            this.abortCall();
+          }
+          return this.api.client.portal_admin_role_eset_get(
+            {
+              OrderBy: parameter.OrderBy,
+              StartIndex: parameter.StartIndex,
+              PageSize: parameter.PageSize,
+              filter: parameter.filter,
+              search: parameter.search,
+              risk: parameter.risk,
+              esettype: parameter.esettype,
+            },
+            { signal: this.abortController.signal }
+          );
+        },
       },
       adminSchema: this.api.typedClient.PortalAdminRoleEset.GetSchema(),
       dataModel: new EsetDataModel(this.api),
       respCanCreate: false,
-      adminCanCreate: false,
+      adminCanCreate: true,
       interactiveResp: new ApiWrapper(this.api.typedClient.PortalRespEsetInteractive),
       interactiveAdmin: new ApiWrapper(this.api.typedClient.PortalAdminRoleEsetInteractive),
       entitlements: new EsetEntitlements(this.api, this.dynamicMethodSvc, this.translator),
@@ -179,22 +197,24 @@ export class InitService {
 
     this.setupMenu();
 
-    this.dataExplorerRegistryService.registerFactory((preProps: string[], features: string[], projectConfig: ProjectConfig, groups: string[]) => {
-      if (!isRoleAdmin(features) && !isRoleStatistics(features) && !isAuditor(groups)) {
-        return;
+    this.dataExplorerRegistryService.registerFactory(
+      (preProps: string[], features: string[], projectConfig: ProjectConfig, groups: string[]) => {
+        if (!isRoleAdmin(features) && !isRoleStatistics(features) && !isAuditor(groups)) {
+          return;
+        }
+        return {
+          instance: RolesOverviewComponent,
+          data: {
+            TableName: this.esetTag,
+            Count: 0,
+          },
+          contextId: HELP_CONTEXTUAL.DataExplorerSystemRoles,
+          sortOrder: 8,
+          name: 'systemroles',
+          caption: '#LDS#Menu Entry System roles',
+        };
       }
-      return {
-        instance: RolesOverviewComponent,
-        data: {
-          TableName: this.esetTag,
-          Count: 0,
-        },
-        contextId: HELP_CONTEXTUAL.DataExplorerSystemRoles,
-        sortOrder: 8,
-        name: 'systemroles',
-        caption: '#LDS#Menu Entry System roles',
-      };
-    });
+    );
 
     this.myResponsibilitiesRegistryService.registerFactory((preProps: string[], features: string[]) => ({
       instance: RolesOverviewComponent,
@@ -205,7 +225,7 @@ export class InitService {
         TableName: this.esetTag,
         Count: 0,
       },
-      contextId: HELP_CONTEXTUAL.MyResponsibilitiesSystemRoles
+      contextId: HELP_CONTEXTUAL.MyResponsibilitiesSystemRoles,
     }));
   }
 
@@ -236,5 +256,10 @@ export class InitService {
       config.unshift(route);
     });
     this.router.resetConfig(config);
+  }
+
+  private abortCall(): void {
+    this.abortController.abort();
+    this.abortController = new AbortController();
   }
 }

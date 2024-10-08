@@ -34,6 +34,8 @@ import { ApiService } from '../api.service';
   providedIn: 'root',
 })
 export class PoliciesService {
+  public abortController = new AbortController();
+
   constructor(private apiservice: ApiService, private appConfig: AppConfigService) {}
 
   public get policySchema(): EntitySchema {
@@ -45,7 +47,7 @@ export class PoliciesService {
   }
 
   public async getPolicies(parameter?: CollectionLoadParameters): Promise<ExtendedTypedEntityCollection<PortalPolicies, unknown>> {
-    return this.apiservice.typedClient.PortalPolicies.Get(parameter);
+    return this.apiservice.typedClient.PortalPolicies.Get(parameter, { signal: this.abortController.signal });
   }
 
   public async getDataModel(): Promise<DataModel> {
@@ -64,5 +66,10 @@ export class PoliciesService {
    */
   public async getMitigatingControls(uid: string): Promise<ExtendedTypedEntityCollection<PortalPoliciesMitigatingcontrols, unknown>> {
     return this.apiservice.typedClient.PortalPoliciesMitigatingcontrols.Get(uid);
+  }
+
+  public abortCall(): void {
+    this.abortController.abort();
+    this.abortController = new AbortController();
   }
 }

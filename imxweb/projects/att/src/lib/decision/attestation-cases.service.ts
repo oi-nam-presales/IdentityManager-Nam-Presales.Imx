@@ -68,6 +68,8 @@ import { AttestationCaseLoadParameters } from '../attestation-history/attestatio
 })
 export class AttestationCasesService {
   public isChiefApproval: boolean;
+  public abortController = new AbortController();
+
   private readonly historyBuilder = new TypedEntityBuilder(PortalAttestationCaseHistory);
   private readonly apiClientMethodFactory = new ApiClientMethodFactory();
 
@@ -86,20 +88,33 @@ export class AttestationCasesService {
     return this.attClient.typedClient.PortalAttestationCase.GetSchema();
   }
 
-  public async get(attDecisionParameters?: AttestationDecisionLoadParameters): Promise<TypedEntityCollectionData<AttestationCase>> {
-    const collection = await this.attClient.typedClient.PortalAttestationApprove.Get(attDecisionParameters);
+  public async get(
+    attDecisionParameters?: AttestationDecisionLoadParameters,
+    isUserEscalationApprover = false
+  ): Promise<TypedEntityCollectionData<AttestationCase> | undefined> {
+    const navigationState = {
+      ...attDecisionParameters,
+      Escalation: (attDecisionParameters.uid_attestationcase !== '' && isUserEscalationApprover) || attDecisionParameters.Escalation,
+    };
+
+    const collection = await this.attClient.typedClient.PortalAttestationApprove.Get(navigationState, {
+      signal: this.abortController.signal,
+    });
+    if (!collection) {
+      return undefined;
+    }
     return {
-      tableName: collection.tableName,
-      totalCount: collection.totalCount,
-      Data: collection.Data.map((item: PortalAttestationApprove, index: number) => {
+      tableName: collection?.tableName,
+      totalCount: collection?.totalCount,
+      Data: collection?.Data.map((item: PortalAttestationApprove, index: number) => {
         const parameterDataContainer = this.parameterDataService.createContainer(
           item.GetEntity(),
-          { ...collection.extendedData, ...{ index } },
+          { ...collection?.extendedData, ...{ index } },
           (parameters) => this.getParameterCandidates(parameters),
           (treefilterparameter) => this.getFilterTree(treefilterparameter)
         );
 
-        return new AttestationCase(item, this.isChiefApproval, parameterDataContainer, { ...collection.extendedData, ...{ index } });
+        return new AttestationCase(item, this.isChiefApproval, parameterDataContainer, { ...collection?.extendedData, ...{ index } });
       }),
     };
   }
@@ -110,13 +125,13 @@ export class AttestationCasesService {
       getMethod: (withProperties: string, PageSize?: number) => {
         let method: MethodDescriptor<EntityCollectionData>;
         if (PageSize) {
-          method = factory.portal_attestation_approve_get({...attDecisionParameters, withProperties, PageSize, StartIndex: 0})
+          method = factory.portal_attestation_approve_get({ ...attDecisionParameters, withProperties, PageSize, StartIndex: 0 });
         } else {
-          method = factory.portal_attestation_approve_get({...attDecisionParameters, withProperties})
+          method = factory.portal_attestation_approve_get({ ...attDecisionParameters, withProperties });
         }
         return new MethodDefinition(method);
-      }
-    }
+      },
+    };
   }
 
   public async getNumberOfPending(parameters: AttestationCaseLoadParameters): Promise<number> {
@@ -133,7 +148,7 @@ export class AttestationCasesService {
   }
 
   public getGroupInfo(parameters: { by?: string; def?: string } & CollectionLoadParameters = {}): Promise<GroupInfoData> {
-    const { OrderBy,search, ...params } = parameters;
+    const { withProperties, OrderBy, search, ...params } = parameters;
     return this.attClient.client.portal_attestation_approve_group_get({ ...params, withcount: true, Escalation: this.isChiefApproval });
   }
 
@@ -274,6 +289,11 @@ export class AttestationCasesService {
    */
   public async denyDecision(attestationCase: PortalAttestationApprove, input: DenyDecisionInput): Promise<any> {
     return this.attClient.client.portal_attestation_denydecision_post(this.getKey(attestationCase), input);
+  }
+
+  public abortCall(): void {
+    this.abortController.abort();
+    this.abortController = new AbortController();
   }
 
   private getKey(attestationCase: TypedEntity): string {

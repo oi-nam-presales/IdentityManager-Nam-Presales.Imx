@@ -40,7 +40,7 @@ export class RequestRuleViolation implements IExtension {
   public set inputData(dstSettings: DataSourceToolbarSettings) {
     this.dstSettings = dstSettings;
 
-    if (this.dstSettings.extendedData) {
+    if (this.dstSettings?.extendedData) {
       for (let i = 0; i < this.dstSettings.dataSource.Data.length; i++) {
         const item = this.dstSettings.dataSource.Data[i] as ItshopRequest;
         item.complianceRuleViolation = item.pwoData.WorkflowHistory.Entities.filter((wh: EntityData) =>

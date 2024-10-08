@@ -233,7 +233,7 @@ export class DataTreeComponent implements OnChanges, OnDestroy {
 
     this.subscriptions.push(
       sidesheetRef.afterClosed().subscribe((result) => {
-        this.logger.log(this, 'The sidesheet was closed', result);
+        this.logger.log(this, 'The side sheet was closed', result);
       })
     );
   }

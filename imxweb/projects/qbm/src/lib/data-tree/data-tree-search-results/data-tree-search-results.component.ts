@@ -31,6 +31,7 @@ import { PageEvent } from '@angular/material/paginator';
 import { CollectionLoadParameters, IEntity } from 'imx-qbm-dbts';
 import { ClassloggerService } from '../../classlogger/classlogger.service';
 import { TreeDatabase } from '../tree-database';
+import { SettingsService} from '../../settings/settings-service';
 
 @Component({
   selector: 'imx-data-tree-search-results',
@@ -78,7 +79,7 @@ export class DataTreeSearchResultsComponent implements OnChanges {
   public paginatorLength: number;
 
   /** @ignore the pagesiuze for the paginator */
-  public paginatorPageSize = 25;
+  public paginatorPageSize;
 
   public loading = true;
   public selectedEntity: IEntity;
@@ -92,7 +93,9 @@ export class DataTreeSearchResultsComponent implements OnChanges {
   /** event, that fires, after the checked nodes list has been updated */
   @Output() public checkedNodesChanged = new EventEmitter();
 
-  constructor(private readonly logger: ClassloggerService) { }
+  constructor(private readonly logger: ClassloggerService, private readonly settings: SettingsService) {
+    this.paginatorPageSize = this.settings?.DefaultPageSize ?? 25;
+  }
 
   public async ngOnChanges(changes: SimpleChanges): Promise<void> {
     if (changes['navigationState']) {

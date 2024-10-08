@@ -43,17 +43,21 @@ export class EditGenericComponent implements OnChanges {
 
   @Output() public valueChanged = new EventEmitter<FilterChangedArgument>();
 
-  constructor(private readonly logger: ClassloggerService, private readonly metaData: MetadataService) {}
+  constructor(
+    private readonly logger: ClassloggerService,
+    private readonly metaData: MetadataService,
+  ) {}
 
-  public async ngOnChanges(): Promise<void>{
+  public async ngOnChanges(): Promise<void> {
     const tableName = this.filterElementModel.getTableName();
     if (tableName == null) {
       this.cdr = new BaseCdr(this.filterElementModel.columnForFilter);
     } else {
-      await this.metaData.update([this.filterElementModel.getTableName()]);
-      this.cdr = new BaseCdr(this.filterElementModel.columnForFilter,
-        this.metaData.tables[this.filterElementModel.getTableName()]
-          .Columns[this.filterElementModel.getColumnName()].Display);
+      await this.metaData.updateNonExisting([this.filterElementModel.getTableName()]);
+      this.cdr = new BaseCdr(
+        this.filterElementModel.columnForFilter,
+        this.metaData.tables[this.filterElementModel.getTableName()].Columns[this.filterElementModel.getColumnName()].Display,
+      );
     }
   }
 

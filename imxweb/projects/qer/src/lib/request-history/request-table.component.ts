@@ -264,6 +264,7 @@ export class RequestTableComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   public onSearch(keywords: string): Promise<void> {
+    this.requestHistoryService.abortCall();
     const navigationState = {
       ...this.navigationState,
       ...{
@@ -340,8 +341,6 @@ export class RequestTableComponent implements OnInit, OnDestroy, OnChanges {
         } else {
           this.dstSettings = dstSettings;
         }
-      } else {
-        this.dstSettings = undefined;
       }
     } finally {
       busy.endBusy();

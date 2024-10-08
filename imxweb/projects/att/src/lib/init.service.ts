@@ -33,6 +33,7 @@ import { canSeeAttestationPolicies, isAttestationAdmin } from './admin/permissio
 import { PermissionsService } from './admin/permissions.service';
 import { DashboardPluginComponent } from './dashboard-plugin/dashboard-plugin.component';
 import { AttestationWrapperComponent } from './runs/attestation/attestation-wrapper/attestation-wrapper.component';
+import { ProjectConfig, QerProjectConfig } from 'imx-api-qer';
 
 @Injectable({ providedIn: 'root' })
 export class InitService {
@@ -162,8 +163,9 @@ export class InitService {
 
         return menu;
       },
-      (preProps: string[], __: string[]) => {
-        if (!preProps.includes('ITSHOP')) {
+      function (preProps: string[], __: string[], projectConfig: QerProjectConfig & ProjectConfig) {
+        const deviceEnabled = projectConfig.DeviceConfig.VI_Hardware_Enabled;
+        if (!preProps.includes('MAC') || !preProps.includes('ITSHOP') || ! deviceEnabled) {
           return null;
         }
 

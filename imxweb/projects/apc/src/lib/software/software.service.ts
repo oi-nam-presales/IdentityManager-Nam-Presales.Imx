@@ -53,6 +53,8 @@ export class SoftwareService {
 
   protected config: QerProjectConfig & ProjectConfig;
 
+  private abortController = new AbortController();
+
   constructor(
     protected readonly project: ProjectConfigurationService,
     private readonly api: ApcApiService,
@@ -65,7 +67,13 @@ export class SoftwareService {
     accProduct: this.api.typedClient.PortalResourcesApplicationServiceitem,
     resp: {
       type: PortalRespApplication,
-      get: async (parameter: any) => this.api.client.portal_resp_application_get(parameter),
+      get: async (parameter: any) => { 
+        if (parameter?.search !== undefined) {
+          // abort the request only while searching
+          this.abortCall();
+        }
+        return this.api.client.portal_resp_application_get(parameter, { signal: this.abortController.signal }); 
+      },
       schema: this.api.typedClient.PortalRespApplication.GetSchema(),
       dataModel: async (filter?: FilterData[]) => this.api.client.portal_resp_application_datamodel_get({ filter }),
       interactive: this.api.typedClient.PortalRespApplicationInteractive,
@@ -137,5 +145,11 @@ export class SoftwareService {
 
   public async unsubscribeMembership(item: TypedEntity): Promise<void> {
     await this.qerClient.client.portal_itshop_unsubscribe_post({ UidPwo: [item.GetEntity().GetColumn('UID_PersonWantsOrg').GetValue()] });
+  }
+
+  
+  private abortCall(): void {
+    this.abortController.abort();
+    this.abortController = new AbortController();
   }
 }

@@ -40,7 +40,7 @@ import { TranslateModule } from '@ngx-translate/core';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
-import { LdsReplaceModule, DataSourceToolbarModule, DataTableModule, CdrModule, ClassloggerModule, HelpContextualModule } from 'qbm';
+import { LdsReplaceModule, DataSourceToolbarModule, DataTableModule, CdrModule, ClassloggerModule, HelpContextualModule, DataTreeWrapperModule } from 'qbm';
 import { UserModule, StatisticsModule } from 'qer';
 import { EditNameComponent } from './editors/edit-name.component';
 import { EditGenericComponent } from './editors/edit-generic.component';
@@ -88,6 +88,7 @@ import { AttestationRunsModule } from '../runs/attestation-runs.module';
         LdsReplaceModule,
         StatisticsModule,
         HelpContextualModule,
+        DataTreeWrapperModule,
     ],
     declarations: [
         EditGenericComponent,

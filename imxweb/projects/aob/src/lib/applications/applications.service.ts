@@ -48,6 +48,8 @@ export class ApplicationsService {
   public readonly onApplicationDeleted = new Subject<string>();
   public applicationRefresh: BehaviorSubject<Boolean> = new BehaviorSubject<Boolean>(false);
 
+  public abortController = new AbortController();
+
   private badgePublished: DataTileBadge;
   private badgeKpiErrors: DataTileBadge;
   private badgeNew: DataTileBadge;
@@ -93,7 +95,9 @@ export class ApplicationsService {
     if (this.aobClient.typedClient == null) {
       return new Promise<TypedEntityCollectionData<PortalApplication>>((resolve) => resolve(null));
     }
-    return this.apiProvider.request(() => this.aobClient.typedClient.PortalApplication.Get(parameters));
+    return this.apiProvider.request(() =>
+      this.aobClient.typedClient.PortalApplication.Get(parameters, { signal: this.abortController.signal })
+    );
   }
 
   public async reload(uidApplication: string): Promise<PortalApplicationInteractive> {
@@ -219,6 +223,11 @@ export class ApplicationsService {
     await this.aobClient.client.portal_application_delete(uid);
 
     this.onApplicationDeleted.next(uid);
+  }
+  
+  public abortCall(): void {
+    this.abortController.abort();
+    this.abortController = new AbortController();
   }
 
   private isPublished(application: PortalApplication): boolean {

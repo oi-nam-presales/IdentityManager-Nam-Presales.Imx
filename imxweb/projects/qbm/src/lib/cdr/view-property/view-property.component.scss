@@ -16,3 +16,9 @@
     }
   }
 }
+
+.column-value {
+  /* preserve line breaks in source data */
+  text-wrap-mode: wrap;
+  white-space-collapse: preserve-breaks;
+}

@@ -103,7 +103,7 @@
 
   <ng-container *ngIf="mode === 'auto'">
     <ng-container [matColumnDef]="column.ColumnName" *ngFor="let column of displayedColumns; let i = index">
-      <th class="imx-table-column" mat-header-cell *matHeaderCellDef>{{ translateProvider.GetColumnDisplay(column.ColumnName, entitySchema) }}</th>
+      <th class="imx-table-column" mat-header-cell *matHeaderCellDef>{{ column.Display }}</th>
       <td class="imx-table-column" mat-cell *matCellDef="let entity">
         <imx-data-table-display-cell
           *ngIf="i === 0"
@@ -120,7 +120,7 @@
   <ng-container *ngIf="mode === 'manual'">
     <ng-content></ng-content>
     <ng-container [matColumnDef]="column.ColumnName" *ngFor="let column of additional">
-      <th class="imx-table-column" mat-header-cell *matHeaderCellDef>{{ translateProvider.GetColumnDisplay(column.ColumnName, entitySchema) }}</th>
+      <th class="imx-table-column" mat-header-cell *matHeaderCellDef>{{ column.Display }}</th>
       <td class="imx-table-column" mat-cell *matCellDef="let entity">
         <imx-data-table-cell [entity]="entity" [property]="column" role="gridcell"></imx-data-table-cell>
       </td>

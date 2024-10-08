@@ -35,7 +35,7 @@ import {
   DataModel,
   EntityCollectionData,
   MethodDescriptor,
-  MethodDefinition
+  MethodDefinition,
 } from 'imx-qbm-dbts';
 import { TsbApiService } from '../tsb-api-client.service';
 import { PortalTargetsystemUnsAccount, V2ApiClientMethodFactory } from 'imx-api-tsb';
@@ -47,10 +47,9 @@ import { DataSourceToolbarExportMethod } from 'qbm';
 
 @Injectable({ providedIn: 'root' })
 export class AccountsService {
-  constructor(
-    private readonly tsbClient: TsbApiService,
-    private readonly dynamicMethod: TargetSystemDynamicMethodService
-  ) { }
+  private abortController = new AbortController();
+
+  constructor(private readonly tsbClient: TsbApiService, private readonly dynamicMethod: TargetSystemDynamicMethodService) {}
 
   public get accountSchema(): EntitySchema {
     return this.tsbClient.typedClient.PortalTargetsystemUnsAccount.GetSchema();
@@ -64,7 +63,11 @@ export class AccountsService {
    * @returns Wrapped list of Accounts.
    */
   public async getAccounts(navigationState: CollectionLoadParameters): Promise<TypedEntityCollectionData<PortalTargetsystemUnsAccount>> {
-    return this.tsbClient.typedClient.PortalTargetsystemUnsAccount.Get(navigationState);
+    if (navigationState?.search !== undefined) {
+      // abort the request only while searching
+      this.abortCall();
+    }
+    return this.tsbClient.typedClient.PortalTargetsystemUnsAccount.Get(navigationState, { signal: this.abortController.signal });
   }
 
   public exportAccounts(navigationState: CollectionLoadParameters): DataSourceToolbarExportMethod {
@@ -73,13 +76,13 @@ export class AccountsService {
       getMethod: (withProperties: string, PageSize?: number) => {
         let method: MethodDescriptor<EntityCollectionData>;
         if (PageSize) {
-          method = factory.portal_targetsystem_uns_account_get({...navigationState, withProperties, PageSize, StartIndex: 0})
+          method = factory.portal_targetsystem_uns_account_get({ ...navigationState, withProperties, PageSize, StartIndex: 0 });
         } else {
-          method = factory.portal_targetsystem_uns_account_get({...navigationState, withProperties})
+          method = factory.portal_targetsystem_uns_account_get({ ...navigationState, withProperties });
         }
         return new MethodDefinition(method);
-      }
-    }
+      },
+    };
   }
 
   public async getAccount(dbObjectKey: DbObjectKeyBase, columnName?: string): Promise<AccountTypedEntity> {
@@ -94,12 +97,16 @@ export class AccountsService {
     return (await this.getDataModel()).Filters;
   }
 
-  public async getDataModel(): Promise<DataModel>{
+  public async getDataModel(): Promise<DataModel> {
     return this.tsbClient.client.portal_targetsystem_uns_account_datamodel_get(undefined);
   }
 
-
-  public async getFilterTree(parameter: AccountsFilterTreeParameters):Promise<FilterTreeData>{
+  public async getFilterTree(parameter: AccountsFilterTreeParameters): Promise<FilterTreeData> {
     return this.tsbClient.client.portal_targetsystem_uns_account_filtertree_get(parameter);
+  }
+
+  private abortCall(): void {
+    this.abortController.abort();
+    this.abortController = new AbortController();
   }
 }

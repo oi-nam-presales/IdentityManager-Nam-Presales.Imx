@@ -29,7 +29,19 @@ import { ErrorHandler, Injectable } from '@angular/core';
 import { EuiLoadingService } from '@elemental-ui/core';
 
 import { PortalItshopPatternAdmin, PortalItshopPatternItem, PortalItshopPatternPrivate } from 'imx-api-qer';
-import { CollectionLoadParameters, CompareOperator, EntitySchema, ExtendedTypedEntityCollection, FilterType, FkProviderItem, IFkCandidateProvider, InteractiveEntityWriteData, ParameterData, TypedEntity } from 'imx-qbm-dbts';
+import {
+  ApiRequestOptions,
+  CollectionLoadParameters,
+  CompareOperator,
+  EntitySchema,
+  ExtendedTypedEntityCollection,
+  FilterType,
+  FkProviderItem,
+  IFkCandidateProvider,
+  InteractiveEntityWriteData,
+  ParameterData,
+  TypedEntity,
+} from 'imx-qbm-dbts';
 
 import { ClassloggerService, SnackBarService } from 'qbm';
 import { ExtendedEntityWrapper } from '../parameter-data/extended-entity-wrapper.interface';
@@ -37,9 +49,10 @@ import { QerApiService } from '../qer-api-client.service';
 import { RequestParametersService } from '../shopping-cart/cart-item-edit/request-parameters.service';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ItshopPatternService {
+  public abortController = new AbortController();
 
   private busyIndicator: OverlayRef;
   private busyIndicatorCounter = 0;
@@ -50,7 +63,8 @@ export class ItshopPatternService {
     private readonly logger: ClassloggerService,
     private readonly busyService: EuiLoadingService,
     private readonly errorHandler: ErrorHandler,
-    private readonly snackBar: SnackBarService) { }
+    private readonly snackBar: SnackBarService
+  ) {}
 
   public get itshopPatternAdminSchema(): EntitySchema {
     return this.qerClient.typedClient.PortalItshopPatternAdmin.GetSchema();
@@ -64,17 +78,18 @@ export class ItshopPatternService {
     return this.qerClient.typedClient.PortalItshopPatternItem.GetSchema();
   }
 
-
   /**
    * Retrieves all private itshop patterns of a person.
    *
    * @returns A list of {@link PortalItshopPatternPrivate} entities.
    */
-  public async getPrivatePatterns(navigationState?: CollectionLoadParameters):
-    Promise<ExtendedTypedEntityCollection<PortalItshopPatternPrivate, unknown>> {
+  public async getPrivatePatterns(
+    navigationState?: CollectionLoadParameters,
+    requestOpts?: ApiRequestOptions
+  ): Promise<ExtendedTypedEntityCollection<PortalItshopPatternPrivate, unknown>> {
     this.logger.debug(this, `Retrieving private itshop patterns`);
     this.logger.trace('Navigation state', navigationState);
-    return this.qerClient.typedClient.PortalItshopPatternPrivate.Get(navigationState);
+    return this.qerClient.typedClient.PortalItshopPatternPrivate.Get(navigationState, requestOpts);
   }
 
   /**
@@ -102,11 +117,13 @@ export class ItshopPatternService {
    *
    * @returns A list of {@link PortalItshopPatternAdmin} entities.
    */
-  public async getPatternItems(navigationState?: CollectionLoadParameters):
-    Promise<ExtendedTypedEntityCollection<PortalItshopPatternItem, unknown>> {
+  public async getPatternItems(
+    navigationState?: CollectionLoadParameters, 
+    requestOpts?: ApiRequestOptions
+  ): Promise<ExtendedTypedEntityCollection<PortalItshopPatternItem, unknown>> {
     this.logger.debug(this, `Retrieving public itshop patterns`);
     this.logger.trace('Navigation state', navigationState);
-    return this.qerClient.typedClient.PortalItshopPatternItem.Get(navigationState);
+    return this.qerClient.typedClient.PortalItshopPatternItem.Get(navigationState, requestOpts);
   }
 
   /**
@@ -114,11 +131,13 @@ export class ItshopPatternService {
    *
    * @returns A list of {@link PortalItshopPatternAdmin} entities.
    */
-  public async getPublicPatterns(navigationState?: CollectionLoadParameters):
-    Promise<ExtendedTypedEntityCollection<PortalItshopPatternAdmin, unknown>> {
+  public async getPublicPatterns(
+    navigationState?: CollectionLoadParameters,
+    requestOpts?: ApiRequestOptions
+  ): Promise<ExtendedTypedEntityCollection<PortalItshopPatternAdmin, unknown>> {
     this.logger.debug(this, `Retrieving public itshop patterns`);
     this.logger.trace('Navigation state', navigationState);
-    return this.qerClient.typedClient.PortalItshopPatternAdmin.Get(navigationState);
+    return this.qerClient.typedClient.PortalItshopPatternAdmin.Get(navigationState, requestOpts);
   }
 
   /**
@@ -155,9 +174,10 @@ export class ItshopPatternService {
       }
 
       if (deleteCount > 0) {
-        const message = deleteCount > 1
-          ? '#LDS#The selected product bundles have been successfully deleted.'
-          : '#LDS#The product bundle has been successfully deleted.';
+        const message =
+          deleteCount > 1
+            ? '#LDS#The selected product bundles have been successfully deleted.'
+            : '#LDS#The product bundle has been successfully deleted.';
         this.snackBar.open({ key: message });
       }
     } finally {
@@ -207,11 +227,11 @@ export class ItshopPatternService {
       parameterCategoryColumns: this.requestParametersService.createInteractiveParameterCategoryColumns(
         {
           Parameters: typedEntity.extendedDataRead?.Parameters,
-          index
+          index,
         },
-        parameter => this.getFkProviderItemsInteractive(typedEntity, parameter),
+        (parameter) => this.getFkProviderItemsInteractive(typedEntity, parameter),
         typedEntity
-      )
+      ),
     };
   }
 
@@ -219,26 +239,27 @@ export class ItshopPatternService {
     return entityWrapper.typedEntity.GetEntity().Commit(true);
   }
 
-
   public getFkProviderItemsInteractive(
     interactiveEntity: { InteractiveEntityWriteData: InteractiveEntityWriteData },
     parameterData: ParameterData
   ): IFkCandidateProvider {
-
     const qerClient = this.qerClient;
 
-    return new class implements IFkCandidateProvider {
+    return new (class implements IFkCandidateProvider {
       getProviderItem(_columnName, fkTableName) {
         if (parameterData.Property.FkRelation) {
-          return this.getFkProviderItemInteractive(interactiveEntity, parameterData.Property.ColumnName, parameterData.Property.FkRelation.ParentTableName);
+          return this.getFkProviderItemInteractive(
+            interactiveEntity,
+            parameterData.Property.ColumnName,
+            parameterData.Property.FkRelation.ParentTableName
+          );
         }
 
         if (parameterData.Property.ValidReferencedTables) {
-          const t = parameterData.Property.ValidReferencedTables.map(parentTableRef =>
+          const t = parameterData.Property.ValidReferencedTables.map((parentTableRef) =>
             this.getFkProviderItemInteractive(interactiveEntity, parameterData.Property.ColumnName, parentTableRef.TableName)
-          ).filter(t => t.fkTableName == fkTableName);
-          if (t.length == 1)
-            return t[0];
+          ).filter((t) => t.fkTableName == fkTableName);
+          if (t.length == 1) return t[0];
           return null;
         }
 
@@ -253,13 +274,7 @@ export class ItshopPatternService {
         return {
           columnName,
           fkTableName,
-          parameterNames: [
-            'OrderBy',
-            'StartIndex',
-            'PageSize',
-            'filter',
-            'search'
-          ],
+          parameterNames: ['OrderBy', 'StartIndex', 'PageSize', 'filter', 'search'],
           load: async (__, parameters?) => {
             return qerClient.client.portal_itshop_pattern_item_interactive_parameter_candidates_post(
               columnName,
@@ -271,15 +286,16 @@ export class ItshopPatternService {
           getDataModel: async () => ({}),
           getFilterTree: async (__, parentkey) => {
             return qerClient.client.portal_itshop_pattern_item_interactive_parameter_candidates_filtertree_post(
-              columnName, fkTableName, interactiveEntity.InteractiveEntityWriteData, { parentkey: parentkey }
+              columnName,
+              fkTableName,
+              interactiveEntity.InteractiveEntityWriteData,
+              { parentkey: parentkey }
             );
-          }
+          },
         };
       }
-
-    }
+    })();
   }
-
 
   /**
    * Toogle the IsPublicPattern value of a {@link PortalItshopPatternPrivate} and commit the changes to the server
@@ -316,13 +332,12 @@ export class ItshopPatternService {
         }
       }
       const message = shouldBePublic
-        ? (commitCount === 1
+        ? commitCount === 1
           ? '#LDS#The product bundle has been shared successfully. The product bundle is now available for all users.'
-          : '#LDS#The product bundles have been shared successfully. {0} product bundles are now available for all users.')
-        : (commitCount === 1
-          ? '#LDS#Sharing of the product bundle has been successfully undone. The product bundle is now only available for yourself.'
-          : '#LDS#Sharing of the product bundles has been successfully undone. {0} product bundles are now only available for yourself.'
-        );
+          : '#LDS#The product bundles have been shared successfully. {0} product bundles are now available for all users.'
+        : commitCount === 1
+        ? '#LDS#Sharing of the product bundle has been successfully undone. The product bundle is now only available for yourself.'
+        : '#LDS#Sharing of the product bundles has been successfully undone. {0} product bundles are now only available for yourself.';
       this.snackBar.open({ key: message, parameters: [commitCount] });
     } finally {
       this.handleCloseLoader();
@@ -332,7 +347,7 @@ export class ItshopPatternService {
 
   public handleOpenLoader(): void {
     if (this.busyIndicatorCounter === 0) {
-      setTimeout(() => this.busyIndicator = this.busyService.show());
+      setTimeout(() => (this.busyIndicator = this.busyService.show()));
     }
     this.busyIndicatorCounter++;
   }
@@ -345,6 +360,11 @@ export class ItshopPatternService {
       });
     }
     this.busyIndicatorCounter--;
+  }
+
+  public abortCall(): void {
+    this.abortController.abort();
+    this.abortController = new AbortController();
   }
 
   private async tryCommit(pattern: PortalItshopPatternPrivate): Promise<boolean> {
@@ -373,7 +393,7 @@ export class ItshopPatternService {
 
   private async tryDeleteProducts(uid: string): Promise<boolean> {
     try {
-      await this.qerClient.typedClient.PortalItshopPatternItem.Delete(uid); 
+      await this.qerClient.typedClient.PortalItshopPatternItem.Delete(uid);
       return true;
     } catch (error) {
       this.errorHandler.handleError(error);

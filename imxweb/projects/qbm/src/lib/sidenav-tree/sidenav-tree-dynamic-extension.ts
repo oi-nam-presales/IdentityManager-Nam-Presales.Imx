@@ -24,20 +24,21 @@
  *
  */
 
-import { CollectionViewer, SelectionChange } from "@angular/cdk/collections";
-import { FlatTreeControl } from "@angular/cdk/tree";
-import { CollectionLoadParameters } from "imx-qbm-dbts";
-import { BehaviorSubject, merge, Observable, Subscription } from "rxjs";
-import { concatMap, map} from 'rxjs/operators';
-import { DataSourceToolbarSettings } from "../data-source-toolbar/data-source-toolbar-settings";
+import { CollectionViewer, SelectionChange } from '@angular/cdk/collections';
+import { FlatTreeControl } from '@angular/cdk/tree';
+import { CollectionLoadParameters } from 'imx-qbm-dbts';
+import { BehaviorSubject, merge, Observable, Subscription } from 'rxjs';
+import { concatMap, map } from 'rxjs/operators';
+import { DataSourceToolbarSettings } from '../data-source-toolbar/data-source-toolbar-settings';
 
 export class DynamicDataApiControls<T> {
-  setup: () => Promise<{rootNode: T, dstSettings?: DataSourceToolbarSettings, totalCount?: number}>;
+  setup: () => Promise<{ rootNode: T; dstSettings?: DataSourceToolbarSettings; totalCount?: number }>;
   getChildren: (node: T, onlyCheck?: boolean) => Promise<T[]>;
   loadMore?: (root: T) => Promise<T[]>;
-  search?: (params: CollectionLoadParameters) => Promise<{searchNodes: T[],  totalCount?: number, rootNode?: T}>;
+  search?: (params: CollectionLoadParameters) => Promise<{ searchNodes: T[]; totalCount?: number; rootNode?: T }>;
+  abortSearch?: () => void;
   searchLoadMore?: (params: CollectionLoadParameters) => Promise<T[]>;
-  changeSelection?: (data: T[], selectedNode: T) => T[]
+  changeSelection?: (data: T[], selectedNode: T) => T[];
 }
 
 export class DynamicDataSource<T> {
@@ -50,12 +51,11 @@ export class DynamicDataSource<T> {
   private currentCount: number;
   private rootNode: T;
   private cachedData: {
-    data: T[],
-    totalCount: number,
-    currentCount: number
+    data: T[];
+    totalCount: number;
+    currentCount: number;
   } | null;
   private subscriptions$: Subscription[] = [];
-
 
   public get data(): T[] {
     return this.dataChange.value;
@@ -88,11 +88,10 @@ export class DynamicDataSource<T> {
       if (expandRoot) {
         this._treeControl.expand(this.rootNode);
         await this.toggleNode(this.rootNode, true);
-        this.dataChange.next(this.data);
+        this.nextData(this.data);
       }
     } finally {
       this.currentCount = this.data.length - 1; // Minus 1 to account for rootnode
-      this.initializingData = false;
     }
   }
 
@@ -100,7 +99,6 @@ export class DynamicDataSource<T> {
     this._treeControl.dataNodes = [this.rootNode];
     this.dataChange.next([this.rootNode]);
   }
-
 
   public async loadMore(): Promise<void> {
     let nodes: T[];
@@ -121,6 +119,9 @@ export class DynamicDataSource<T> {
   }
 
   public async onSearch(): Promise<void> {
+    if (!this._apiControls.search || !this._apiControls.changeSelection) {
+      throw Error('No remote search functionality has been defined.');
+    }
     this.initializingData = true;
     this.dstSettings.navigationState.StartIndex = 0;
 
@@ -129,76 +130,82 @@ export class DynamicDataSource<T> {
       this.cachedData = {
         data: this.data.slice(),
         totalCount: this.totalCount,
-        currentCount: this.currentCount
-      }
+        currentCount: this.currentCount,
+      };
     }
-    try {
-      if (!this.isSearch && this.cachedData) {
-        // If we are not searching, and there is cached data, load cache and remove old data
-        this.totalCount = this.cachedData.totalCount;
-        this.currentCount = this.cachedData.currentCount;
-        this.dataChange.next(this.cachedData.data);
-        this.cachedData = null;
-      } else {
-        // Proceed with normal search
-        const response = await this._apiControls.search(this.dstSettings.navigationState);
-        this.totalCount = response?.totalCount;
-        const nodes = this._apiControls.changeSelection(response.searchNodes, this.selectedNode);
-        this.currentCount = nodes.length;
-        if(nodes.length>0){
-          this.rootNode = response.rootNode || this.rootNode;
-          this.dataChange.next([this.rootNode, ...nodes]);
-          this._treeControl.expand(this.rootNode);
-        }else{
-          this.dataChange.next(nodes);
-        }
+    if (!this.isSearch && !!this.cachedData) {
+      // If we are not searching, and there is cached data, load cache and remove old data
+      this.totalCount = this.cachedData.totalCount;
+      this.currentCount = this.cachedData.currentCount;
+      this.rootNode = this.cachedData.data?.[0];
+      this.nextData(this.cachedData.data);
+      if (this._apiControls.abortSearch) this._apiControls?.abortSearch();
+      this.cachedData = null;
+    } else {
+      // Proceed with normal search
+      const response = await this._apiControls.search(this.dstSettings.navigationState);
+      if (!response) {
+        // Here the search was aborted, so we return nothing
+        return;
       }
-    } finally {
-      this.initializingData = false;
+      this.totalCount = response?.totalCount;
+      const nodes = this._apiControls.changeSelection(response.searchNodes, this.selectedNode);
+      this.currentCount = nodes.length;
+      if (nodes.length > 0) {
+        this.rootNode = response.rootNode || this.rootNode;
+        this.nextData([this.rootNode, ...nodes]);
+        this._treeControl.expand(this.rootNode);
+      } else {
+        this.nextData(nodes);
+      }
     }
   }
+  /**
+   * Emits data and turns off the loading spinner
+   * @param data that will be emitted as the next data state
+   */
+  private nextData(data: T[]): void {
+    this.dataChange.next(data);
+    this.initializingData = false;
+  }
 
-  constructor(
-    private _treeControl: FlatTreeControl<T>,
-    private _apiControls: DynamicDataApiControls<T>
-  ) {}
+  constructor(private _treeControl: FlatTreeControl<T>, private _apiControls: DynamicDataApiControls<T>) {}
 
   public connect(collectionViewer: CollectionViewer): Observable<T[]> {
     this.subscriptions$.push(
       this._treeControl.expansionModel.changed
-        .pipe(
-          concatMap(async change => this.handleTreeControl(change))
-        ).subscribe((treeDataHasChanged: boolean) => {
+        .pipe(concatMap(async (change) => this.handleTreeControl(change)))
+        .subscribe((treeDataHasChanged: boolean) => {
           if (treeDataHasChanged) {
             this.dataChange.next(this.data);
           }
         })
     );
 
-    return merge(collectionViewer.viewChange, this.dataChange).pipe(map(() => {
-      return this.data
-    }));
+    return merge(collectionViewer.viewChange, this.dataChange).pipe(
+      map(() => {
+        return this.data;
+      })
+    );
   }
 
   public disconnect(collectionViewer: CollectionViewer): void {
-    this.subscriptions$.forEach(sub => sub.unsubscribe());
+    this.subscriptions$.forEach((sub) => sub.unsubscribe());
   }
 
   /** Handle expand/collapse behaviors */
   public async handleTreeControl(change: SelectionChange<T>): Promise<boolean> {
     if (change.added && change.added.length > 0) {
-      return (await Promise.all(
-        change.added.map(node => this.toggleNode(node, true))
-      )).some(val => val);
+      return (await Promise.all(change.added.map((node) => this.toggleNode(node, true)))).some((val) => val);
     } else if (change.removed && change.removed.length > 0) {
       return (
         await Promise.all(
           change.removed
             .slice()
             .reverse()
-            .map(node => this.toggleNode(node, false))
+            .map((node) => this.toggleNode(node, false))
         )
-      ).some(val => val);
+      ).some((val) => val);
     }
     return false;
   }
@@ -215,7 +222,7 @@ export class DynamicDataSource<T> {
 
     if (expand) {
       const children = await this._apiControls.getChildren(node);
-      const descendants = (await Promise.all(children.map(node => this.recursivelyGetChildren(node)))).reduce((a, b) => a.concat(b), [])
+      const descendants = (await Promise.all(children.map((node) => this.recursivelyGetChildren(node)))).reduce((a, b) => a.concat(b), []);
       this.data.splice(index + 1, 0, ...descendants);
     } else {
       const count = this.findEndOfChildren(node, index);
@@ -245,10 +252,10 @@ export class DynamicDataSource<T> {
     let count = 0;
     const nodeLevel = this._treeControl.getLevel(node);
     for (count; count < afterCollapsed.length; count++) {
-        const tmpNode = afterCollapsed[count];
-        if (this._treeControl.getLevel(tmpNode) <= nodeLevel){
-            break;
-        }
+      const tmpNode = afterCollapsed[count];
+      if (this._treeControl.getLevel(tmpNode) <= nodeLevel) {
+        break;
+      }
     }
     return count;
   }

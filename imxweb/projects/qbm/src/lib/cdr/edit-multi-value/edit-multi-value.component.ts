@@ -35,7 +35,10 @@ import { CdrEditor, ValueHasChangedEventArg } from '../cdr-editor.interface';
 import { MultiValueService } from '../../multi-value/multi-value.service';
 
 /**
- * A component for viewing / editing multi value columns
+ * Provides a {@link CdrEditor | CDR editor} for editing / viewing multi valued columns.
+ * 
+ * To change its value, it uses a text area. Each line represents a part of the multi value.
+ * When set to read-only, it uses a {@link ViewPropertyComponent | view property component} to display the content.
  */
 @Component({
   selector: 'imx-edit-multi-value',
@@ -43,10 +46,19 @@ import { MultiValueService } from '../../multi-value/multi-value.service';
   styleUrls: ['./edit-multi-value.component.scss'],
 })
 export class EditMultiValueComponent implements CdrEditor, OnDestroy {
+  /**
+   * The form control associated with the editor.
+   */
   public readonly control = new UntypedFormControl(undefined, { updateOn: 'blur' });
 
+  /**
+   * The container that wraps the column functionality.
+   */
   public readonly columnContainer = new EntityColumnContainer<string>();
 
+  /**
+   * Event that is emitted, after a value has been changed.
+   */
   public readonly valueHasChanged = new EventEmitter<ValueHasChangedEventArg>();
 
   private readonly subscribers: Subscription[] = [];
@@ -54,12 +66,16 @@ export class EditMultiValueComponent implements CdrEditor, OnDestroy {
 
   constructor(private readonly logger: ClassloggerService, private readonly multiValueProvider: MultiValueService) {}
 
+  /**
+   * Unsubscribes all events, after the 'OnDestroy' hook is triggered.
+   */
   public ngOnDestroy(): void {
     this.subscribers.forEach((subscriber) => subscriber.unsubscribe());
   }
 
   /**
-   * Binds a column dependent reference to the component
+   * Binds a column dependent reference to the component.
+   * Subscribes to subjects from the column dependent reference and its container.
    * @param cdref a column dependent reference
    */
   public bind(cdref: ColumnDependentReference): void {
@@ -103,8 +119,8 @@ export class EditMultiValueComponent implements CdrEditor, OnDestroy {
   }
 
   /**
-   * updates the value for the CDR
-   * @param values the new value
+   * Updates the value for the CDR.
+   * @param values The values, that will be used as a new value.
    */
   private async writeValue(value: string): Promise<void> {
     this.logger.debug(this, 'writeValue called with value', value);

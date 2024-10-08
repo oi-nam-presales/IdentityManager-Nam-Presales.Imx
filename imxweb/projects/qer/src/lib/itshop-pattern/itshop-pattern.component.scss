@@ -2,12 +2,25 @@
 @mixin imx-flex-column-container {
   display: flex;
   flex-direction: column;
+  flex-grow: 1;
 }
 
 @mixin imx-flex-row-container {
   display: flex;
   flex-direction: row;
 }
+
+:host {
+  @include imx-flex-fill-control-hidden-overflow();
+  height: 100%;
+
+  .mat-card {
+    @include imx-flex-fill-control-hidden-overflow();
+    margin-right: 3px;
+    margin-bottom: 3px;
+  }
+}
+
 
 .eui-sidesheet-content {
   @include imx-flex-column-container();
@@ -23,12 +36,12 @@
   }
 }
 
-:host {
-  @include imx-flex-column-container();
-  overflow: hidden;
-  height: 100%;
-  max-width: 100%;
-}
+// :host {
+//   @include imx-flex-column-container();
+//   overflow: hidden;
+//   height: 100%;
+//   max-width: 100%;
+// }
 
 .imx-pattern-page {
   background-color: inherit;

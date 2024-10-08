@@ -63,7 +63,8 @@ describe('ApproverContainer', () => {
         UID_PersonHead: {
           Value: uidPersonHead,
           DisplayValue: uidPersonHead,
-        }
+        },
+        Decision: {Value: ''}
       }
     }
   }

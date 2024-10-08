@@ -31,11 +31,12 @@ import { EuiLoadingService, EuiSidesheetRef, EUI_SIDESHEET_DATA } from '@element
 import { Subscription } from 'rxjs';
 
 import { TypedEntity } from 'imx-qbm-dbts';
-import { PortalCartitem } from 'imx-api-qer';
+import { PortalCartitem, PortalTermsofuse } from 'imx-api-qer';
 import { TermsOfUseService } from './terms-of-use.service';
 import { Approval } from '../itshopapprove/approval';
 import { BusyService, ExtService } from 'qbm';
 import { AuthenticationFactors } from '../admin/authentication-factors.interface';
+import { TermsOfUseItem } from './terms-of-use-item';
 
 /**
  * Form information for the typed authetification form
@@ -78,9 +79,16 @@ export class TermsOfUseAcceptComponent implements OnInit, OnDestroy {
   });
 
   /**
-   * Gets the items, that has to be accepted (cart items or approval)
+   * Gets the list of terms of use {@link items|PortalTermsofuse} found in the products.
    */
-  public get items(): TypedEntity[] {
+  public get items(): PortalTermsofuse[] {
+    return this.termsOfUseItems;
+  }
+
+  /**
+   * Gets the list of products (cart or approval items) for which terms of use may need to be accepted.
+   */
+  public get productItems(): TermsOfUseItem[] {
     return this.data.acceptCartItems && this.data.cartItems?.length > 0 ? this.data.cartItems : this.data.approvalItems;
   }
 
@@ -104,6 +112,7 @@ export class TermsOfUseAcceptComponent implements OnInit, OnDestroy {
     '#LDS#One or more requests require you to accept the terms of use before you can proceed.';
   public ldsItemsHeading: string;
 
+  private termsOfUseItems: PortalTermsofuse[] = [];
   private subscriptions: Subscription[] = [];
 
   constructor(
@@ -135,11 +144,13 @@ export class TermsOfUseAcceptComponent implements OnInit, OnDestroy {
   public async ngOnInit(): Promise<void> {
     this.ldsItemsHeading = this.data.acceptCartItems ? '#LDS#Related products' : '#LDS#Related requests';
     const busy = this.busyService.beginBusy();
-
     try {
+      await this.loadTermsOfUseItems();
       const authProvider = await this.termsOfUseService.getStepUpAuthenticationProvider();
       this.withoutAuthenticaton =
-        authProvider === 'NoAuth' || this.data.approvalItems?.every((elem) => !!!elem.IsAcceptTermsRequiresMfa.value);
+        authProvider === 'NoAuth' ||
+        this.data.approvalItems?.every((elem) => !!!elem.IsAcceptTermsRequiresMfa.value) ||
+        this.termsOfUseItems?.every((item) => !!!item.IsAcceptRequiresMfa.value);
 
       if (this.withoutAuthenticaton) {
         return;
@@ -169,6 +180,14 @@ export class TermsOfUseAcceptComponent implements OnInit, OnDestroy {
    */
   public async accept(): Promise<void> {
     this.data.cartItems && this.data.cartItems.length > 0 ? await this.acceptCartItems() : await this.acceptApprovalItems();
+  }
+
+  /**
+   * Load all {@link PortalTermsofuse} items of the given cart or approval items.
+   */
+  private async loadTermsOfUseItems(): Promise<void> {
+    const termsOfUseUids = Array.from(new Set(this.productItems.map((c) => c.UID_QERTermsOfUse.value)));
+    this.termsOfUseItems = await this.termsOfUseService.getTermsOfUse(termsOfUseUids);
   }
 
   /**

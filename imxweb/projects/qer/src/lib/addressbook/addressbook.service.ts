@@ -33,28 +33,29 @@ import { PersonService } from '../person/person.service';
 import { AddressbookDetail } from './addressbook-detail/addressbook-detail.interface';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AddressbookService {
-  constructor(private readonly personService: PersonService) { }
+  public abortController = new AbortController();
+
+  constructor(private readonly personService: PersonService) {}
 
   public async createDataSourceWrapper(columnNames: string[], identifier?: string): Promise<DataSourceWrapper> {
-
     const entitySchema = this.personService.schemaPersonAll;
 
     const displayedColumns = columnNames
-      .filter(columnName => entitySchema.Columns[columnName])
-      .map(columnName => entitySchema.Columns[columnName]);
+      .filter((columnName) => entitySchema.Columns[columnName])
+      .map((columnName) => entitySchema.Columns[columnName]);
     displayedColumns.unshift(entitySchema.Columns[DisplayColumns.DISPLAY_PROPERTYNAME]);
 
     return new DataSourceWrapper(
-      state => this.personService.getAll(state),
+      (state, requestOpts) => this.personService.getAll(state, requestOpts),
       displayedColumns,
       entitySchema,
       {
         dataModel: await this.personService.getDataModel(),
-        getGroupInfo: parameters => this.personService.getGroupInfo(parameters),
-        groupingFilterOptions: ['withmanager', 'orphaned']
+        getGroupInfo: (parameters) => this.personService.getGroupInfo(parameters),
+        groupingFilterOptions: ['withmanager', 'orphaned'],
       },
       identifier
     );
@@ -69,9 +70,14 @@ export class AddressbookService {
 
     return {
       columns: columnNames
-        .filter(columnName => entitySchema.Columns[columnName])
-        .map(columnName => personDetailEntity.GetColumn(columnName)),
-      personUid
+        .filter((columnName) => entitySchema.Columns[columnName])
+        .map((columnName) => personDetailEntity.GetColumn(columnName)),
+      personUid,
     };
+  }
+
+  public abortCall(): void {
+    this.abortController.abort();
+    this.abortController = new AbortController();
   }
 }

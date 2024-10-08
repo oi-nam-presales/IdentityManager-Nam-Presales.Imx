@@ -26,14 +26,7 @@
 
 import { Component, Inject, OnInit } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
-import {
-  DataModelFilterOption,
-  DbObjectKey,
-  DisplayColumns,
-  EntitySchema,
-  IClientProperty,
-  TypedEntity
-} from 'imx-qbm-dbts';
+import { DataModelFilterOption, DbObjectKey, DisplayColumns, EntitySchema, IClientProperty, TypedEntity } from 'imx-qbm-dbts';
 import { MetadataService } from '../../base/metadata.service';
 import { CdrFactoryService } from '../../cdr/cdr-factory.service';
 import { DataSourceToolbarFilter } from '../../data-source-toolbar/data-source-toolbar-filters.interface';
@@ -47,8 +40,8 @@ import { MAT_DIALOG_DATA } from '@angular/material/dialog';
  * A component, that can be shown inside a MatDialogComponent. It contains a table of entities with their display value as a column
  * If the entities, that are displayed, originated from different tables, the table name is displayed as a column as well
  * To use this, some {@link SelectedElementsDialogParameter | dialog parameter } has to be injected
- * 
- * Example: 
+ *
+ * Example:
  *  this.dialog.open(SelectedElementsDialog, {
  *     data: { entities: [array of entities], tables: [array of table names], header: 'translated header text' },
  *   });
@@ -71,17 +64,23 @@ export class SelectedElementsDialog implements OnInit {
   constructor(
     @Inject(MAT_DIALOG_DATA) public readonly data: SelectedElementsDialogParameter,
     private translate: TranslateService,
-    private metaData: MetadataService
+    private metaData: MetadataService,
   ) {
     this.entitySchemaCandidates = CandidateEntity.GetEntitySchema();
     this.displayedColumns = [this.entitySchemaCandidates.Columns[DisplayColumns.DISPLAY_PROPERTYNAME]];
-    this.sortedEntities = data.entities?.sort((a, b) => a.GetEntity().GetDisplay()?.localeCompare(b.GetEntity()?.GetDisplay()));
+    this.sortedEntities = data.entities?.sort(
+      (a, b) =>
+        a
+          .GetEntity()
+          .GetDisplay()
+          ?.localeCompare(b.GetEntity()?.GetDisplay()),
+    );
   }
 
   public async ngOnInit(): Promise<void> {
     this.searchedEntities = [...this.sortedEntities];
     if (this.data.tables && this.data.tables.length > 1) {
-      this.metaData.update(this.data.tables);
+      this.metaData.updateNonExisting(this.data.tables);
     }
     this.filters =
       this.data.tables && this.data.tables.length > 1
@@ -105,7 +104,7 @@ export class SelectedElementsDialog implements OnInit {
       this.searchedEntities = [...this.sortedEntities];
     } else {
       this.searchedEntities = this.sortedEntities.filter((elem) =>
-        elem.GetEntity().GetDisplay().toLocaleLowerCase().includes(key.toLocaleLowerCase())
+        elem.GetEntity().GetDisplay().toLocaleLowerCase().includes(key.toLocaleLowerCase()),
       );
     }
     this.navigate({ StartIndex: 0, search: key });
@@ -118,8 +117,8 @@ export class SelectedElementsDialog implements OnInit {
   public navigate(source: TypedEntityTableFilter): void {
     this.navigationState = { ...this.navigationState, ...source };
     const possible = source.table
-      ? this.searchedEntities.filter((elem) =>
-          CdrFactoryService.tryGetColumn(elem.GetEntity(), 'XObjectKey')?.GetValue()?.includes(source.table)
+      ? this.searchedEntities.filter(
+          (elem) => CdrFactoryService.tryGetColumn(elem.GetEntity(), 'XObjectKey')?.GetValue()?.includes(source.table),
         )
       : this.searchedEntities;
 
@@ -157,9 +156,9 @@ export class SelectedElementsDialog implements OnInit {
     return this.data.tables
       .map((elem) => ({ Value: elem, Display: this.metaData.tables[elem]?.DisplaySingular }))
       .filter((elem) =>
-        this.data.entities.some((entity) =>
-          CdrFactoryService.tryGetColumn(entity.GetEntity(), 'XObjectKey')?.GetValue().includes(elem.Value)
-        )
+        this.data.entities.some(
+          (entity) => CdrFactoryService.tryGetColumn(entity.GetEntity(), 'XObjectKey')?.GetValue().includes(elem.Value),
+        ),
       );
   }
 }

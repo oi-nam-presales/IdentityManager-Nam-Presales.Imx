@@ -95,8 +95,6 @@ export class AttestationCase extends PortalAttestationApprove implements Attesta
     this.data = extendedCollectionData.Data ? extendedCollectionData.Data[extendedCollectionData.index] : undefined;
     this.uiData = extendedCollectionData.UiData ? extendedCollectionData.UiData[extendedCollectionData.index] : undefined;
 
-    
-
     if (this.data) {
       this.workflowWrapper = new WorkflowDataWrapper(this.data);
     }
@@ -108,12 +106,14 @@ export class AttestationCase extends PortalAttestationApprove implements Attesta
 
   public async commit(reload = true): Promise<void> {
     this.baseObject.extendedData = this.parameterDataContainer.getEntityWriteDataColumns();
-    try {
-      await this.baseObject.GetEntity().Commit(reload);
-    } catch (error) {
-      await this.baseObject.GetEntity().DiscardChanges();
-      this.baseObject.extendedData = undefined;
-      throw error;
+    if (this.baseObject.extendedData.DialogParameter[0].length > 0 || this.baseObject.GetEntity().GetDiffData().Data.length > 0) {
+      try {
+        await this.baseObject.GetEntity().Commit(reload);
+      } catch (error) {
+        await this.baseObject.GetEntity().DiscardChanges();
+        this.baseObject.extendedData = undefined;
+        throw error;
+      }
     }
   }
 

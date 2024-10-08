@@ -74,7 +74,7 @@ export class AttestationHistoryComponent implements OnInit, OnDestroy {
   @Input() public parameters: { objecttable: string; objectuid: string; filter?: FilterData[] };
   @Input() public itemStatus: DataSourceItemStatus = { enabled: (__) => true };
   @Input() public withAssignmentAnalysis: boolean = false;
-  @Input() public selectable : boolean = true;
+  @Input() public selectable: boolean = true;
 
   @ViewChild('attestorFilter', { static: false }) public attestorFilter: AttestationHistoryFilterComponent;
 
@@ -197,6 +197,7 @@ export class AttestationHistoryComponent implements OnInit, OnDestroy {
   }
 
   public async onSearch(search: string): Promise<void> {
+    this.historyService.abortCall();
     return this.getData({ search });
   }
 
@@ -213,6 +214,7 @@ export class AttestationHistoryComponent implements OnInit, OnDestroy {
       groupedData.data = await this.historyService.getAttestations(navigationState);
       groupedData.settings = {
         displayedColumns: this.dstSettings.displayedColumns,
+        dataModel: this.dstSettings.dataModel,
         dataSource: groupedData.data,
         entitySchema: this.dstSettings.entitySchema,
         navigationState: groupedData.navigationState,
@@ -250,8 +252,6 @@ export class AttestationHistoryComponent implements OnInit, OnDestroy {
           viewConfig: this.viewConfig,
           exportMethod,
         };
-      } else {
-        this.dstSettings = undefined;
       }
     } finally {
       isBusy.endBusy();
@@ -313,10 +313,8 @@ export class AttestationHistoryComponent implements OnInit, OnDestroy {
   }
 
   public async viewAssignmentAnalysis(event: Event, attestationCase: AttestationHistoryCase): Promise<void> {
-
     event.stopPropagation();
     const uidPerson = attestationCase.UID_Person.value;
-
     const objectKey = DbObjectKey.FromXml(attestationCase.ObjectKeyBase.value);
 
     const data: SourceDetectiveSidesheetData = {

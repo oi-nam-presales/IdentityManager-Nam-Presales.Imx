@@ -33,6 +33,7 @@ import { Subject } from 'rxjs';
 import { PolicyConfig, PortalPoliciesViolations, PortalPoliciesViolationslist, V2ApiClientMethodFactory } from 'imx-api-pol';
 import { DecisionInput } from 'imx-api-qer';
 import {
+  ApiRequestOptions,
   CollectionLoadParameters,
   DataModel,
   EntityCollectionData,
@@ -46,7 +47,7 @@ import {
   ValType,
 } from 'imx-qbm-dbts';
 import { BaseCdr, DataSourceToolbarExportMethod, EntityService, SnackBarService } from 'qbm';
-import { JustificationService, JustificationType } from 'qer';
+import { JustificationService, JustificationType, UserModelService } from 'qer';
 import { ApiService } from '../api.service';
 import { PolicyViolationsActionParameters } from './policy-violations-action/policy-violations-action-parameters.interface';
 import { PolicyViolationsActionComponent } from './policy-violations-action/policy-violations-action.component';
@@ -56,6 +57,7 @@ import { PolicyViolation } from './policy-violation';
   providedIn: 'root',
 })
 export class PolicyViolationsService {
+  public abortController = new AbortController();
   public readonly applied = new Subject();
 
   constructor(
@@ -65,6 +67,7 @@ export class PolicyViolationsService {
     private readonly entityService: EntityService,
     private readonly translate: TranslateService,
     private readonly snackBar: SnackBarService,
+    private readonly userService: UserModelService,
     private readonly sideSheet: EuiSidesheetService
   ) {}
 
@@ -76,7 +79,7 @@ export class PolicyViolationsService {
     return this.api.typedClient.PortalPoliciesViolations.GetSchema();
   }
 
-  public async getConfig(): Promise<PolicyConfig>{
+  public async getConfig(): Promise<PolicyConfig> {
     return this.api.client.portal_policy_config_get();
   }
 
@@ -84,8 +87,21 @@ export class PolicyViolationsService {
     return this.api.client.portal_policies_violations_datamodel_get();
   }
 
-  public async get(isApprovable: boolean, polDecisionParameters?: CollectionLoadParameters): Promise<TypedEntityCollectionData<PolicyViolation>> {
-    const collection = await this.api.typedClient.PortalPoliciesViolationslist.Get_list({approvable: isApprovable, ...polDecisionParameters});
+  public async get(
+    isApprovable: boolean,
+    polDecisionParameters?: CollectionLoadParameters,
+    reqestOpts?: ApiRequestOptions
+  ): Promise<TypedEntityCollectionData<PolicyViolation> | undefined> {
+    const collection = await this.api.typedClient.PortalPoliciesViolationslist.Get_list(
+      {
+        approvable: isApprovable,
+        ...polDecisionParameters,
+      },
+      reqestOpts
+    );
+    if (!collection) {
+      return undefined;
+    }
     return {
       tableName: collection.tableName,
       totalCount: collection.totalCount,
@@ -102,20 +118,20 @@ export class PolicyViolationsService {
       getMethod: (withProperties: string, PageSize?: number) => {
         let method: MethodDescriptor<EntityCollectionData>;
         if (PageSize) {
-          method = factory.portal_policies_violations_list_get({...polDecisionParameters, withProperties, PageSize, StartIndex: 0})
+          method = factory.portal_policies_violations_list_get({ ...polDecisionParameters, withProperties, PageSize, StartIndex: 0 });
         } else {
-          method = factory.portal_policies_violations_list_get({...polDecisionParameters, withProperties})
+          method = factory.portal_policies_violations_list_get({ ...polDecisionParameters, withProperties });
         }
         return new MethodDefinition(method);
-      }
-    }
+      },
+    };
   }
 
   public getGroupInfo(parameters: { by?: string; def?: string } & CollectionLoadParameters = {}): Promise<GroupInfoData> {
-    const  { OrderBy, search, ...params }= parameters;
+    const { withProperties, OrderBy, search, ...params } = parameters;
     return this.api.client.portal_policies_violations_group_list_get({
-     ...params,
-      withcount: true
+      ...params,
+      withcount: true,
     });
   }
 
@@ -202,8 +218,8 @@ export class PolicyViolationsService {
     return this.api.typedClient.PortalPoliciesViolations.Get(uidObject);
   }
 
-  public async getCandidates(uid:string,data: EntityKeysData,parameter?: CollectionLoadParameters){
-    return this.api.client.portal_policies_violations_UID_MitigatingControl_candidates_post(uid,data,parameter);
+  public async getCandidates(uid: string, data: EntityKeysData, parameter?: CollectionLoadParameters) {
+    return this.api.client.portal_policies_violations_UID_MitigatingControl_candidates_post(uid, data, parameter);
   }
 
   public createMitigatingControl(uid: string): PortalPoliciesViolations {
@@ -224,6 +240,11 @@ export class PolicyViolationsService {
     }
   }
 
+  public abortCall(): void {
+    this.abortController.abort();
+    this.abortController = new AbortController();
+  }
+
   private async makeDecision(pwo: PolicyViolation, decision: DecisionInput): Promise<void> {
     await this.api.client.portal_policies_violations_approve_post(pwo.GetEntity().GetKeys()[0], decision);
   }
@@ -239,16 +260,17 @@ export class PolicyViolationsService {
   }
 
   private async editAction(config: any): Promise<void> {
-    const result = await this.sideSheet.open(PolicyViolationsActionComponent, {
-      title: await this.translate.get(config.title).toPromise(),
-      subTitle: config.data.policyViolations.length === 1
-        ? config.data.policyViolations[0].GetEntity().GetDisplay()
-        : '',
-      padding: '0',
-      width: '600px',
-      testId: `policy-violations-action-${config.data.approve ? 'approve' : 'deny'}`,
-      data: config.data
-    }).afterClosed().toPromise();
+    const result = await this.sideSheet
+      .open(PolicyViolationsActionComponent, {
+        title: await this.translate.get(config.title).toPromise(),
+        subTitle: config.data.policyViolations.length === 1 ? config.data.policyViolations[0].GetEntity().GetDisplay() : '',
+        padding: '0',
+        width: '600px',
+        testId: `policy-violations-action-${config.data.approve ? 'approve' : 'deny'}`,
+        data: config.data,
+      })
+      .afterClosed()
+      .toPromise();
 
     if (result) {
       let busyIndicator: OverlayRef;
@@ -260,6 +282,7 @@ export class PolicyViolationsService {
           await config.apply(policyViolation);
         }
         success = true;
+        await this.userService.reloadPendingItems();
       } finally {
         setTimeout(() => this.busyService.hide(busyIndicator));
       }

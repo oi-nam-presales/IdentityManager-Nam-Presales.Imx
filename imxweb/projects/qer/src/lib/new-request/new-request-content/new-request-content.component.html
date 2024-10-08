@@ -23,7 +23,9 @@
 <router-outlet></router-outlet>
 <div class="imx-toolbar">
   <ng-container *ngIf="selectionService.selectedProducts && selectionService.selectedProducts.length > 0">
-    <button mat-stroked-button (click)="openSelected()"><eui-icon icon="check"></eui-icon>&nbsp;<span translate>#LDS#Show selected ({{ selectionService.selectedProducts.length }})</span></button>
+    <button mat-stroked-button (click)="openSelected()">
+    <eui-icon icon="check"></eui-icon>&nbsp;<span>{{'#LDS#Show selected' | translate}} ({{selectionService.selectedProducts.length}})</span>
+    </button>
     <button mat-stroked-button (click)="deselectCandidates()">
       <eui-icon class="text-red-60" icon="close"></eui-icon>&nbsp;<span class="text-red-60" translate>#LDS#Deselect all</span>
     </button>

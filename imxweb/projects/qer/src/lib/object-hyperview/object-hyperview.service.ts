@@ -28,4 +28,6 @@ import { ShapeData } from 'imx-api-qer';
 
 export abstract class ObjectHyperviewService { 
   abstract get(tableName: string, uid: string, nodeName?: string): Promise<ShapeData[]>;
+
+  abstract getNavigationPermission(): Promise<boolean>;
 }

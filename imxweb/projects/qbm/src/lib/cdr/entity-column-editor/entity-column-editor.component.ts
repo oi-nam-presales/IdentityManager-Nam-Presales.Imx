@@ -32,32 +32,61 @@ import { ColumnDependentReference } from '../column-dependent-reference.interfac
 import { CdrEditorComponent } from '../cdr-editor/cdr-editor.component';
 
 
+/**
+ * Provides a column editor component, that wraps around a {@link CdrEditor | column dependent reference editor}.
+ */
 @Component({
   selector: 'imx-entity-column-editor',
   templateUrl: './entity-column-editor.component.html',
-  styleUrls: ['./entity-column-editor.component.scss']
+  styleUrls: ['./entity-column-editor.component.scss'],
 })
 export class EntityColumnEditorComponent implements OnChanges {
+  /**
+   * @ignore only used in template.
+   * The column dependent reference used by the editor.
+   */
   public cdr: ColumnDependentReference;
 
+  /**
+   * An entity column, that should be edited with a {@link CdrEditor | column dependent reference editor}.
+   */
   @Input() public column: IEntityColumn;
+
+  /**
+   * Indicator, whether the control should be displayed as read-only.
+   */
   @Input() public readonly: boolean;
 
-  @Output() public controlCreated = new EventEmitter<{ name: string; control: AbstractControl; }>();
+  /**
+   * This is emitted, after the control is created properly.
+   * Only after this, the component can be added to a formGroup or FormArray.
+   */
+  @Output() public controlCreated = new EventEmitter<{ name: string; control: AbstractControl }>();
 
+  /**
+   * @ignore Used in template only.
+   * The cdr editor component.
+   */
   @ViewChild(CdrEditorComponent) editor: CdrEditorComponent;
 
+  /**
+   * Updates the cdr, if the 'OnChanges' hook is called.
+   * @param changes The changes that are applied (only column and readonly is evaluated).
+   */
   public ngOnChanges(changes: SimpleChanges): void {
     if (changes['column'] || changes['readonly']) {
-      this.cdr = this.column ?
-        {
-          column: this.column,
-          isReadOnly: () => this.readonly || !this.column.GetMetadata().CanEdit(),
-        }
+      this.cdr = this.column
+        ? {
+            column: this.column,
+            isReadOnly: () => this.readonly || !this.column.GetMetadata().CanEdit(),
+          }
         : undefined;
     }
   }
 
+  /**
+   * Calls the update method from the {@link CdrEditor | column dependent reference editor}.
+   */
   public update(): void {
     this.editor?.update();
   }

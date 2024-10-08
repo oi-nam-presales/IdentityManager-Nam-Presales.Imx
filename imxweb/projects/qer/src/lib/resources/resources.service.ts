@@ -70,10 +70,17 @@ export class ResourcesService {
   public static readonly QERReuse = 'QERReuse';
   public static readonly QERAssign = 'QERAssign';
 
-  public readonly targets = [ResourcesService.QERResource, ResourcesService.QERReuseUS, ResourcesService.QERReuse, ResourcesService.QERAssign];
+  private abortController = new AbortController();
+
+  public readonly targets = [
+    ResourcesService.QERResource,
+    ResourcesService.QERReuseUS,
+    ResourcesService.QERReuse,
+    ResourcesService.QERAssign,
+  ];
   protected config: QerProjectConfig & ProjectConfig;
 
-  public editTexts: {[key:string]:string} = {};
+  public editTexts: { [key: string]: string } = {};
 
   constructor(protected readonly project: ProjectConfigurationService, private readonly api: QerApiService) {
     this.registerMap();
@@ -118,12 +125,14 @@ export class ResourcesService {
   }
 
   public async getServiceItem(tablename: string, uidResource: string): Promise<TypedEntity> {
-    const filter: FilterData[] = [{
-      Type: FilterType.Compare,
-      CompareOp: CompareOperator.Equal,
-      ColumnName: 'UID_AccProduct',
-      Value1: uidResource
-    }];
+    const filter: FilterData[] = [
+      {
+        Type: FilterType.Compare,
+        CompareOp: CompareOperator.Equal,
+        ColumnName: 'UID_AccProduct',
+        Value1: uidResource,
+      },
+    ];
 
     const item = await this.resourceMap.get(tablename).accProduct.Get({ filter });
 
@@ -135,7 +144,6 @@ export class ResourcesService {
       this.resourceMap.set(target, { table: target });
     });
 
-
     const factory = new V2ApiClientMethodFactory();
 
     // QERResource
@@ -144,42 +152,56 @@ export class ResourcesService {
     this.resourceMap.get(ResourcesService.QERResource).accProduct = this.api.typedClient.PortalResourcesQerresourceServiceitem;
     this.resourceMap.get(ResourcesService.QERResource).admin = {
       type: PortalAdminResourcesQerresource,
-      get: async (parameter: any) => this.api.client.portal_admin_resources_qerresource_get(parameter),
+      get: async (parameter: any) => {
+        if (parameter?.search !== undefined) {
+          // abort the request only while searching
+          this.abortCall();
+        }
+        return this.api.client.portal_admin_resources_qerresource_get(parameter, { signal: this.abortController.signal });
+      },
       schema: this.api.typedClient.PortalAdminResourcesQerresource.GetSchema(),
       dataModel: async (filter: FilterData[]) => this.api.client.portal_admin_resources_qerresource_datamodel_get({ filter }),
       interactive: this.api.typedClient.PortalAdminResourcesQerresourceInteractive,
       exportMethod: (navigationState: CollectionLoadParameters) => {
-        return { getMethod: (withProperties: string, PageSize?: number) => {
-          let method: MethodDescriptor<EntityCollectionData>;
-          if (PageSize) {
-            method = factory.portal_admin_resources_qerresource_get({...navigationState, withProperties, PageSize, StartIndex: 0})
-          } else {
-            method = factory.portal_admin_resources_qerresource_get({...navigationState, withProperties})
-          }
-          return new MethodDefinition(method);
-          }
-        }
-      }
+        return {
+          getMethod: (withProperties: string, PageSize?: number) => {
+            let method: MethodDescriptor<EntityCollectionData>;
+            if (PageSize) {
+              method = factory.portal_admin_resources_qerresource_get({ ...navigationState, withProperties, PageSize, StartIndex: 0 });
+            } else {
+              method = factory.portal_admin_resources_qerresource_get({ ...navigationState, withProperties });
+            }
+            return new MethodDefinition(method);
+          },
+        };
+      },
     };
 
     this.resourceMap.get(ResourcesService.QERResource).resp = {
       type: PortalRespQerresource,
-      get: async (parameter: any) => this.api.client.portal_resp_qerresource_get(parameter),
+      get: async (parameter: any) => {
+        if (parameter?.search !== undefined) {
+          // abort the request only while searching
+          this.abortCall();
+        }
+        return this.api.client.portal_resp_qerresource_get(parameter, { signal: this.abortController.signal });
+      },
       schema: this.api.typedClient.PortalRespQerresource.GetSchema(),
       dataModel: async (filter: FilterData[]) => this.api.client.portal_resp_qerresource_datamodel_get({ filter }),
       interactive: this.api.typedClient.PortalRespQerresourceInteractive,
       exportMethod: (navigationState: CollectionLoadParameters) => {
-        return { getMethod: (withProperties: string, PageSize?: number) => {
-          let method: MethodDescriptor<EntityCollectionData>;
-          if (PageSize) {
-            method = factory.portal_resp_qerresource_get({...navigationState, withProperties, PageSize, StartIndex: 0})
-          } else {
-            method = factory.portal_resp_qerresource_get({...navigationState, withProperties})
-          }
-          return new MethodDefinition(method);
-          }
-        }
-      }
+        return {
+          getMethod: (withProperties: string, PageSize?: number) => {
+            let method: MethodDescriptor<EntityCollectionData>;
+            if (PageSize) {
+              method = factory.portal_resp_qerresource_get({ ...navigationState, withProperties, PageSize, StartIndex: 0 });
+            } else {
+              method = factory.portal_resp_qerresource_get({ ...navigationState, withProperties });
+            }
+            return new MethodDefinition(method);
+          },
+        };
+      },
     };
 
     // QERReuseUS
@@ -189,41 +211,55 @@ export class ResourcesService {
     this.resourceMap.get(ResourcesService.QERReuseUS).accProduct = this.api.typedClient.PortalResourcesQerreuseusServiceitem;
     this.resourceMap.get(ResourcesService.QERReuseUS).admin = {
       type: PortalAdminResourcesQerreuseus,
-      get: async (parameter: any) => this.api.client.portal_admin_resources_qerreuseus_get(parameter),
+      get: async (parameter: any) => {
+        if (parameter?.search !== undefined) {
+          // abort the request only while searching
+          this.abortCall();
+        }
+        return this.api.client.portal_admin_resources_qerreuseus_get(parameter, { signal: this.abortController.signal });
+      },
       schema: this.api.typedClient.PortalAdminResourcesQerreuseus.GetSchema(),
       dataModel: async (filter: FilterData[]) => this.api.client.portal_admin_resources_qerreuseus_datamodel_get({ filter }),
       interactive: this.api.typedClient.PortalAdminResourcesQerreuseusInteractive,
       exportMethod: (navigationState: CollectionLoadParameters) => {
-        return { getMethod: (withProperties: string, PageSize?: number) => {
-          let method: MethodDescriptor<EntityCollectionData>;
-          if (PageSize) {
-            method = factory.portal_admin_resources_qerreuseus_get({...navigationState, withProperties, PageSize, StartIndex: 0})
-          } else {
-            method = factory.portal_admin_resources_qerreuseus_get({...navigationState, withProperties})
-          }
-          return new MethodDefinition(method);
-          }
-        }
-      }
+        return {
+          getMethod: (withProperties: string, PageSize?: number) => {
+            let method: MethodDescriptor<EntityCollectionData>;
+            if (PageSize) {
+              method = factory.portal_admin_resources_qerreuseus_get({ ...navigationState, withProperties, PageSize, StartIndex: 0 });
+            } else {
+              method = factory.portal_admin_resources_qerreuseus_get({ ...navigationState, withProperties });
+            }
+            return new MethodDefinition(method);
+          },
+        };
+      },
     };
     this.resourceMap.get(ResourcesService.QERReuseUS).resp = {
       type: PortalRespQerreuseus,
-      get: async (parameter: any) => this.api.client.portal_resp_qerreuseus_get(parameter),
+      get: async (parameter: any) => {
+        if (parameter?.search !== undefined) {
+          // abort the request only while searching
+          this.abortCall();
+        }
+        return this.api.client.portal_resp_qerreuseus_get(parameter, { signal: this.abortController.signal });
+      },
       schema: this.api.typedClient.PortalRespQerreuseus.GetSchema(),
       dataModel: async (filter: FilterData[]) => this.api.client.portal_resp_qerreuseus_datamodel_get({ filter }),
       interactive: this.api.typedClient.PortalRespQerreuseusInteractive,
       exportMethod: (navigationState: CollectionLoadParameters) => {
-        return { getMethod: (withProperties: string, PageSize?: number) => {
-          let method: MethodDescriptor<EntityCollectionData>;
-          if (PageSize) {
-            method = factory.portal_resp_qerreuseus_get({...navigationState, withProperties, PageSize, StartIndex: 0})
-          } else {
-            method = factory.portal_resp_qerreuseus_get({...navigationState, withProperties})
-          }
-          return new MethodDefinition(method);
-          }
-        }
-      }
+        return {
+          getMethod: (withProperties: string, PageSize?: number) => {
+            let method: MethodDescriptor<EntityCollectionData>;
+            if (PageSize) {
+              method = factory.portal_resp_qerreuseus_get({ ...navigationState, withProperties, PageSize, StartIndex: 0 });
+            } else {
+              method = factory.portal_resp_qerreuseus_get({ ...navigationState, withProperties });
+            }
+            return new MethodDefinition(method);
+          },
+        };
+      },
     };
 
     // QERReuse
@@ -232,41 +268,55 @@ export class ResourcesService {
     this.resourceMap.get(ResourcesService.QERReuse).accProduct = this.api.typedClient.PortalResourcesQerreuseServiceitem;
     this.resourceMap.get(ResourcesService.QERReuse).admin = {
       type: PortalAdminResourcesQerreuse,
-      get: async (parameter: any) => this.api.client.portal_admin_resources_qerreuse_get(parameter),
+      get: async (parameter: any) => {
+        if (parameter?.search !== undefined) {
+          // abort the request only while searching
+          this.abortCall();
+        }
+        return this.api.client.portal_admin_resources_qerreuse_get(parameter, { signal: this.abortController.signal });
+      },
       schema: this.api.typedClient.PortalAdminResourcesQerreuse.GetSchema(),
       dataModel: async (filter: FilterData[]) => this.api.client.portal_admin_resources_qerreuse_datamodel_get({ filter }),
       interactive: this.api.typedClient.PortalAdminResourcesQerreuseInteractive,
       exportMethod: (navigationState: CollectionLoadParameters) => {
-        return { getMethod: (withProperties: string, PageSize?: number) => {
-          let method: MethodDescriptor<EntityCollectionData>;
-          if (PageSize) {
-            method = factory.portal_admin_resources_qerreuse_get({...navigationState, withProperties, PageSize, StartIndex: 0})
-          } else {
-            method = factory.portal_admin_resources_qerreuse_get({...navigationState, withProperties})
-          }
-          return new MethodDefinition(method);
-          }
-        }
-      }
+        return {
+          getMethod: (withProperties: string, PageSize?: number) => {
+            let method: MethodDescriptor<EntityCollectionData>;
+            if (PageSize) {
+              method = factory.portal_admin_resources_qerreuse_get({ ...navigationState, withProperties, PageSize, StartIndex: 0 });
+            } else {
+              method = factory.portal_admin_resources_qerreuse_get({ ...navigationState, withProperties });
+            }
+            return new MethodDefinition(method);
+          },
+        };
+      },
     };
     this.resourceMap.get(ResourcesService.QERReuse).resp = {
       type: PortalRespQerreuse,
-      get: async (parameter: any) => this.api.client.portal_resp_qerreuse_get(parameter),
+      get: async (parameter: any) => {
+        if (parameter?.search !== undefined) {
+          // abort the request only while searching
+          this.abortCall();
+        }
+        return this.api.client.portal_resp_qerreuse_get(parameter, { signal: this.abortController.signal });
+      },
       schema: this.api.typedClient.PortalRespQerreuse.GetSchema(),
       dataModel: async (filter: FilterData[]) => this.api.client.portal_resp_qerreuse_datamodel_get({ filter }),
       interactive: this.api.typedClient.PortalRespQerreuseInteractive,
       exportMethod: (navigationState: CollectionLoadParameters) => {
-        return { getMethod: (withProperties: string, PageSize?: number) => {
-          let method: MethodDescriptor<EntityCollectionData>;
-          if (PageSize) {
-            method = factory.portal_resp_qerreuse_get({...navigationState, withProperties, PageSize, StartIndex: 0})
-          } else {
-            method = factory.portal_resp_qerreuse_get({...navigationState, withProperties})
-          }
-          return new MethodDefinition(method);
-          }
-        }
-      }
+        return {
+          getMethod: (withProperties: string, PageSize?: number) => {
+            let method: MethodDescriptor<EntityCollectionData>;
+            if (PageSize) {
+              method = factory.portal_resp_qerreuse_get({ ...navigationState, withProperties, PageSize, StartIndex: 0 });
+            } else {
+              method = factory.portal_resp_qerreuse_get({ ...navigationState, withProperties });
+            }
+            return new MethodDefinition(method);
+          },
+        };
+      },
     };
 
     // QERAssign
@@ -275,47 +325,66 @@ export class ResourcesService {
     this.resourceMap.get(ResourcesService.QERAssign).accProduct = this.api.typedClient.PortalResourcesQerassignServiceitem;
     this.resourceMap.get(ResourcesService.QERAssign).admin = {
       type: PortalAdminResourcesQerassign,
-      get: async (parameter: any) => this.api.client.portal_admin_resources_qerassign_get(parameter),
+      get: async (parameter: any) => {
+        if (parameter?.search !== undefined) {
+          // abort the request only while searching
+          this.abortCall();
+        }
+        return this.api.client.portal_admin_resources_qerassign_get(parameter, { signal: this.abortController.signal });
+      },
       schema: this.api.typedClient.PortalAdminResourcesQerassign.GetSchema(),
       dataModel: async (filter: FilterData[]) => this.api.client.portal_admin_resources_qerassign_datamodel_get({ filter }),
       interactive: this.api.typedClient.PortalAdminResourcesQerassignInteractive,
       exportMethod: (navigationState: CollectionLoadParameters) => {
-        return { getMethod: (withProperties: string, PageSize?: number) => {
-          let method: MethodDescriptor<EntityCollectionData>;
-          if (PageSize) {
-            method = factory.portal_admin_resources_qerassign_get({...navigationState, withProperties, PageSize, StartIndex: 0})
-          } else {
-            method = factory.portal_admin_resources_qerassign_get({...navigationState, withProperties})
-          }
-          return new MethodDefinition(method);
-          }
-        }
-      }
+        return {
+          getMethod: (withProperties: string, PageSize?: number) => {
+            let method: MethodDescriptor<EntityCollectionData>;
+            if (PageSize) {
+              method = factory.portal_admin_resources_qerassign_get({ ...navigationState, withProperties, PageSize, StartIndex: 0 });
+            } else {
+              method = factory.portal_admin_resources_qerassign_get({ ...navigationState, withProperties });
+            }
+            return new MethodDefinition(method);
+          },
+        };
+      },
     };
     this.resourceMap.get(ResourcesService.QERAssign).resp = {
       type: PortalRespQerassign,
-      get: async (parameter: any) => this.api.client.portal_resp_qerassign_get(parameter),
+      get: async (parameter: any) => {
+        if (parameter?.search !== undefined) {
+          // abort the request only while searching
+          this.abortCall();
+        }
+        return this.api.client.portal_resp_qerassign_get(parameter, { signal: this.abortController.signal });
+      },
       schema: this.api.typedClient.PortalRespQerassign.GetSchema(),
       dataModel: async (filter: FilterData[]) => this.api.client.portal_resp_qerassign_datamodel_get({ filter }),
       interactive: this.api.typedClient.PortalRespQerassignInteractive,
       exportMethod: (navigationState: CollectionLoadParameters) => {
-        return { getMethod: (withProperties: string, PageSize?: number) => {
-          let method: MethodDescriptor<EntityCollectionData>;
-          if (PageSize) {
-            method = factory.portal_resp_qerassign_get({...navigationState, withProperties, PageSize, StartIndex: 0})
-          } else {
-            method = factory.portal_resp_qerassign_get({...navigationState, withProperties})
-          }
-          return new MethodDefinition(method);
-          }
-        }
-      }
+        return {
+          getMethod: (withProperties: string, PageSize?: number) => {
+            let method: MethodDescriptor<EntityCollectionData>;
+            if (PageSize) {
+              method = factory.portal_resp_qerassign_get({ ...navigationState, withProperties, PageSize, StartIndex: 0 });
+            } else {
+              method = factory.portal_resp_qerassign_get({ ...navigationState, withProperties });
+            }
+            return new MethodDefinition(method);
+          },
+        };
+      },
     };
   }
 
   public getExportMethod(tableName: string, isAdmin: boolean, navigationState: CollectionLoadParameters): DataSourceToolbarExportMethod {
     return isAdmin
       ? this.resourceMap.get(tableName).admin.exportMethod(navigationState)
-      : this.resourceMap.get(tableName).resp.exportMethod(navigationState)
+      : this.resourceMap.get(tableName).resp.exportMethod(navigationState);
+  }
+
+  private abortCall(): void {
+    this.abortController.abort();
+    this.abortController = new AbortController();
   }
 }

@@ -102,5 +102,10 @@ export interface DataSourceToolbarSettings {
         return new MethodDefinition(method);
       }
    */
-  exportMethod?: DataSourceToolbarExportMethod
+  exportMethod?: DataSourceToolbarExportMethod;
+
+  /**
+   * List of filtered columns, that can not be edited in the UI.
+   */
+  staticFilterColumns?: string[];
 }

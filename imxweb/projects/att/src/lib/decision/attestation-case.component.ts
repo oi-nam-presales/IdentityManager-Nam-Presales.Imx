@@ -38,6 +38,7 @@ import {
   BaseReadonlyCdr,
   ClassloggerService,
   ColumnDependentReference,
+  MetadataService,
   SnackBarService,
   SystemInfoService,
 } from 'qbm';
@@ -81,6 +82,7 @@ export class AttestationCaseComponent implements OnDestroy, OnInit {
   public selectedHyperviewType: string;
   public selectedHyperviewUID: string;
   public selectedOption: AttestationRelatedObject;
+  public relatedOptions: AttestationRelatedObject[] = [];
 
   private readonly subscriptions$: Subscription[] = [];
 
@@ -106,7 +108,8 @@ export class AttestationCaseComponent implements OnDestroy, OnInit {
     private readonly busyService: EuiLoadingService,
     private readonly systemInfoService: SystemInfoService,
     private readonly logger: ClassloggerService,
-    authentication: AuthenticationService
+    private readonly metadataService: MetadataService,
+    authentication: AuthenticationService,
   ) {
     this.case = data.case;
     this.approvers = data.approvers;
@@ -132,6 +135,7 @@ export class AttestationCaseComponent implements OnDestroy, OnInit {
   }
 
   public async ngOnInit(): Promise<void> {
+    this.setRelatedOptions();
     const overlay = this.busyService.show();
     try {
       this.complianceTabTitle = await this.translate.get('#LDS#Heading Rule Violations').toPromise();
@@ -226,8 +230,20 @@ export class AttestationCaseComponent implements OnDestroy, OnInit {
     });
   }
 
-  public get relatedOptions(): AttestationRelatedObject[] {
-    return this.data.case.data?.RelatedObjects || [];
+  public async setRelatedOptions(): Promise<void> {
+    this.relatedOptions =
+      (await Promise.all(
+        this.data.case.data?.RelatedObjects.map(async (relatedObject) => {
+          const objectType = DbObjectKey.FromXml(relatedObject.ObjectKey);
+          if (!this.metadataService.tables[objectType.TableName]) {
+            await this.metadataService.updateNonExisting([objectType.TableName]);
+          }
+          return {
+            ObjectKey: relatedObject.ObjectKey,
+            Display: `${relatedObject.Display} - ${this.metadataService.tables[objectType.TableName].DisplaySingular}`,
+          };
+        }),
+      )) || [];
   }
 
   public setHyperviewObject(selectedRelatedObject: AttestationRelatedObject): void {

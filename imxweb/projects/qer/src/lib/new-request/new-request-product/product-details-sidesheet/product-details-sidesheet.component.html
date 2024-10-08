@@ -1,5 +1,6 @@
 <div eui-sidesheet-content>
-  <eui-alert *ngIf="data.orderStatus" class="imx-helper-alert" type="info" condensed="true" colored="true" [dismissable]="true">
+  <eui-alert *ngIf="data.orderStatus" class="imx-helper-alert" type="info" condensed="true" colored="true"
+    [dismissable]="true">
     {{ data.orderStatus.statusDisplay }}
   </eui-alert>
   <mat-card>
@@ -7,53 +8,23 @@
       <mat-tab label="{{ '#LDS#Heading Details' | translate }}">
         <div class="details-container">
           <div class="details-text">
-            <div class="details-item">
+            <!-- the following properties cannot be customized in the Adminportal because they are calculated properties -->
+            <div class="details-item" *ngFor="let fixedProperty of fixedProductProperties">
               <div class="details-label">
-                {{'#LDS#Service category' | translate}}:
+                {{ getCaption(fixedProperty) }}:
               </div>
-              <div class="details-value link">
-                <ng-template *ngTemplateOutlet="formatValue; context: {$implicit: getValue('ServiceCategoryFullPath')}"></ng-template>
+              <div class="details-value  {{ getCssClass(fixedProperty) }}">
+                <ng-template
+                  *ngTemplateOutlet="formatValue; context: {$implicit: getDisplay(fixedProperty)}"></ng-template>
               </div>
             </div>
-            <div class="details-item">
+            <!-- the following properties can be customized in the Adminportal -> ServerConfig/ITShopConfig/AccProductProperties -->
+            <div class="details-item" *ngFor="let property of accProductProperties">
               <div class="details-label">
-                {{'#LDS#Entitlement type' | translate}}:
+                {{ getCaption(property) }}:
               </div>
-              <div class="details-value bold">
-                <ng-template *ngTemplateOutlet="formatValue; context: {$implicit: getDisplay('TableName')}"></ng-template>
-              </div>
-            </div>
-            <div class="details-item">
-              <div class="details-label">
-                {{'#LDS#Product code' | translate}}:
-              </div>
-              <div class="details-value bold">
-                <ng-template *ngTemplateOutlet="formatValue; context: {$implicit: getValue('ArticleCode')}"></ng-template>
-              </div>
-            </div>
-            <!-- This one doesn't exist yet -->
-            <!-- <div class="details-item">
-              <div class="details-label">
-                {{'ADD TEXT HERE' | translate}}
-              </div>
-              <div class="details-value link">
-                <ng-template *ngTemplateOutlet="formatValue; context: {$implicit: getValue('Web')}"></ng-template>
-              </div>
-            </div> -->
-            <div class="details-item">
-              <div class="details-label">
-                {{'#LDS#Tags' | translate}}:
-              </div>
-              <div class="details-value bold">
-                <ng-template *ngTemplateOutlet="formatValue; context: {$implicit: getValue('Tags')}"></ng-template>
-              </div>
-            </div>
-            <div class="details-item">
-              <div class="details-label">
-                {{'#LDS#Description' | translate}}:
-              </div>
-              <div class="details-value">
-                <ng-template *ngTemplateOutlet="formatValue; context: {$implicit: getValue('Description')}"></ng-template>
+              <div class="details-value {{ getCssClass(property) }}">
+                <ng-template *ngTemplateOutlet="formatValue; context: {$implicit: getDisplay(property)}"></ng-template>
               </div>
             </div>
           </div>
@@ -70,7 +41,7 @@
     </mat-tab-group>
   </mat-card>
   <span class="entitlement-info" *ngIf="onEntitlements">
-    {{ '#LDS#Here you can get an overview of the entitlements associated with the product. If you request the product, the recipient will get the listed entitlements.' | translate }}
+    {{ ldsEntitlementInfo | translate }}
   </span>
 </div>
 

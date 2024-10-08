@@ -34,6 +34,7 @@ import { CollectionLoadParameters, DisplayColumns, TypedEntity } from 'imx-qbm-d
 
 import {
   AuthenticationService,
+  BusyService,
   ClassloggerService,
   ConfirmationService,
   DataSourceToolbarSettings,
@@ -56,13 +57,12 @@ import { ItShopPatternChangedType } from './itshop-pattern-changed.enum';
 @Component({
   selector: 'imx-itshop-pattern',
   templateUrl: './itshop-pattern.component.html',
-  styleUrls: ['./itshop-pattern.component.scss']
+  styleUrls: ['./itshop-pattern.component.scss'],
 })
 export class ItshopPatternComponent implements OnInit, OnDestroy {
-
   /**
    * the wrapper component for the  {@link DataSourceToolbar|dataSourceToolbar}.
-   */  
+   */
   public dstWrapper: DataSourceWrapper<PortalItshopPatternAdmin>;
 
   public dstSettings: DataSourceToolbarSettings;
@@ -77,10 +77,12 @@ export class ItshopPatternComponent implements OnInit, OnDestroy {
    */
   public adminMode: boolean;
 
+  public busyService = new BusyService();
+
   @ViewChild(DataTableComponent) public table: DataTableComponent<TypedEntity>;
 
   public readonly status = {
-    enabled: (pattern: PortalItshopPatternAdmin): boolean => this.canBeEditedAndDeleted(pattern)
+    enabled: (pattern: PortalItshopPatternAdmin): boolean => this.canBeEditedAndDeleted(pattern),
   };
   public helpContextId: HelpContextualValues;
 
@@ -98,44 +100,35 @@ export class ItshopPatternComponent implements OnInit, OnDestroy {
     private readonly confirmationService: ConfirmationService,
     authentication: AuthenticationService
   ) {
-    this.subscriptions.push(
-      authentication.onSessionResponse.subscribe((sessionState) =>
-        this.currentUserUid = sessionState.UserUid
-      )
-    );
+    this.subscriptions.push(authentication.onSessionResponse.subscribe((sessionState) => (this.currentUserUid = sessionState.UserUid)));
   }
 
   public async ngOnInit(): Promise<void> {
-    this.patternService.handleOpenLoader();
+    const isBusy = this.busyService.beginBusy();
     try {
       this.adminMode = await this.qerPermissionService.isShopAdmin();
 
-      this.helpContextId = this.adminMode ? HELP_CONTEXTUAL.RequestTemplates: HELP_CONTEXTUAL.RequestTemplatesUser;
+      this.helpContextId = this.adminMode ? HELP_CONTEXTUAL.RequestTemplates : HELP_CONTEXTUAL.RequestTemplatesUser;
 
-      const entitySchema = this.adminMode
-        ? this.patternService.itshopPatternAdminSchema
-        : this.patternService.itshopPatternPrivateSchema;
+      const entitySchema = this.adminMode ? this.patternService.itshopPatternAdminSchema : this.patternService.itshopPatternPrivateSchema;
       this.dstWrapper = new DataSourceWrapper(
-        state => this.adminMode
-          ? this.patternService.getPublicPatterns(state)
-          : this.patternService.getPrivatePatterns(state),
-        [
-          entitySchema.Columns[DisplayColumns.DISPLAY_PROPERTYNAME],
-          entitySchema.Columns.UID_Person,
-          entitySchema.Columns.IsPublicPattern,
-        ],
+        (state, requestOpts) =>
+          this.adminMode
+            ? this.patternService.getPublicPatterns(state, requestOpts)
+            : this.patternService.getPrivatePatterns(state, requestOpts),
+        [entitySchema.Columns[DisplayColumns.DISPLAY_PROPERTYNAME], entitySchema.Columns.UID_Person, entitySchema.Columns.IsPublicPattern],
         entitySchema,
         undefined,
         'itshop-pattern'
       );
     } finally {
-      this.patternService.handleCloseLoader();
+      isBusy.endBusy();
     }
     await this.getData();
   }
 
   public ngOnDestroy(): void {
-    this.subscriptions.forEach(s => s.unsubscribe());
+    this.subscriptions.forEach((s) => s.unsubscribe());
   }
 
   public isMyPattern(pattern: PortalItshopPatternPrivate | PortalItshopPatternAdmin): boolean {
@@ -147,10 +140,12 @@ export class ItshopPatternComponent implements OnInit, OnDestroy {
   }
 
   public async delete(selectedPattern?: PortalItshopPatternPrivate | PortalItshopPatternAdmin): Promise<void> {
-    if (await this.confirmationService.confirm({
-      Title: '#LDS#Heading Delete Product Bundles',
-      Message: '#LDS#Are you sure you want to delete the selected product bundles?'
-    })) {
+    if (
+      await this.confirmationService.confirm({
+        Title: '#LDS#Heading Delete Product Bundles',
+        Message: '#LDS#Are you sure you want to delete the selected product bundles?',
+      })
+    ) {
       await this.patternService.delete(selectedPattern ? [selectedPattern] : this.selectedPatterns, this.adminMode);
       this.getData();
       this.table.clearSelection();
@@ -176,34 +171,48 @@ export class ItshopPatternComponent implements OnInit, OnDestroy {
   }
 
   public async getData(parameter?: CollectionLoadParameters): Promise<void> {    
-    this.patternService.handleOpenLoader();
+    const isBusy = this.busyService.beginBusy();
     try {
       const parameters = {
         ...parameter,
-        ...{ OrderBy: 'Ident_ShoppingCartPattern asc' }
+        ...{ OrderBy: 'Ident_ShoppingCartPattern asc' },
       };
-      this.dstSettings = await this.dstWrapper.getDstSettings(parameters);
-    } finally {      
-      this.patternService.handleCloseLoader();
+      const dstSettings = await this.dstWrapper.getDstSettings(parameters, { signal: this.patternService.abortController.signal });
+      if (dstSettings) {
+        this.dstSettings = dstSettings;
+      }
+    } finally {
+      isBusy.endBusy();
     }
   }
 
+  public onSearch(keywords: string): Promise<void> {
+    this.patternService.abortCall();
+    return this.getData({ search: keywords });
+  }
+
   public selectedItemsCanBePublished(): boolean {
-    return this.selectedPatterns != null
-      && this.selectedPatterns.length > 0
-      && this.selectedPatterns.every(item => this.isMyPattern(item) && !item.IsPublicPattern.value);
+    return (
+      this.selectedPatterns != null &&
+      this.selectedPatterns.length > 0 &&
+      this.selectedPatterns.every((item) => this.isMyPattern(item) && !item.IsPublicPattern.value)
+    );
   }
 
   public selectedItemsCanBeUnpublished(): boolean {
-    return this.selectedPatterns != null
-      && this.selectedPatterns.length > 0
-      && this.selectedPatterns.every(item => this.isMyPattern(item) && item.IsPublicPattern.value);
+    return (
+      this.selectedPatterns != null &&
+      this.selectedPatterns.length > 0 &&
+      this.selectedPatterns.every((item) => this.isMyPattern(item) && item.IsPublicPattern.value)
+    );
   }
 
   public selectedItemsCanBeDeleted(): boolean {
-    return this.selectedPatterns != null
-      && this.selectedPatterns.length > 0
-      && this.selectedPatterns.every(item => this.canBeEditedAndDeleted(item));
+    return (
+      this.selectedPatterns != null &&
+      this.selectedPatterns.length > 0 &&
+      this.selectedPatterns.every((item) => this.canBeEditedAndDeleted(item))
+    );
   }
 
   public onSelectionChanged(items: PortalItshopPatternAdmin[]): void {
@@ -220,27 +229,32 @@ export class ItshopPatternComponent implements OnInit, OnDestroy {
     const canEditAndDelete = this.canBeEditedAndDeleted(selectedPattern);
     const pattern = isMyPattern
       ? await this.patternService.getPrivatePattern(selectedPattern.GetEntity().GetKeys()[0])
-      : selectedPattern;
+      : (await this.patternService.getPublicPatterns()).Data.find(
+          (pattern) => pattern.GetEntity().GetKeys()[0] === selectedPattern.GetEntity().GetKeys()[0]
+        );
 
-    const title = await this.translate.get(canEditAndDelete
-      ? '#LDS#Heading Edit Product Bundle'
-      : '#LDS#Heading View Product Bundle Details').toPromise();
+    const title = await this.translate
+      .get(canEditAndDelete ? '#LDS#Heading Edit Product Bundle' : '#LDS#Heading View Product Bundle Details')
+      .toPromise();
 
-    const result = await this.sidesheet.open(ItshopPatternSidesheetComponent, {
-      title,
-      subTitle: pattern.Ident_ShoppingCartPattern.value,
-      panelClass: 'imx-sidesheet',
-      disableClose: true,
-      padding: '0',
-      width: '600px',
-      testId: 'pattern-details-sidesheet',
-      data: {
-        pattern,
-        isMyPattern,
-        adminMode: this.adminMode,
-        canEditAndDelete
-      }
-    }).afterClosed().toPromise();
+    const result = await this.sidesheet
+      .open(ItshopPatternSidesheetComponent, {
+        title,
+        subTitle: pattern.Ident_ShoppingCartPattern.value,
+        panelClass: 'imx-sidesheet',
+        disableClose: true,
+        padding: '0',
+        width: '600px',
+        testId: 'pattern-details-sidesheet',
+        data: {
+          pattern,
+          isMyPattern,
+          adminMode: this.adminMode,
+          canEditAndDelete,
+        },
+      })
+      .afterClosed()
+      .toPromise();
 
     if (result === ItShopPatternChangedType.Saved) {
       const snackBarMessage = '#LDS#The product bundle has been successfully saved.';
@@ -249,6 +263,5 @@ export class ItshopPatternComponent implements OnInit, OnDestroy {
     } else if (result) {
       this.getData();
     }
-
   }
 }

@@ -1,0 +1,9 @@
+<ng-container *ngIf="columnContainer?.canEdit; else isReadonly">
+  <eui-select class="imx-bitmask-select" [label]="columnContainer?.display || '' | translate"
+    [placeholder]="'#LDS#Select' | translate" [multiple]="true" [options]="options" [formControl]="control">
+  </eui-select>
+</ng-container>
+
+<ng-template #isReadonly>
+  <imx-view-property [columnContainer]="columnContainer" defaultValue="#LDS#Not set"> </imx-view-property>
+</ng-template>

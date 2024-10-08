@@ -45,15 +45,7 @@ import {
   DataSourceToolbarViewConfig,
   BusyService,
 } from 'qbm';
-import {
-  DisplayColumns,
-  ValType,
-  ExtendedTypedEntityCollection,
-  EntitySchema,
-  FilterType,
-  CompareOperator,
-  DataModel,
-} from 'imx-qbm-dbts';
+import { DisplayColumns, ValType, ExtendedTypedEntityCollection, EntitySchema, FilterType, CompareOperator, DataModel } from 'imx-qbm-dbts';
 import { PolicyFilterData, PortalAttestationPolicy, PortalAttestationPolicyEdit } from 'imx-api-att';
 import { UserModelService, ViewConfigService } from 'qer';
 import { PolicyService } from '../policy.service';
@@ -101,8 +93,8 @@ export class PolicyListComponent implements OnInit {
     private readonly userService: UserModelService,
     private readonly systemInfoService: SystemInfoService,
     private readonly settingsService: SettingsService,
-    private readonly changeDetector : ChangeDetectorRef,
-    private readonly logger: ClassloggerService,
+    private readonly changeDetector: ChangeDetectorRef,
+    private readonly logger: ClassloggerService
   ) {
     this.navigationState = { PageSize: this.settingsService.DefaultPageSize, StartIndex: 0 };
     this.entitySchemaPolicy = policyService.AttestationPolicySchema;
@@ -155,6 +147,7 @@ export class PolicyListComponent implements OnInit {
   }
 
   public async onSearch(keywords: string): Promise<void> {
+    this.policyService.abortCall();
     this.navigationState = {
       ...this.navigationState,
       ...{
@@ -174,6 +167,7 @@ export class PolicyListComponent implements OnInit {
       groupedData.data = await this.policyService.getPolicies(groupedData.navigationState);
       groupedData.settings = {
         displayedColumns: this.dstSettings.displayedColumns,
+        dataModel: this.dstSettings.dataModel,
         dataSource: groupedData.data,
         entitySchema: this.dstSettings.entitySchema,
         navigationState: groupedData.navigationState,
@@ -320,7 +314,7 @@ export class PolicyListComponent implements OnInit {
         subtitle: policy.GetEntity().GetDisplay(),
       };
     } finally {
-       setTimeout(() => this.elementalBusyService.hide(overlayRef));
+      setTimeout(() => this.elementalBusyService.hide(overlayRef));
     }
 
     if (data) {
@@ -378,20 +372,22 @@ export class PolicyListComponent implements OnInit {
 
     try {
       const policies = await this.policyService.getPolicies(this.navigationState);
-      const exportMethod = this.policyService.exportPolicies(this.navigationState);
-      this.logger.trace(this, 'interactive policy loaded', policies);
+      if (policies) {
+        const exportMethod = this.policyService.exportPolicies(this.navigationState);
+        this.logger.trace(this, 'interactive policy loaded', policies);
 
-      this.dstSettings = {
-        displayedColumns: this.displayedColumns,
-        dataSource: policies,
-        filters: this.filterOptions,
-        groupData: this.groupData,
-        entitySchema: this.entitySchemaPolicy,
-        navigationState: this.navigationState,
-        dataModel: this.dataModel,
-        viewConfig: this.viewConfig,
-        exportMethod,
-      };
+        this.dstSettings = {
+          displayedColumns: this.displayedColumns,
+          dataSource: policies,
+          filters: this.filterOptions,
+          groupData: this.groupData,
+          entitySchema: this.entitySchemaPolicy,
+          navigationState: this.navigationState,
+          dataModel: this.dataModel,
+          viewConfig: this.viewConfig,
+          exportMethod,
+        };
+      }
     } finally {
       isBusy.endBusy();
     }
@@ -411,7 +407,7 @@ export class PolicyListComponent implements OnInit {
       width: 'max(600px, 80%)',
       disableClose: true,
       data: { policy, filterData, isNew, isComplienceFrameworkEnabled: this.isComplienceFrameworkEnabled, showSampleDataWarning },
-      testId: 'policy-list-show-policy-sidesheet'
+      testId: 'policy-list-show-policy-sidesheet',
     });
 
     const shouldReload = await sidesheetRef.afterClosed().toPromise();

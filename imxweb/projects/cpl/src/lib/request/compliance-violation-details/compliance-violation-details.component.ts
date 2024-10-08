@@ -65,7 +65,7 @@ export class ComplianceViolationDetailsComponent implements OnInit {
     private readonly sidesheets: EuiSidesheetService,
     private readonly translate: TranslateService,
     private readonly systemInfoService: SystemInfoService,
-    @Inject(EUI_SIDESHEET_DATA) public data?: ICartItemCheck | any
+    @Inject(EUI_SIDESHEET_DATA) public data?: ICartItemCheck | any,
   ) {}
 
   public async ngOnInit(): Promise<void> {
@@ -113,7 +113,7 @@ export class ComplianceViolationDetailsComponent implements OnInit {
 
     if (sourecedRules.length > 0) {
       for (const source of sourecedRules) {
-        await this.metaData.update(source.Sources.map((item) => DbObjectKey.FromXml(item.ObjectKeyEntitlement).TableName));
+        await this.metaData.updateNonExisting(source.Sources.map((item) => DbObjectKey.FromXml(item.ObjectKeyEntitlement).TableName));
       }
     }
   }
@@ -165,7 +165,7 @@ export class ComplianceViolationDetailsComponent implements OnInit {
 
   private async buildCdrForViolations(rule: PortalRules, detail: ComplianceViolation): Promise<RuleCdrs> {
     const tableName = DbObjectKey.FromXml(detail.ObjectKeyElement).TableName;
-    await this.metaData.update([tableName]);
+    await this.metaData.updateNonExisting([tableName]);
     const displayTitle = this.metaData.tables[tableName]?.DisplaySingular;
 
     //Build common elments
@@ -184,7 +184,7 @@ export class ComplianceViolationDetailsComponent implements OnInit {
       cdrColumns.push(
         rule
           ? rule.GetEntity().GetColumn('RiskIndex')
-          : this.buildColumn('RiskIndex', this.schema.Columns['RiskIndex'].Display, detail.RiskIndex, ValType.Double)
+          : this.buildColumn('RiskIndex', this.schema.Columns['RiskIndex'].Display, detail.RiskIndex, ValType.Double),
       );
 
       if (
@@ -195,7 +195,7 @@ export class ComplianceViolationDetailsComponent implements OnInit {
       } else {
         if (detail.RiskIndex !== detail.RiskIndexReduced) {
           cdrColumns.push(
-            this.buildColumn('RiskIndexReduced', this.schema.Columns['RiskIndexReduced'].Display, detail.RiskIndexReduced, ValType.Double)
+            this.buildColumn('RiskIndexReduced', this.schema.Columns['RiskIndexReduced'].Display, detail.RiskIndexReduced, ValType.Double),
           );
         }
       }
@@ -204,7 +204,7 @@ export class ComplianceViolationDetailsComponent implements OnInit {
     let sources: ColumnDependentReference[] | undefined;
     if (detail.Sources?.length > 0) {
       sources = detail.Sources.map(
-        (source, index) => new BaseReadonlyCdr(this.buildColumn(`source ${index}`, this.getDisplayForSource(source), source.Display))
+        (source, index) => new BaseReadonlyCdr(this.buildColumn(`source ${index}`, this.getDisplayForSource(source), source.Display)),
       );
     }
 
@@ -219,7 +219,7 @@ export class ComplianceViolationDetailsComponent implements OnInit {
         Display: display,
       },
       undefined,
-      { Value: value }
+      { Value: value },
     );
   }
 

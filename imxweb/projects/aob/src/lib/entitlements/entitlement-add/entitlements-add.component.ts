@@ -37,7 +37,7 @@ import {
   StorageService,
   MetadataService,
   DataSourceToolbarFilter,
-  CdrFactoryService
+  CdrFactoryService,
 } from 'qbm';
 import { CollectionLoadParameters, IClientProperty, EntitySchema, DisplayColumns, TypedEntity, FilterData } from 'imx-qbm-dbts';
 import { EntitlementsService } from '../entitlements.service';
@@ -53,7 +53,7 @@ const helperAlertKey = `${HELPER_ALERT_KEY_PREFIX}_addNewEntitlements`;
 @Component({
   selector: 'imx-entitlements-add',
   templateUrl: './entitlements-add.component.html',
-  styleUrls: ['./entitlements-add.component.scss']
+  styleUrls: ['./entitlements-add.component.scss'],
 })
 export class EntitlementsAddComponent implements OnInit {
   public readonly EntitlementsType = EntitlementsType; // Enables use of this Enum in Angular Templates.
@@ -70,7 +70,9 @@ export class EntitlementsAddComponent implements OnInit {
   public selections: TypedEntity[];
   public readonly browserCulture: string;
   public entitlementSourceTypes: EntitlementSourceType[] = [];
-  public get showHelperAlert(): boolean { return !this.storageService.isHelperAlertDismissed(helperAlertKey); }
+  public get showHelperAlert(): boolean {
+    return !this.storageService.isHelperAlertDismissed(helperAlertKey);
+  }
 
   private filters: DataSourceToolbarFilter[];
 
@@ -83,7 +85,8 @@ export class EntitlementsAddComponent implements OnInit {
     private readonly storageService: StorageService,
     private readonly metaData: MetadataService,
     private readonly sidesheet: EuiSidesheetService,
-    private readonly translateService: TranslateService) {
+    private readonly translateService: TranslateService,
+  ) {
     this.selectedSourceType = data.defaultType;
     this.isSystemRolesEnabled = data.isSystemRolesEnabled;
 
@@ -91,8 +94,7 @@ export class EntitlementsAddComponent implements OnInit {
   }
 
   public async ngOnInit(): Promise<void> {
-
-    await this.metaData.update(['ESet', 'UNSGroup', 'QERResource', 'RPSReport', 'TSBAccountDef']);
+    await this.metaData.updateNonExisting(['ESet', 'UNSGroup', 'QERResource', 'RPSReport', 'TSBAccountDef']);
 
     this.entitlementSourceTypes = [
       { entitlementsType: EntitlementsType.UnsGroup, display: this.metaData.tables.UNSGroup.Display },
@@ -112,7 +114,6 @@ export class EntitlementsAddComponent implements OnInit {
     this.storageService.storeHelperAlertDismissal(helperAlertKey);
   }
 
-
   /**
    * Call to toggle the view and show entitlements candidates or roles candidates.
    */
@@ -128,22 +129,49 @@ export class EntitlementsAddComponent implements OnInit {
     this.sidesheetRef.close({ selection: this.selections });
   }
 
-  public async onAddToRole(): Promise<void> {
-    const entitlementSystemRoleInput: EntitlementSystemRoleInput
-      = await this.sidesheet.open(SystemRoleConfigComponent, {
-        title: await this.translateService.get('#LDS#Heading Merge Application Entitlements into System Role').toPromise(),
+  public async onCreateRole(): Promise<void> {
+    const entitlementSystemRoleInput: EntitlementSystemRoleInput = await this.sidesheet
+      .open(SystemRoleConfigComponent, {
+        // TODO: make LDS Heading
+        title: await this.translateService.get('#LDS#Create new system role').toPromise(),
         padding: '0px',
         width: 'max(500px, 50%)',
-        testId: 'add-to-existing-role-sidesheet',
-        data: this.data.uidApplication
-      }).afterClosed().toPromise();
+        testId: 'create-role-sidesheet',
+        data: { uid: this.data.uidApplication, createOnly: true },
+      })
+      .afterClosed()
+      .toPromise();
 
     if (!entitlementSystemRoleInput) {
       this.logger.debug(this, 'role dialog canceled');
       return;
     }
 
-    const keys = this.selections.map((elem: TypedEntity) => CdrFactoryService.tryGetColumn(elem.GetEntity(), 'XObjectKey')?.GetValue())
+    entitlementSystemRoleInput.UidApplication = this.data.uidApplication;
+    entitlementSystemRoleInput.ObjectKeyEntitlements = [];
+
+    this.sidesheetRef.close({ role: entitlementSystemRoleInput });
+  }
+
+  public async onAddToRole(): Promise<void> {
+    const entitlementSystemRoleInput: EntitlementSystemRoleInput = await this.sidesheet
+      .open(SystemRoleConfigComponent, {
+        title: await this.translateService.get('#LDS#Heading Merge Application Entitlements into System Role').toPromise(),
+        padding: '0px',
+        width: 'max(500px, 50%)',
+        testId: 'add-to-existing-role-sidesheet',
+        data: { uid: this.data.uidApplication, createOnly: false },
+      })
+      .afterClosed()
+      .toPromise();
+
+    if (!entitlementSystemRoleInput) {
+      this.logger.debug(this, 'role dialog canceled');
+      return;
+    }
+
+    const keys = this.selections
+      .map((elem: TypedEntity) => CdrFactoryService.tryGetColumn(elem.GetEntity(), 'XObjectKey')?.GetValue())
       .filter((elem: string) => elem != null);
 
     if (keys.length < this.selections.length) {
@@ -185,7 +213,7 @@ export class EntitlementsAddComponent implements OnInit {
     this.selectedSourceType = type;
     this.entitySchema = this.entitlementsProvider.candidateSchema(type);
     let overlayRef: OverlayRef;
-    setTimeout(() => overlayRef = this.busyService.show());
+    setTimeout(() => (overlayRef = this.busyService.show()));
     try {
       this.filters = (await this.entitlementsProvider.getDataModel(type))?.Filters;
     } finally {
@@ -201,7 +229,7 @@ export class EntitlementsAddComponent implements OnInit {
 
   private async updateCandidates(): Promise<void> {
     let overlayRef: OverlayRef;
-    setTimeout(() => overlayRef = this.busyService.show());
+    setTimeout(() => (overlayRef = this.busyService.show()));
     try {
       this.logger.debug(this, 'Get candidates from the server...');
       const data = await this.entitlementsProvider.getCandidates(this.selectedSourceType, this.navigationState);
@@ -212,16 +240,17 @@ export class EntitlementsAddComponent implements OnInit {
         entitySchema: this.entitySchema,
         navigationState: this.navigationState,
         filters: this.filters,
-        filterTree: this.selectedSourceType === EntitlementsType.UnsGroup ?
-          {
-            filterMethode: async (parentkey) => {
-              return this.entitlementsProvider.getEntitlementsFilterTree({
-                parentkey,
-              });
-            },
-            multiSelect: false,
-          }
-          : undefined
+        filterTree:
+          this.selectedSourceType === EntitlementsType.UnsGroup
+            ? {
+                filterMethode: async (parentkey) => {
+                  return this.entitlementsProvider.getEntitlementsFilterTree({
+                    parentkey,
+                  });
+                },
+                multiSelect: false,
+              }
+            : undefined,
       };
 
       if (data == null) {
@@ -232,21 +261,22 @@ export class EntitlementsAddComponent implements OnInit {
     }
   }
 
-  private getDisplayedColumnsForEntitlement(
-    entitySchema: EntitySchema,
-    type: EntitlementsType): IClientProperty[] {
-    if (!entitySchema) { return []; }
+  private getDisplayedColumnsForEntitlement(entitySchema: EntitySchema, type: EntitlementsType): IClientProperty[] {
+    if (!entitySchema) {
+      return [];
+    }
     switch (type) {
       case EntitlementsType.UnsGroup:
         return [
           entitySchema.Columns[DisplayColumns.DISPLAY_PROPERTYNAME],
           entitySchema.Columns.CanonicalName,
-          entitySchema.Columns.UID_UNSRoot
+          entitySchema.Columns.UID_UNSRoot,
         ];
       default:
         return [entitySchema.Columns[DisplayColumns.DISPLAY_PROPERTYNAME]];
     }
   }
 
-  public LdsInfoAlert = '#LDS#Here you can assign application entitlements to the application. Once assigned, you can publish these application entitlements so that they can be requested.';
+  public LdsInfoAlert =
+    '#LDS#Here you can assign application entitlements to the application. Once assigned, you can publish these application entitlements so that they can be requested.';
 }

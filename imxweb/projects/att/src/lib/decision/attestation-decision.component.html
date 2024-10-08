@@ -27,7 +27,7 @@
     <ng-container>
       <div class="toggle-wrapper" *ngIf="dstSettings">
         <mat-slide-toggle
-          *ngIf="isUserEscalationApprover"
+          *ngIf="isUserEscalationApprover && ! hideToolbar"
           class="escalation-approver-toggle"
           color="primary"
           [(ngModel)]="viewEscalation"
@@ -42,6 +42,7 @@
         </mat-slide-toggle>
       </div>
       <imx-data-source-toolbar
+        [ngClass]="{'hidden': hideToolbar}"
         #dst
         [options]="['search', 'sort', 'filter', 'groupBy', 'settings']"
         [busyService]="busyService"
@@ -107,12 +108,7 @@
                   <eui-icon icon="ignore"></eui-icon>
                   <span translate>#LDS#Deny</span>
                 </button>
-                <button
-                  mat-stroked-button
-                  color="primary"
-                  (click)="attestationAction.checkForViolations([item])"
-                  data-imx-identifier="attestations-table-approve-button"
-                >
+                <button mat-stroked-button color="primary" (click)="attestationAction.checkForViolations([item])" data-imx-identifier="attestations-table-approve-button">
                   <eui-icon icon="check"></eui-icon>
                   <span translate>#LDS#Approve</span>
                 </button>
@@ -153,7 +149,7 @@
 
   <div class="imx-button-bar">
     <imx-selected-elements [selectedElements]="selectedCases" [isLoading]="busyService.isBusy"></imx-selected-elements>
-     <div class="imx-menu-spacer"></div>
+    <div class="imx-menu-spacer"></div>
     <button
       mat-stroked-button
       data-imx-identifier="attestations-button-actions"

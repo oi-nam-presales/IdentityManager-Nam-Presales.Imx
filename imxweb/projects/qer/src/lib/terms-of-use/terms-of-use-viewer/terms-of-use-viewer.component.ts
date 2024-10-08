@@ -25,7 +25,7 @@
  */
 
 import { Component, Inject, OnInit } from '@angular/core';
-import { EuiDownloadOptions, EuiLoadingService, EUI_SIDESHEET_DATA } from '@elemental-ui/core';
+import { EuiLoadingService, EUI_SIDESHEET_DATA } from '@elemental-ui/core';
 
 import { PortalTermsofuse } from 'imx-api-qer';
 import { IReadValue } from 'imx-qbm-dbts';
@@ -53,12 +53,5 @@ export class TermsOfUseViewerComponent implements OnInit {
     } finally {
       this.busyService.hide(overlay);
     }
-  }
-
-  /**
-   * Gets the {@link EuiDownloadOptions|download options} for the given uid.
-   */
-  public getDownloadOptions(key: string, display: string): EuiDownloadOptions {
-    return this.termsOfUseService.getDownloadOptions(key, display);
   }
 }

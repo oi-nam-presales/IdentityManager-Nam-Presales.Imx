@@ -148,18 +148,16 @@ export class ObjectOverviewComponent implements OnInit, AfterViewInit, ObjectOve
     }
   }
 
-  /**
+    /**
    * Handles the event, when a shape was clicked.
    * @param args the {@link ShapeClickArgs|arguments of the clicked shape}
    */
-  public async onShapeClick(args: ShapeClickArgs) : Promise<void> {
-    const objKey = DbObjectKey.FromXml(args.objectKey);
-
-   if (await this.objectIsSupported(objKey)) {
-    this.router.navigate(['object', objKey.TableName, objKey.Keys[0], 'hyperview']);
-   }
-  }
-
+    public async onShapeClick(args: ShapeClickArgs): Promise<void> {
+      const objKey = DbObjectKey.FromXml(args.objectKey);
+      if (await this.objectIsSupported(objKey)) {
+        this.router.navigate(['object', objKey.TableName, objKey.Keys[0], 'hyperview']);
+      }
+    }
 
   // Checks if the item has an ErrorMessage or not
   public hasContent(item: PersonJobQueueInfo): boolean {

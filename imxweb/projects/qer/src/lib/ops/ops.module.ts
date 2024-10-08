@@ -52,7 +52,6 @@ import { PasswordModule } from '../password/password.module';
     MatDialogModule
   ],
   exports: [
-    PasscodeViewerComponent,
     ObjectOverviewPersonComponent,
   ]
 })

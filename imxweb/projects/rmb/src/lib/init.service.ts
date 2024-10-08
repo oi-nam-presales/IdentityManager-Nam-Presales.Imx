@@ -36,7 +36,6 @@ import {
   IdentityRoleMembershipsService,
   MyResponsibilitiesRegistryService,
   QerApiService,
-  QerPermissionsService,
   RoleService,
   RolesOverviewComponent,
   isAuditor,
@@ -46,7 +45,15 @@ import {
 import { OrgDataModel } from './org-data-model';
 import { OrgMembership } from './org-membership';
 import { RmbApiService } from './rmb-api-client.service';
-import { EntitySchema, ExtendedTypedEntityCollection, WriteExtTypedEntity, CollectionLoadParameters, EntityCollectionData, MethodDescriptor, MethodDefinition } from 'imx-qbm-dbts';
+import {
+  EntitySchema,
+  ExtendedTypedEntityCollection,
+  WriteExtTypedEntity,
+  CollectionLoadParameters,
+  EntityCollectionData,
+  MethodDescriptor,
+  MethodDefinition,
+} from 'imx-qbm-dbts';
 import { RoleExtendedDataWrite } from 'imx-api-qer';
 import { TeamRoleComponent } from './team-role/team-role.component';
 import { ProjectConfig } from 'imx-api-qbm';
@@ -54,6 +61,7 @@ import { ProjectConfig } from 'imx-api-qbm';
 @Injectable({ providedIn: 'root' })
 export class InitService {
   protected readonly orgTag = 'Org';
+  private abortController = new AbortController();
 
   constructor(
     private readonly router: Router,
@@ -67,8 +75,7 @@ export class InitService {
     private readonly roleService: RoleService,
     private readonly identityRoleMembershipService: IdentityRoleMembershipsService,
     private readonly myResponsibilitiesRegistryService: MyResponsibilitiesRegistryService,
-    private readonly extService: ExtService,
-    private readonly qerPermissionsService: QerPermissionsService
+    private readonly extService: ExtService
   ) {}
 
   public onInit(routes: Route[]): void {
@@ -117,7 +124,13 @@ export class InitService {
       adminType: PortalAdminRoleOrg,
       adminHasHierarchy: true,
       admin: {
-        get: async (parameter: any) => this.api.client.portal_admin_role_org_get(parameter),
+        get: async (parameter: any) => {
+          if (parameter?.search !== undefined) {
+            // abort the request only while searching
+            this.abortCall();
+          }
+          return this.api.client.portal_admin_role_org_get(parameter, { signal: this.abortController.signal });
+        },
       },
       adminSchema: this.api.typedClient.PortalAdminRoleOrg.GetSchema(),
       dataModel: new OrgDataModel(this.api),
@@ -176,22 +189,24 @@ export class InitService {
 
     this.setupMenu();
 
-    this.dataExplorerRegistryService.registerFactory((preProps: string[], features: string[], projectConfig: ProjectConfig, groups: string[]) => {
-      if (!isRoleAdmin(features) && !isRoleStatistics(features) && !isAuditor(groups)) {
-        return;
+    this.dataExplorerRegistryService.registerFactory(
+      (preProps: string[], features: string[], projectConfig: ProjectConfig, groups: string[]) => {
+        if (!isRoleAdmin(features) && !isRoleStatistics(features) && !isAuditor(groups)) {
+          return;
+        }
+        return {
+          instance: RolesOverviewComponent,
+          data: {
+            TableName: this.orgTag,
+            Count: 0,
+          },
+          contextId: HELP_CONTEXTUAL.DataExplorerBusinessRoles,
+          sortOrder: 7,
+          name: 'businessroles',
+          caption: '#LDS#Menu Entry Business roles',
+        };
       }
-      return {
-        instance: RolesOverviewComponent,
-        data: {
-          TableName: this.orgTag,
-          Count: 0,
-        },
-        contextId: HELP_CONTEXTUAL.DataExplorerBusinessRoles,
-        sortOrder: 7,
-        name: 'businessroles',
-        caption: '#LDS#Menu Entry Business roles',
-      };
-    });
+    );
 
     this.myResponsibilitiesRegistryService.registerFactory((preProps: string[], features: string[]) => ({
       instance: RolesOverviewComponent,
@@ -202,7 +217,7 @@ export class InitService {
         TableName: this.orgTag,
         Count: 0,
       },
-      contextId: HELP_CONTEXTUAL.MyResponsibilitiesBusinessRoles
+      contextId: HELP_CONTEXTUAL.MyResponsibilitiesBusinessRoles,
     }));
     this.extService.register('Dashboard-MediumTiles', { instance: TeamRoleComponent });
   }
@@ -236,5 +251,10 @@ export class InitService {
       config.unshift(route);
     });
     this.router.resetConfig(config);
+  }
+
+  private abortCall(): void {
+    this.abortController.abort();
+    this.abortController = new AbortController();
   }
 }

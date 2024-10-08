@@ -60,12 +60,17 @@ export class ImxTranslationProviderService implements ITranslationProvider {
   }
 
   public async init(culture: string = this.translateService.getBrowserCultureLang(), cultureFormat: string = this.translateService.getBrowserCultureLang()): Promise<void> {
+    //Use more specific culture, if de is provided (used for help documents)
+    if(culture == 'de') {
+      culture = 'de-DE';
+    }
     const defaultLang = this.translateService.getDefaultLang();
     // Get filtered cultures that are available to frontends and set to english if culture (browser language) is not supported
     const cultures = await this.appConfig.client.imx_multilanguage_uicultures_get({filter: [{ColumnName: 'Ident_DialogCulture', Value1: culture}]});
     if(cultures.TotalCount === 0){
       culture = 'en-US';
     }
+    
     if (defaultLang == null || defaultLang !== culture) {
       this.translateService.setDefaultLang(culture);
     }

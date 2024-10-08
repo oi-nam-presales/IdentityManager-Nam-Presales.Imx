@@ -11,7 +11,7 @@
         #dst
         [options]="['search']"
         [settings]="dstSettings"
-        (search)="getData({ search: $event })"
+        (search)="onSearch($event)"
         (navigationStateChanged)="getData($event)"
         data-imx-identifier="pick-category-dst"
       >

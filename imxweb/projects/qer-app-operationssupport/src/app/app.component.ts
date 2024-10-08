@@ -26,17 +26,21 @@
 
 import { OverlayRef } from '@angular/cdk/overlay';
 import { Component, OnInit, OnDestroy, ErrorHandler } from '@angular/core';
-import { Router, RouterEvent, NavigationStart, NavigationEnd, NavigationError, NavigationCancel } from '@angular/router';
+import { Router, RouterEvent, NavigationStart, NavigationEnd, NavigationError, NavigationCancel, EventType } from '@angular/router';
 import { EuiLoadingService, EuiTheme, EuiThemeService, EuiTopNavigationItem } from '@elemental-ui/core';
 import { Subscription } from 'rxjs';
 
-import { MenuItem, AuthenticationService, ISessionState, MenuService, SettingsService, imx_SessionService, SplashService, ImxTranslationProviderService } from 'qbm';
 import {
-  FeatureConfigService,
-  OpSupportUserService,
-  QerApiService,
-  SettingsComponent
-} from 'qer';
+  MenuItem,
+  AuthenticationService,
+  ISessionState,
+  MenuService,
+  SettingsService,
+  imx_SessionService,
+  SplashService,
+  ImxTranslationProviderService,
+} from 'qbm';
+import { FeatureConfigService, OpSupportUserService, QerApiService, SettingsComponent } from 'qer';
 import { FeatureConfig, ProfileSettings } from 'imx-api-qer';
 import { isOutstandingManager } from './permissions/permissions-helper';
 import { MatDialog } from '@angular/material/dialog';
@@ -53,7 +57,7 @@ export class AppComponent implements OnInit, OnDestroy {
   public hideMenu = false;
   public hideUserMessage = false;
   public showPageContent = true;
-
+  private routerStatus: EventType;
   private readonly subscriptions: Subscription[] = [];
 
   constructor(
@@ -79,7 +83,7 @@ export class AppComponent implements OnInit, OnDestroy {
           // Needs to close here when there is an error on sessionState
           splash.close();
         } else {
-          if (sessionState.IsLoggedOut) {
+          if (sessionState.IsLoggedOut && this.routerStatus !== EventType.NavigationEnd) {
             this.showPageContent = false;
           }
         }
@@ -90,7 +94,7 @@ export class AppComponent implements OnInit, OnDestroy {
           // Set session culture if isUseProfileLangChecked is true, set browser culture otherwise
           if (isUseProfileLangChecked) {
             await this.translationProvider.init(sessionState.culture, sessionState.cultureFormat);
-          }else{
+          } else {
             const browserCulture = this.translateService.getBrowserCultureLang();
             await this.translationProvider.init(browserCulture);
           }
@@ -104,7 +108,11 @@ export class AppComponent implements OnInit, OnDestroy {
           settings.DefaultPageSize = conf.DefaultPageSize;
 
           const groupInfo = await userModelService.getGroups();
-          this.menuItems = await this.menuService.getMenuItems([], groupInfo.map(group => group.Name), true);
+          this.menuItems = await this.menuService.getMenuItems(
+            [],
+            groupInfo.map((group) => group.Name),
+            true
+          );
 
           this.applyProfileSettings();
         }
@@ -129,28 +137,26 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   public async openSettingsDialog(): Promise<void> {
-    this.dialog.open(SettingsComponent,{minWidth: '600px'});
+    this.dialog.open(SettingsComponent, { minWidth: '600px' });
   }
 
   private setupRouter(): void {
     let overlayRef: OverlayRef;
 
     this.router.events.subscribe((event: RouterEvent) => {
-      switch (true) {
-        case event instanceof NavigationStart:
-          this.hideUserMessage = true;
-
-          if (this.isLoggedIn && event.url === '/') {
-            // show the splash screen, when the user logs out!
-            this.splash.init({ applicationName: 'Operations Support Web Portal' });
-          }
-          break;
-        case event instanceof NavigationEnd:
-        case event instanceof NavigationCancel:
-        case event instanceof NavigationError:
-          this.hideUserMessage = false;
-          this.hideMenu = event.url === '/';
-          this.showPageContent = true;
+      if (event instanceof NavigationStart) {
+        this.routerStatus = event.type;
+        this.hideUserMessage = true;
+        if (this.isLoggedIn && event.url === '/') {
+          // show the splash screen, when the user logs out!
+          this.splash.init({ applicationName: 'Operations Support Web Portal' });
+        }
+      }
+      if (event instanceof NavigationEnd || event instanceof NavigationCancel || event instanceof NavigationError) {
+        this.hideUserMessage = false;
+        this.routerStatus = event.type;
+        this.hideMenu = event.url === '/';
+        this.showPageContent = true;
       }
     });
   }
@@ -226,7 +232,7 @@ export class AppComponent implements OnInit, OnDestroy {
               id: 'OpsWeb_DbQueue_DbQueue',
               title: '#LDS#Menu Entry DBQueue',
               route: 'DbQueue',
-            }
+            },
           ],
         };
         return menu;
@@ -288,9 +294,9 @@ export class AppComponent implements OnInit, OnDestroy {
             {
               id: 'OpsWeb_System_DataChanges',
               title: '#LDS#Menu Entry Operation history',
-              route: 'DataChanges'
-            }
-          ]
+              route: 'DataChanges',
+            },
+          ],
         };
 
         if (featureConfig?.EnableSystemStatus) {
@@ -307,22 +313,14 @@ export class AppComponent implements OnInit, OnDestroy {
     return null;
   }
 
-  private async applyProfileSettings()
-  {
-    let overlayRef = this.busyService.show();
+  private async applyProfileSettings() {
     try {
       let profileSettings: ProfileSettings = await this.qerClient.client.opsupport_profile_get();
       if (profileSettings?.PreferredAppThemes) {
-        let key = Object.keys(EuiTheme).find(x => x.toUpperCase() == profileSettings.PreferredAppThemes?.toUpperCase());
-        if (key)
-          this.themeService.setTheme(EuiTheme[key]);
+        this.themeService.setTheme(<EuiTheme>profileSettings.PreferredAppThemes);
       }
-    }
-    catch (error) {
+    } catch (error) {
       this.errorHandler.handleError(error);
-    }
-    finally {
-      this.busyService.hide(overlayRef);
     }
   }
 }

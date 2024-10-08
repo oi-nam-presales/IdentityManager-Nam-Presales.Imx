@@ -10,8 +10,9 @@
       <imx-data-source-toolbar
         #dst
         [options]="['search', 'settings']"
-        [settings]="dstSettings"
-        (search)="getData({ search: $event })"
+        [settings]="dstSettings"        
+        [busyService]="busyService"
+        (search)="onSearch($event)"
         (navigationStateChanged)="getData($event)"
         data-imx-identifier="itshop-pattern-dst"
         [itemStatus]="status"

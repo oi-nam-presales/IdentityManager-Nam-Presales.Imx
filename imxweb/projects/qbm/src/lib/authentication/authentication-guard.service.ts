@@ -80,6 +80,8 @@ export class AuthenticationGuardService implements CanActivate {
       }
 
       if (this.message == null &&
+        // do not shortcut to OAuth if there is at least one authConfigProvider (i.e. passcode login)
+        this.authentication.authConfigProviders.length == 0 &&
         sessionState &&
         sessionState.configurationProviders &&
         sessionState.configurationProviders.length === 1) {

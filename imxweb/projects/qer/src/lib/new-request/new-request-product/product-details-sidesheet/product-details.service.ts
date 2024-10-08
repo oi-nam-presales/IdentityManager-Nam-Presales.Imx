@@ -29,25 +29,34 @@ import { SafeUrl } from '@angular/platform-browser';
 import { EuiSidesheetService } from '@elemental-ui/core';
 import { TranslateService } from '@ngx-translate/core';
 
-import { PortalShopServiceitems } from 'imx-api-qer';
+import { PortalShopServiceitems, QerProjectConfig } from 'imx-api-qer';
 import { IWriteValue, MultiValue } from 'imx-qbm-dbts';
 import { LdsReplacePipe } from 'qbm';
 import { ProductDetailsSidesheetComponent } from './product-details-sidesheet.component';
 import { ImageService } from '../../../itshop/image.service';
+import { ProjectConfigurationService } from '../../../project-configuration/project-configuration.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ProductDetailsService {
 
+  private projectConfig: QerProjectConfig;
+
   constructor(
     private readonly image: ImageService,
     private readonly ldsReplace: LdsReplacePipe,
     private readonly sidesheetService: EuiSidesheetService,
-    private readonly translateService: TranslateService,
+    private readonly translateService: TranslateService,    
+    private readonly projectConfigService: ProjectConfigurationService,
   ) { }
 
   public async showProductDetails(item: PortalShopServiceitems, recipients: IWriteValue<string>): Promise<void> {
+
+    if (!this.projectConfig)      {
+      this.projectConfig = await this.projectConfigService.getConfig();
+    }
+        
     const orderStatus = await this.getOrderStatus(item, recipients);
     await this.sidesheetService
       .open(ProductDetailsSidesheetComponent, {
@@ -61,6 +70,7 @@ export class ProductDetailsService {
           item,
           orderStatus: orderStatus,
           imageUrl: this.getProductImage(item),
+          projectConfig: this.projectConfig
         },
       })
       .afterClosed()

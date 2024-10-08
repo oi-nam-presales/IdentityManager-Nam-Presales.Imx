@@ -33,10 +33,9 @@ import { RoleComplianceViolationsService } from './role-compliance-violations.se
 
 @Component({
   templateUrl: './role-compliance-violations.component.html',
-  styleUrls: ['./role-compliance-violations.component.scss']
+  styleUrls: ['./role-compliance-violations.component.scss'],
 })
 export class RoleComplianceViolationsComponent implements OnInit {
-
   public tablename: string;
   public uidRole: string;
   public dstSettings: DataSourceToolbarSettings;
@@ -50,45 +49,49 @@ export class RoleComplianceViolationsComponent implements OnInit {
     dataProvider: DynamicTabDataProviderDirective,
     private readonly entityService: RoleComplianceViolationsWrapperService,
     private readonly roleComplianceViolationService: RoleComplianceViolationsService,
-    private readonly metaDataService: MetadataService
+    private readonly metaDataService: MetadataService,
   ) {
     this.tablename = dataProvider.data.tablename;
     this.uidRole = dataProvider.data.entity.GetKeys()[0];
     this.entitySchema = this.entityService.roleComplianceEntitySchema;
-    this.displayedColumns = [
-      this.entitySchema.Columns.RuleName,
-      this.entitySchema.Columns.ObjectDisplay
-    ];
+    this.displayedColumns = [this.entitySchema.Columns.RuleName, this.entitySchema.Columns.ObjectDisplay];
 
     // tslint:disable:max-line-length
     switch ((this.tablename ?? '').toLowerCase()) {
-      case 'aerole' :
-        this.keyDescription = '#LDS#Here you can get an overview of all entitlements assigned to this application role that may violate a compliance rule.';
+      case 'aerole':
+        this.keyDescription =
+          '#LDS#Here you can get an overview of all entitlements assigned to this application role that may violate a compliance rule.';
         break;
-      case 'department' :
-        this.keyDescription = '#LDS#Here you can get an overview of all entitlements assigned to this department that may violate a compliance rule.';
+      case 'department':
+        this.keyDescription =
+          '#LDS#Here you can get an overview of all entitlements assigned to this department that may violate a compliance rule.';
         break;
-      case 'locality' :
-        this.keyDescription = '#LDS#Here you can get an overview of all entitlements assigned to this location that may violate a compliance rule.';
+      case 'locality':
+        this.keyDescription =
+          '#LDS#Here you can get an overview of all entitlements assigned to this location that may violate a compliance rule.';
         break;
-      case 'profitcenter' :
-        this.keyDescription = '#LDS#Here you can get an overview of all entitlements assigned to this cost center that may violate a compliance rule.';
+      case 'profitcenter':
+        this.keyDescription =
+          '#LDS#Here you can get an overview of all entitlements assigned to this cost center that may violate a compliance rule.';
         break;
-      case 'eset' :
-        this.keyDescription = '#LDS#Here you can get an overview of all entitlements assigned to this system role that may violate a compliance rule.';
+      case 'eset':
+        this.keyDescription =
+          '#LDS#Here you can get an overview of all entitlements assigned to this system role that may violate a compliance rule.';
         break;
-      case 'org' :
-        this.keyDescription = '#LDS#Here you can get an overview of all entitlements assigned to this business role that may violate a compliance rule.';
+      case 'org':
+        this.keyDescription =
+          '#LDS#Here you can get an overview of all entitlements assigned to this business role that may violate a compliance rule.';
         break;
-      default :
-        this.keyDescription = '#LDS#Here you can get an overview of all entitlements assigned to this object that may violate a compliance rule.';
+      default:
+        this.keyDescription =
+          '#LDS#Here you can get an overview of all entitlements assigned to this object that may violate a compliance rule.';
         break;
     }
     // tslint:enable:max-line-length
   }
 
   public async ngOnInit(): Promise<void> {
-    await this.metaDataService.update([this.tablename]);
+    await this.metaDataService.updateNonExisting([this.tablename]);
     await this.getData();
   }
 
@@ -100,7 +103,7 @@ export class RoleComplianceViolationsComponent implements OnInit {
         displayedColumns: this.displayedColumns,
         dataSource: this.entityService.build(data.Violations),
         entitySchema: this.entityService.roleComplianceEntitySchema,
-        navigationState: {}
+        navigationState: {},
       };
     } finally {
       this.roleComplianceViolationService.handleCloseLoader();

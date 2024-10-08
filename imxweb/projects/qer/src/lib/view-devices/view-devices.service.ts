@@ -28,19 +28,17 @@ import { OverlayRef } from '@angular/cdk/overlay';
 import { Injectable } from '@angular/core';
 import { QerApiService } from '../qer-api-client.service';
 import { EuiLoadingService } from '@elemental-ui/core';
-import { CollectionLoadParameters, DataModel, EntityCollectionData, EntitySchema, ExtendedTypedEntityCollection } from 'imx-qbm-dbts';
-import { PortalCandidatesHardwaretype, PortalCandidatesHardwaretypeWrapper, PortalDevices } from 'imx-api-qer';
+import { CollectionLoadParameters, DataModel, EntitySchema, ExtendedTypedEntityCollection } from 'imx-qbm-dbts';
+import { PortalCandidatesHardwaretype, PortalDevices } from 'imx-api-qer';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ViewDevicesService {
   private busyIndicator: OverlayRef;
+  private abortController = new AbortController();
 
-  constructor(
-    private readonly qerClient: QerApiService,
-    private readonly busyService: EuiLoadingService
-    ) {}
+  constructor(private readonly qerClient: QerApiService, private readonly busyService: EuiLoadingService) {}
 
   public get devicesSchema(): EntitySchema {
     return this.qerClient.typedClient.PortalDevices.GetSchema();
@@ -57,7 +55,7 @@ export class ViewDevicesService {
   }
 
   public handleCloseLoader(): void {
-    if(this.busyIndicator) {
+    if (this.busyIndicator) {
       setTimeout(() => {
         this.busyService.hide(this.busyIndicator);
         this.busyIndicator = undefined;
@@ -85,11 +83,22 @@ export class ViewDevicesService {
     await this.qerClient.client.portal_devices_delete(uid);
   }
 
-  public async getPortalCandidatesHardwaretype(parameters: CollectionLoadParameters): Promise<ExtendedTypedEntityCollection<PortalCandidatesHardwaretype, unknown>> {
-    return await this.qerClient.typedClient.PortalCandidatesHardwaretype.Get(parameters);
+  public async getPortalCandidatesHardwaretype(
+    parameters: CollectionLoadParameters
+  ): Promise<ExtendedTypedEntityCollection<PortalCandidatesHardwaretype, unknown>> {
+    if (parameters?.search !== undefined) {
+      // abort the request only while searching
+      this.abortCall();
+    }
+    return await this.qerClient.typedClient.PortalCandidatesHardwaretype.Get(parameters, { signal: this.abortController.signal });
   }
 
   public async getHardwareTypeDataModel(): Promise<DataModel> {
     return this.qerClient.client.portal_candidates_HardwareType_datamodel_get();
+  }
+
+  private abortCall(): void {
+    this.abortController.abort();
+    this.abortController = new AbortController();
   }
 }

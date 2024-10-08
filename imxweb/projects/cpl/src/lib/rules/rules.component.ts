@@ -182,20 +182,27 @@ export class RulesComponent implements OnInit {
     const isBusy = this.busyService.beginBusy();
     try {
       const data = await this.rulesProvider.getRules(this.navigationState);
-      const exportMethod = this.rulesProvider.exportRules(this.navigationState);
-      exportMethod.initialColumns = this.displayedColumns.map((col) => col.ColumnName);
-      this.dstSettings = {
-        displayedColumns: this.displayedColumns,
-        dataSource: data,
-        dataModel: this.dataModel,
-        entitySchema: this.ruleSchema,
-        navigationState: this.navigationState,
-        filters: this.filterOptions,
-        viewConfig: this.viewConfig,
-        exportMethod,
-      };
+      if (data) {
+        const exportMethod = this.rulesProvider.exportRules(this.navigationState);
+        exportMethod.initialColumns = this.displayedColumns.map((col) => col.ColumnName);
+        this.dstSettings = {
+          displayedColumns: this.displayedColumns,
+          dataSource: data,
+          dataModel: this.dataModel,
+          entitySchema: this.ruleSchema,
+          navigationState: this.navigationState,
+          filters: this.filterOptions,
+          viewConfig: this.viewConfig,
+          exportMethod,
+        };
+      }
     } finally {
       isBusy.endBusy();
     }
+  }
+
+  public onSearch(keywords: string): Promise<void> {
+    this.rulesProvider.abortCall();
+    return this.navigate({ search: keywords });
   }
 }

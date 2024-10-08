@@ -4,35 +4,29 @@
       <eui-logo [size]="72"></eui-logo>
     </div>
     <div *ngIf="logoUrl">
-      <img class="custom-logo" [src]="logoUrl">
+      <img class="custom-logo" [src]="logoUrl" />
     </div>
-    <h1 data-imx-identifier="product-name-title">{{ product.name }}
-      <br>
+    <h1 data-imx-identifier="product-name-title">
+      {{ product.name }}
+      <br />
       <ng-container *ngIf="!appConfigService.Config.DoNotShowAppNameWithProduct">
         {{ title }}
       </ng-container>
     </h1>
     <imx-usermessage class="usermessage" panelClass="imx-small-message"></imx-usermessage>
     <div *ngIf="sessionState?.isOAuth; else loginMask" class="imx-loginButtonpanel">
-      <button data-imx-identifier="logout-oauth-button" mat-button type="button" class="imx-button"
-        (click)="logoutOAuth()">{{'#LDS#OAuth logout' | translate }}</button>
+      <button data-imx-identifier="logout-oauth-button" mat-button type="button" class="imx-button" (click)="logoutOAuth()">{{ '#LDS#OAuth logout' | translate }}</button>
     </div>
 
     <ng-template imxExtd></ng-template>
 
     <!-- We want this to appear after the extension above, but only if we are not OAuth -->
     <div class="imx-loginButtonpanel" *ngIf="!sessionState?.isOAuth">
-      <button *ngIf="!selectedConfigProvider?.customAuthFlow"
-        color="primary"
-        data-imx-identifier="login-button-submit" mat-raised-button type="button" class="imx-button"
-        (click)="login()">
-        {{'#LDS#Log in' | translate }}
+      <button *ngIf="!selectedConfigProvider?.customAuthFlow" data-imx-identifier="login-button-submit" mat-raised-button type="button" class="imx-button" (click)="login()">
+        {{ '#LDS#Log in' | translate }}
       </button>
-      <button *ngIf="newUserConfigProvider"
-        color="primary"
-        data-imx-identifier="signup-button-submit" mat-raised-button type="button" class="imx-button"
-        (click)="createNewAccount()">
-        {{'#LDS#Create new account' | translate }}
+      <button *ngIf="newUserConfigProvider" data-imx-identifier="signup-button-submit" mat-raised-button type="button" class="imx-button" (click)="createNewAccount()">
+        {{ '#LDS#Create new account' | translate }}
       </button>
     </div>
 
@@ -41,21 +35,27 @@
         <div *ngIf="sessionState?.IsLoggedOut" class="imx-loginData">
           <div *ngIf="configurationProviders" class="imx-loginInput">
             <mat-form-field>
-              <mat-select data-imx-identifier="login-select-auth-provider"
-                placeholder="{{'#LDS#Authentication' | translate}}" [(ngModel)]="selectedConfigProvider"
-                (selectionChange)="onSelectAuthConfig()">
-                <mat-option *ngFor="let authConfig of configurationProviders" [value]="authConfig"
-                  [attr.data-imx-identifier]="'login-option-auth-provider' + authConfig.name">
+              <mat-select
+                data-imx-identifier="login-select-auth-provider"
+                placeholder="{{ '#LDS#Authentication' | translate }}"
+                [(ngModel)]="selectedConfigProvider"
+                (selectionChange)="onSelectAuthConfig()"
+              >
+                <mat-option *ngFor="let authConfig of configurationProviders" [value]="authConfig" [attr.data-imx-identifier]="'login-option-auth-provider' + authConfig.name">
                   {{ authConfig.display | translate }}
                 </mat-option>
               </mat-select>
             </mat-form-field>
           </div>
-          <div [hidden]="selectedConfigProvider?.isOAuth2" *ngFor="let authProp of selectedConfigProvider?.authProps"
-            class="imx-loginInput">
-            <input attr.data-imx-identifier="login-input-{{ authProp.name.toLowerCase() }}" [type]="authProp.inputType"
-              [placeholder]="authProp.display" [(ngModel)]="loginData[authProp.name]" (keyup.enter)="login()"
-              class="imx-login-input" />
+          <div [hidden]="selectedConfigProvider?.isOAuth2" *ngFor="let authProp of selectedConfigProvider?.authProps" class="imx-loginInput">
+            <input
+              attr.data-imx-identifier="login-input-{{ authProp.name.toLowerCase() }}"
+              [type]="authProp.inputType"
+              [placeholder]="authProp.display"
+              [(ngModel)]="loginData[authProp.name]"
+              (keyup.enter)="login()"
+              class="imx-login-input"
+            />
           </div>
         </div>
         <div *ngIf="sessionState?.IsAwaitingSecondaryAuth">
@@ -65,6 +65,4 @@
     </ng-template>
   </div>
 </div>
-<div class="imx-loginFooter">{{ product.name }}
-  <br>{{ product.copyright }}
-</div>
+<div class="imx-loginFooter">{{ product.name }} <br />{{ product.copyright }}</div>

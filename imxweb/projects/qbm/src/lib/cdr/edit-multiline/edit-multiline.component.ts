@@ -30,13 +30,19 @@ import { UntypedFormControl } from '@angular/forms';
 import { EditorBase } from '../editor-base';
 
 /**
- * A component for viewing / editing multilined string columns
+ * Provides a {@link CdrEditor | CDR editor} for editing / viewing multiline string columns
+ * 
+ * To change the value, it uses a text area.
+ * When set to read-only, it uses a {@link ViewPropertyComponent | view property component} to display the content.
  */
 @Component({
   selector: 'imx-edit-multiline',
   templateUrl: './edit-multiline.component.html',
-  styleUrls: ['./edit-multiline.component.scss']
+  styleUrls: ['./edit-multiline.component.scss'],
 })
 export class EditMultilineComponent extends EditorBase<string> {
+  /**
+   * The form control associated with the editor.
+   */
   public readonly control = new UntypedFormControl(undefined, { updateOn: 'blur' });
 }

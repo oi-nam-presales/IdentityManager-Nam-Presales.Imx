@@ -45,8 +45,11 @@ import { TranslateModule } from '@ngx-translate/core';
 
 import { EuiCoreModule } from '@elemental-ui/core';
 
-import { CdrRegistryService } from './cdr-registry.service';
 import { CdrEditorComponent } from './cdr-editor/cdr-editor.component';
+import { CdrSidesheetComponent } from './cdr-sidesheet/cdr-sidesheet.component';
+import { DateRangeComponent } from './date-range/date-range.component';
+import { EditBinaryComponent } from './edit-binary/edit-binary.component';
+import { EditBitmaskComponent } from './edit-bitmask/edit-bitmask.component';
 import { EditBooleanComponent } from './edit-boolean/edit-boolean.component';
 import { EditDefaultComponent } from './edit-default/edit-default.component';
 import { EditMultilineComponent } from './edit-multiline/edit-multiline.component';
@@ -54,7 +57,6 @@ import { EditNumberComponent } from './edit-number/edit-number.component';
 import { EditLimitedValueComponent } from './edit-limited-value/edit-limited-value.component';
 import { EditMultiValueComponent } from './edit-multi-value/edit-multi-value.component';
 import { EditMultiLimitedValueComponent } from './edit-multi-limited-value/edit-multi-limited-value.component';
-import { EditBinaryComponent } from './edit-binary/edit-binary.component';
 import { EditDateComponent } from './edit-date/edit-date.component';
 import { PropertyViewerComponent } from './property-viewer/property-viewer.component';
 import { DisableControlModule } from '../disable-control/disable-control.module';
@@ -71,11 +73,9 @@ import { ScrollingModule } from '@angular/cdk/scrolling';
 import { FkHierarchicalDialogModule } from '../fk-hierarchical-dialog/fk-hierarchical-dialog.module';
 import { ViewPropertyComponent } from './view-property/view-property.component';
 import { DateModule } from '../date/date.module';
-import { DateRangeComponent } from './date-range/date-range.component';
 import { ImageModule } from '../image/image.module';
 import { EntityColumnEditorComponent } from './entity-column-editor/entity-column-editor.component';
 import { EditUrlComponent } from './edit-url/edit-url.component';
-import { CdrSidesheetComponent } from './cdr-sidesheet/cdr-sidesheet.component';
 import { MatCardModule } from '@angular/material/card';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { InfoModalDialogModule } from '../info-modal-dialog/info-modal-dialog.module';
@@ -91,6 +91,7 @@ import { InfoModalDialogModule } from '../info-modal-dialog/info-modal-dialog.mo
     EditMultiValueComponent,
     EditMultiLimitedValueComponent,
     EditBinaryComponent,
+    EditBitmaskComponent,
     EditDateComponent,
     PropertyViewerComponent,
     EditImageComponent,
@@ -102,7 +103,7 @@ import { InfoModalDialogModule } from '../info-modal-dialog/info-modal-dialog.mo
     DateRangeComponent,
     EntityColumnEditorComponent,
     EditUrlComponent,
-    CdrSidesheetComponent
+    CdrSidesheetComponent,
   ],
   imports: [
     CommonModule,
@@ -135,10 +136,7 @@ import { InfoModalDialogModule } from '../info-modal-dialog/info-modal-dialog.mo
     FkAdvancedPickerModule,
     FkHierarchicalDialogModule,
     DateModule,
-    ImageModule
-  ],
-  providers: [
-    CdrRegistryService
+    ImageModule,
   ],
   exports: [
     CdrEditorComponent,
@@ -151,7 +149,7 @@ import { InfoModalDialogModule } from '../info-modal-dialog/info-modal-dialog.mo
     EditMultiLimitedValueComponent,
     PropertyViewerComponent,
     EntityColumnEditorComponent,
-    CdrSidesheetComponent
+    CdrSidesheetComponent,
   ],
 })
 export class CdrModule {}

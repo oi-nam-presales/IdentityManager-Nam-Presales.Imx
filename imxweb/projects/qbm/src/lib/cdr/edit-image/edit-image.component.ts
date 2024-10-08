@@ -36,7 +36,10 @@ import { Base64ImageService } from '../../images/base64-image.service';
 import { FileSelectorService } from '../../file-selector/file-selector.service';
 
 /**
- * A component for viewing / editing binary columns with image data
+ * Provides a {@link CdrEditor | CDR editor} for editing / viewing image data columns.
+ * 
+ * To change its value, it uses an {@link ImageSelectComponent | image select component}.
+ * When set to read-only, it uses an {@link ImageViewComponent | image view component} to display the content.
  */
 @Component({
   selector: 'imx-edit-image',
@@ -44,19 +47,41 @@ import { FileSelectorService } from '../../file-selector/file-selector.service';
   styleUrls: ['./edit-image.component.scss'],
 })
 export class EditImageComponent implements CdrEditor, OnDestroy {
+  /**
+   * @ignore only to access the file input from the template.
+   */
   @ViewChild('file') public fileInput: ElementRef;
 
+  /**
+   * Gets a small hint, if the file format is not supported.
+   */
   public get fileFormatHint(): string {
     return this.fileFormatError ? '#LDS#Please select an image in PNG format.' : undefined;
   }
 
+  /**
+   * A subject for triggering an update of the editor.
+   */
   public readonly updateRequested = new Subject<void>();
 
+  /**
+   * The form control associated with the editor.
+   */
   public readonly control = new UntypedFormControl(undefined);
 
+  /**
+   * The container that wraps the column functionality.
+   */
   public readonly columnContainer = new EntityColumnContainer<string>();
+
+  /**
+   * Event that is emitted, after a value has been changed.
+   */
   public readonly valueHasChanged = new EventEmitter<ValueHasChangedEventArg>();
 
+  /**
+   * Indicator that the component is loading data from the server.
+   */
   public isLoading = false;
 
   private fileFormatError = false;
@@ -75,13 +100,17 @@ export class EditImageComponent implements CdrEditor, OnDestroy {
     );
   }
 
+  /**
+   * Unsubscribes all events, after the 'OnDestroy' hook is triggered.
+   */
   public ngOnDestroy(): void {
     this.subscriptions.forEach((s) => s.unsubscribe());
   }
 
   /**
-   * Binds a column dependent reference to the component
-   * @param cdref a column dependent reference
+   * Binds a column dependent reference to the component.
+   * Subscribes to subjects from the column dependent reference and its container.
+   * @param cdref a column dependent reference.
    */
   public bind(cdref: ColumnDependentReference): void {
     if (cdref && cdref.column) {
@@ -130,17 +159,24 @@ export class EditImageComponent implements CdrEditor, OnDestroy {
     }
   }
 
+  /**
+   * Resets the file format error.
+   */
   public resetFileFormatErrorState(): void {
     this.fileFormatError = false;
   }
 
+  /**
+   * Emits a list of files to the {@link FileSelectorService | file selector service}.
+   * @param files A list of files to emit as *.png.
+   */
   // TODO: Check Upgrade
   public emitFiles(files: FileList): void {
     this.fileSelector.emitFiles(files, 'image/png');
   }
 
   /**
-   * removes the current image
+   * Removes the current image and writes the 'empty' value to the column.
    */
   public async remove(): Promise<void> {
     this.fileInput.nativeElement.value = '';
@@ -163,8 +199,8 @@ export class EditImageComponent implements CdrEditor, OnDestroy {
   }
 
   /**
-   * updates the value for the CDR
-   * @param value the new image url
+   * Updates the value for the CDR.
+   * @param value The new image url, that will be used as the new value.
    */
   private async writeValue(value: string): Promise<void> {
     this.logger.debug(this, 'writeValue called with value', value);

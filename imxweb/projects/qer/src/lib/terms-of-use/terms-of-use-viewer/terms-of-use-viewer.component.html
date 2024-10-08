@@ -14,7 +14,7 @@
     color="primary"
     *ngIf="terms?.HasFile?.value"
     attr.data-imx-identifier="terms-of-use-viewer-button-download"
-    [euiDownload]="getDownloadOptions(terms?.GetEntity()?.GetKeys()[0], terms?.GetEntity()?.GetDisplay())"
+    [euiDownload]="termsOfUseService.getDownloadOptions(terms)"
   >
     {{ '#LDS#Download terms of use' | translate }}
   </button>

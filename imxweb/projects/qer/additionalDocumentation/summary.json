@@ -1,0 +1,18 @@
+[
+  {
+    "title": "Identity Management",
+    "file": "identity.md"
+  },
+  {
+    "title": "Role Management",
+    "file": "roles.md"
+  },
+  {
+    "title": "IT Shop",
+    "file": "it-shop.md"
+  },
+  {
+    "title": "Other Components and Services",
+    "file": "other.md"
+  }
+]

@@ -30,16 +30,36 @@ import { EuiSidesheetRef, EUI_SIDESHEET_DATA } from '@elemental-ui/core';
 
 import { CdrSidesheetConfig } from './cdr-sidesheet-config';
 
+/**
+ * Provides a side sheet, that displays a form with {@link CdrEditor | cdr editors}.
+ * 
+ * Writeable properties can be edited.
+ */
 @Component({
   templateUrl: './cdr-sidesheet.component.html'
 })
 export class CdrSidesheetComponent {
+
+  /**
+   * The form, that stores the editors.
+   */
   public readonly cdrFormGroup = new UntypedFormGroup({});
+
+  /**
+   * Creates an instance of this component.
+   * @param config Information about the cdr and the caption of the 'close' button.
+   * @param sidesheetRef a reference of the sidesheet.
+   */
   constructor(
     @Inject(EUI_SIDESHEET_DATA) public readonly config: CdrSidesheetConfig,
     public readonly sidesheetRef: EuiSidesheetRef
   ) {}
 
+  /**
+   * Adds the form control of an editor to the form group.
+   * @param name The name of the control.
+   * @param control The form control that should be added.
+   */
   public addFormControl(name: string, control: UntypedFormControl): void {
     this.cdrFormGroup.addControl(name, control);
   }

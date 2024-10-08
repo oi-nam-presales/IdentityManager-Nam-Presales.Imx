@@ -27,7 +27,7 @@
 import { Injectable } from '@angular/core';
 
 import { UserModelService } from 'qer';
-import { isQERPolicyAdmin } from './permissions-helper';
+import { isQERPolicyAdmin, isQERPolicyOwner } from './permissions-helper';
 
 @Injectable({
   providedIn: 'root'
@@ -38,5 +38,9 @@ export class PermissionsService {
 
   public async isQERPolicyAdmin(): Promise<boolean> {
     return isQERPolicyAdmin((await this.userService.getFeatures()).Features);
+  }
+
+  public async isQERPolicyOwner(): Promise<boolean> {
+    return isQERPolicyOwner((await this.userService.getFeatures()).Features);
   }
 }

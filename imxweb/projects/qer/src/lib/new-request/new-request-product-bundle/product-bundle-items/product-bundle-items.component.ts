@@ -75,7 +75,7 @@ export class ProductBundleItemsComponent implements OnInit, OnDestroy {
     this.orchestration.abortCall();
 
     let parameters: CollectionLoadParameters = {
-      ...this.navigationState,
+      ...this.orchestration.dstSettingsProductBundles.navigationState,
     };
 
     return from(
@@ -103,7 +103,7 @@ export class ProductBundleItemsComponent implements OnInit, OnDestroy {
       this.entitySchema.Columns.Description,
     ];
     this.dstWrapper = new DataSourceWrapper(
-      (state) => this.patternItemService.getPatternItemList(this.selectedProductBundle, this.navigationState),
+      (state, requestOpts) => this.patternItemService.getPatternItemList(this.selectedProductBundle, state, requestOpts),
       this.displayedColumns,
       this.entitySchema
     );
@@ -177,7 +177,7 @@ export class ProductBundleItemsComponent implements OnInit, OnDestroy {
     this.subscriptions.forEach((subscription) => subscription.unsubscribe());
   }
 
-  public async getData(parameter?: CollectionLoadParameters): Promise<void> {
+  public async getData(): Promise<void> {
     if (!this.selectedProductBundle) {
       this.orchestration.disableSearch = true;
       return;
@@ -186,22 +186,7 @@ export class ProductBundleItemsComponent implements OnInit, OnDestroy {
     const busy = this.myBusyService.beginBusy();
     try {
       this.orchestration.abortCall();
-      const filteredState: CollectionLoadParameters = {
-        filter: [
-          {
-            ColumnName: 'UID_ShoppingCartPattern',
-            Type: FilterType.Compare,
-            CompareOp: CompareOperator.Equal,
-            Value1: this.selectedProductBundle.GetEntity().GetKeys()[0],
-          },
-        ],
-      };
-
-      const parameters = {
-        ...parameter,
-        ...filteredState,
-      };
-      this.dstSettings = await this.dstWrapper.getDstSettings(parameters, { signal: this.orchestration.abortController.signal });
+      this.dstSettings = await this.dstWrapper.getDstSettings(this.navigationState, { signal: this.orchestration.abortController.signal });
       this.orchestration.dstSettingsProductBundles = this.dstSettings;
     } finally {
       busy.endBusy();

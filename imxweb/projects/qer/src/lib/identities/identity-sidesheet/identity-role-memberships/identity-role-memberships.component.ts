@@ -65,7 +65,7 @@ export class IdentityRoleMembershipsComponent implements OnInit {
     private readonly settingService: SettingsService,
     private readonly sidesheet: EuiSidesheetService,
     private readonly translate: TranslateService,
-    dataProvider: DynamicTabDataProviderDirective
+    dataProvider: DynamicTabDataProviderDirective,
   ) {
     this.referrer = dataProvider.data;
     this.entitySchema = this.roleMembershipsService.getSchema(this.referrer.tablename);
@@ -85,7 +85,7 @@ export class IdentityRoleMembershipsComponent implements OnInit {
   public async ngOnInit(): Promise<void> {
     const isBusy = this.busyService.beginBusy();
     try {
-      await this.metadataService.update([this.referrer.tablename]);
+      await this.metadataService.updateNonExisting([this.referrer.tablename]);
     } finally {
       isBusy.endBusy();
     }

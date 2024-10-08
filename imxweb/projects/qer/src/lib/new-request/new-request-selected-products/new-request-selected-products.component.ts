@@ -27,11 +27,11 @@
 import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { SelectionModel } from '@angular/cdk/collections';
 import { Component, Inject, OnInit, ViewChild } from '@angular/core';
-import { MatSort, Sort } from '@angular/material/sort';
+import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { EUI_SIDESHEET_DATA, EuiSidesheetRef, EuiSidesheetService } from '@elemental-ui/core';
-import { SelectedProductItem, SelectedProductSource, SelectedProductType } from './selected-product-item.interface';
 import { SelectedProductItemColDef } from './selected-product-item-col-def.interface';
+import { SelectedProductItem, SelectedProductSource, SelectedProductType } from './selected-product-item.interface';
 
 export interface SelectedSidesheetData {
   candidates: SelectedProductItem[];
@@ -44,7 +44,7 @@ export interface SelectedSidesheetData {
   styleUrls: ['./new-request-selected-products.component.scss'],
 })
 export class NewRequestSelectedProductsComponent implements OnInit {
-  public columnsToDisplay: string[] = ['select', 'product', 'source', 'description'];
+  public columnsToDisplay: string[] = ['select', 'product', 'productSource', 'description'];
   public SelectedProductType: SelectedProductType;
   public SelectedProductSource: SelectedProductSource;
   public dataSource: MatTableDataSource<SelectedProductItem>;
@@ -56,13 +56,16 @@ export class NewRequestSelectedProductsComponent implements OnInit {
     private readonly _liveAnnouncer: LiveAnnouncer,
     @Inject(EUI_SIDESHEET_DATA) public data?: SelectedSidesheetData
   ) {
-    this.dataSource = new MatTableDataSource(this.data?.candidates);
-    this.selection = new SelectionModel<any>(true, this.data?.candidates);
+    const initialData = this.convertDataSource(this.data?.candidates);
+    this.dataSource = new MatTableDataSource(initialData);
+    this.selection = new SelectionModel<any>(true, initialData);
 
     this.sidesheetRef.closeClicked().subscribe(() => this.sidesheetService.close(false));
   }
 
   public ngOnInit(): void {
+    this.dataSource.sortingDataAccessor = (data, sortHeaderId) =>
+      typeof data[sortHeaderId] === 'string' ? data[sortHeaderId].toLocaleLowerCase() : data[sortHeaderId];
   }
 
   @ViewChild(MatSort) sort: MatSort;
@@ -100,16 +103,23 @@ export class NewRequestSelectedProductsComponent implements OnInit {
     return `${this.selection.isSelected(row) ? 'deselect' : 'select'} row ${row.position + 1}`;
   }
 
-  /** Announce the change in sort state for assistive technology. */
-  public onSortChange(sortState: Sort) {
-    // This example uses English messages. If your application supports
-    // multiple language, you would internationalize these strings.
-    // Furthermore, you can customize the message to add additional
-    // details about the values being sorted.
-    if (sortState.direction) {
-      this._liveAnnouncer.announce(`Sorted ${sortState.direction}ending`);
-    } else {
-      this._liveAnnouncer.announce('Sorting cleared');
-    }
+  public convertDataSource(candidates: SelectedProductItem[]): SelectedProductItem[] {
+    return candidates.map((candidate) => {
+      let productSource = '';
+      if (candidate.type === 0) {
+        productSource = candidate.item?.GetEntity()?.GetColumn('ServiceCategoryFullPath').GetDisplayValue();
+      } else if (candidate.type === 1) {
+        productSource = candidate.item?.GetEntity()?.GetColumn('FullPath').GetDisplayValue();
+      } else if (candidate.type === 2) {
+        productSource = candidate.item?.GetEntity().GetColumn('UID_ShoppingCartPattern').GetDisplayValue();
+      }
+
+      return {
+        ...candidate,
+        product: candidate.item.GetEntity()?.GetDisplay(),
+        productSource,
+        description: candidate.item.GetEntity()?.GetColumn('Description')?.GetDisplayValue(),
+      };
+    });
   }
 }

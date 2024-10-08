@@ -25,7 +25,7 @@
  */
 
 import { Component, ErrorHandler, OnDestroy, OnInit } from '@angular/core';
-import { NavigationCancel, NavigationEnd, NavigationError, NavigationStart, Router, RouterEvent } from '@angular/router';
+import { EventType, NavigationCancel, NavigationEnd, NavigationError, NavigationStart, Router, RouterEvent } from '@angular/router';
 import { Subscription } from 'rxjs';
 
 import { AppConfigService, AuthenticationService, ISessionState, ImxTranslationProviderService, SplashService } from 'qbm';
@@ -45,7 +45,7 @@ export class AppComponent implements OnInit, OnDestroy {
   public isLoggedIn = false;
   public hideUserMessage = false;
   public showPageContent = true;
-
+  private routerStatus: EventType;
   private readonly subscriptions: Subscription[] = [];
 
   constructor(
@@ -57,7 +57,6 @@ export class AppComponent implements OnInit, OnDestroy {
     private qerClient: QerApiService,
     private readonly themeService: EuiThemeService,
     private readonly errorHandler: ErrorHandler,
-    private readonly euiLoadingService: EuiLoadingService,
     private readonly translationProvider: ImxTranslationProviderService,
     private readonly translateService: TranslateService
   ) {
@@ -67,7 +66,7 @@ export class AppComponent implements OnInit, OnDestroy {
           // Needs to close here when there is an error on sessionState
           this.splash.close();
         } else {
-          if (sessionState.IsLoggedOut && !this.isOnUserActivation()) {
+          if (sessionState.IsLoggedOut && !this.isOnUserActivation() && this.routerStatus !== EventType.NavigationEnd) {
             this.showPageContent = false;
           }
         }
@@ -78,7 +77,7 @@ export class AppComponent implements OnInit, OnDestroy {
           // Set session culture if isUseProfileLangChecked is true, set browser culture otherwise
           if (isUseProfileLangChecked) {
             await this.translationProvider.init(sessionState.culture, sessionState.cultureFormat);
-          }else{
+          } else {
             const browserCulture = this.translateService.getBrowserCultureLang();
             await this.translationProvider.init(browserCulture);
           }
@@ -118,6 +117,7 @@ export class AppComponent implements OnInit, OnDestroy {
     this.router.events.subscribe((event: RouterEvent) => {
       if (event instanceof NavigationStart) {
         this.hideUserMessage = true;
+        this.routerStatus = event.type;
         if (this.isLoggedIn) {
           if (event.url === '/') {
             // show the splash screen, when the user logs out!
@@ -131,31 +131,30 @@ export class AppComponent implements OnInit, OnDestroy {
 
       if (event instanceof NavigationCancel) {
         this.hideUserMessage = false;
+        this.routerStatus = event.type;
       }
 
       if (event instanceof NavigationEnd) {
         this.hideUserMessage = false;
         this.showPageContent = true;
+        this.routerStatus = event.type;
       }
 
       if (event instanceof NavigationError) {
         this.hideUserMessage = false;
+        this.routerStatus = event.type;
       }
     });
   }
 
   private async applyProfileSettings() {
-    let overlayRef = this.euiLoadingService.show();
     try {
       let profileSettings: ProfileSettings = await this.qerClient.client.passwordreset_profile_get();
       if (profileSettings?.PreferredAppThemes) {
-        let key = Object.keys(EuiTheme).find((x) => x.toUpperCase() == profileSettings.PreferredAppThemes?.toUpperCase());
-        if (key) this.themeService.setTheme(EuiTheme[key]);
+        this.themeService.setTheme(<EuiTheme>profileSettings.PreferredAppThemes);
       }
     } catch (error) {
       this.errorHandler.handleError(error);
-    } finally {
-      this.euiLoadingService.hide(overlayRef);
     }
   }
 }

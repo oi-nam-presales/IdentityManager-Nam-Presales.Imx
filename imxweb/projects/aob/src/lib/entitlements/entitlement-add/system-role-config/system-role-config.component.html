@@ -1,13 +1,11 @@
 <div eui-sidesheet-content>
-  <eui-alert *ngIf="showHelperAlert" class="imx-helper-alert" type="info" [condensed]="true" [colored]="true"
+  <eui-alert *ngIf="showHelperAlert && !data.createOnly" class="imx-helper-alert" type="info" [condensed]="true" [colored]="true"
     [dismissable]="true" (dismissed)="onHelperDismissed()">
-    {{
-    '#LDS#Here you can merge the application entitlements into a new system role or add the application entitlements to an existing system role. The system role will then be assigned to the application as an application entitlement.' | translate
-    }}
+    {{ LdsAddOrCreate | translate }}
   </eui-alert>
   <mat-card class="imx-content-card">
 
-    <mat-radio-group [(ngModel)]="type" (change)="typeChanged($event)">
+    <mat-radio-group [(ngModel)]="type" (change)="typeChanged($event)" *ngIf="!data.createOnly">
       <mat-radio-button [value]="'new'" data-imx-identifier="add-to-role-new">
         {{'#LDS#Create new system role' | translate}}
       </mat-radio-button>
@@ -43,7 +41,7 @@
   </mat-card>
 </div>
 
-<div eui-sidesheet-actions color="white">
+<div eui-sidesheet-actions >
   <button *ngIf="type === 'new'" mat-raised-button color="primary" [disabled]="form.invalid || !form.dirty"
     (click)="close(true)" data-imx-identifier="system-role-config-create-new-system-role-button">
     {{'#LDS#Create new system role' | translate}}

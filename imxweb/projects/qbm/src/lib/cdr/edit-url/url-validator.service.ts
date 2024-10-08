@@ -27,10 +27,21 @@
 import { Injectable } from '@angular/core';
 import { ValidatorFn, Validators } from '@angular/forms';
 
+/**
+ * A service for providing an url validation.
+ */
 @Injectable({
   providedIn: 'root'
 })
 export class UrlValidatorService {
+
+  /**
+   * Validates, if the given string uses the right pattern.
+   * @example
+   * Valid urls could be:
+   * 'https://localhost:8182'
+   * 'http://www.google.com'
+   */
   public readonly validators: ReadonlyArray<ValidatorFn> = [
     Validators.pattern(new RegExp('^(http|https)\:\/\/[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,3}(\/\S*)?'))
   ];

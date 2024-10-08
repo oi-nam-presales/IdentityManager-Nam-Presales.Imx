@@ -41,11 +41,19 @@ import {
   IEntityColumn,
   TypedEntity,
 } from 'imx-qbm-dbts';
-import { BusyService, DataSourceToolbarSettings, DataSourceToolbarViewConfig,SideNavigationComponent,  LdsReplacePipe, MetadataService, ClassloggerService, HelpContextualValues } from 'qbm';
+import {
+  BusyService,
+  DataSourceToolbarSettings,
+  DataSourceToolbarViewConfig,
+  SideNavigationComponent,
+  LdsReplacePipe,
+  MetadataService,
+  ClassloggerService,
+  HelpContextualValues,
+} from 'qbm';
 import { ResourceSidesheetComponent } from './resource-sidesheet/resource-sidesheet.component';
 import { ResourcesService } from './resources.service';
 import { ViewConfigService } from '../view-config/view-config.service';
-
 
 @Component({
   templateUrl: './resources.component.html',
@@ -87,7 +95,7 @@ export class ResourcesComponent implements OnInit, SideNavigationComponent {
     this.tablename = this.data?.TableName ?? this.route.snapshot?.url[this.route.snapshot?.url.length - 1]?.path;
 
     try {
-      await this.metadata.update([this.tablename]);
+      await this.metadata.updateNonExisting([this.tablename]);
     } catch (error) {
       this.logger.error(this, error);
     }
@@ -175,7 +183,7 @@ export class ResourcesComponent implements OnInit, SideNavigationComponent {
   private async navigate(): Promise<void> {
     const isBusy = this.busyService.beginBusy();
     const exportMethod = this.resourceProvider.getExportMethod(this.tablename, this.isAdmin, this.navigationState);
-    exportMethod.initialColumns = this.displayColumns.map(col => col.ColumnName);
+    exportMethod.initialColumns = this.displayColumns.map((col) => col.ColumnName);
     try {
       this.dstSettings = {
         dataSource: await this.resourceProvider.get(this.tablename, this.isAdmin, this.navigationState),
@@ -185,7 +193,7 @@ export class ResourcesComponent implements OnInit, SideNavigationComponent {
         filters: this.dataModel.Filters,
         dataModel: this.dataModel,
         viewConfig: this.viewConfig,
-        exportMethod
+        exportMethod,
       };
     } finally {
       isBusy.endBusy();

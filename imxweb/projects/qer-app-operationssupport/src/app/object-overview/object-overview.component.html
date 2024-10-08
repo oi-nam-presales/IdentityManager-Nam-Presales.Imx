@@ -6,8 +6,7 @@
   <div class="sub-headline">
     {{tableDisplay}}
   </div>
-  <mat-tab-group #tabGroup [(selectedIndex)]="tabIndex"
-    class="imx-flex imx-flex-child">
+  <mat-tab-group #tabGroup [(selectedIndex)]="tabIndex" class="imx-flex imx-flex-child">
     <mat-tab label="{{ '#LDS#Queues' | translate }}">
       <ng-template matTabContent class="imx-tab-content">
         <div class="imx-job-queue-div">
@@ -106,7 +105,8 @@
     </mat-tab>
     <mat-tab label="{{'#LDS#Hyperview' | translate}}">
       <ng-template matTabContent>
-        <imx-object-hyperview (selected)="onShapeClick($event)" [objectType]="tablename" [objectUid]="objectUID" [condensed]="true"></imx-object-hyperview>
+        <imx-object-hyperview (selected)="onShapeClick($event)" [objectType]="tablename" [objectUid]="objectUID"
+          [condensed]="true"></imx-object-hyperview>
       </ng-template>
     </mat-tab>
   </mat-tab-group>

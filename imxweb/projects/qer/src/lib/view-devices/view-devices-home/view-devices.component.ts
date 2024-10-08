@@ -28,13 +28,14 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ViewDevicesService } from '../view-devices.service';
 import {
   AuthenticationService,
-  BusyService, DataModelWrapper,
+  BusyService,
+  DataModelWrapper,
   DataSourceToolbarSettings,
   DataSourceWrapper,
   HelpContextualComponent,
   HelpContextualService,
   HELP_CONTEXTUAL,
-  SideNavigationComponent
+  SideNavigationComponent,
 } from 'qbm';
 import { DeviceConfig, PortalCandidatesHardwaretype, PortalDevices } from 'imx-api-qer';
 import { CollectionLoadParameters, DisplayColumns, EntitySchema, ValueStruct } from 'imx-qbm-dbts';
@@ -53,7 +54,7 @@ import { CreateNewDeviceComponent } from '../create-new-device/create-new-device
   templateUrl: './view-devices.component.html',
   styleUrls: ['./view-devices.component.scss'],
 })
-export class ViewDevicesComponent implements OnInit, OnDestroy, SideNavigationComponent{
+export class ViewDevicesComponent implements OnInit, OnDestroy, SideNavigationComponent {
   public dataModelWrapper: DataModelWrapper;
   public hardwareTypeDataModelWrapper: DataModelWrapper;
   public dstWrapper: DataSourceWrapper<PortalDevices>;
@@ -64,7 +65,7 @@ export class ViewDevicesComponent implements OnInit, OnDestroy, SideNavigationCo
   public dstSettingsHardwareType: DataSourceToolbarSettings;
   public DisplayColumns = DisplayColumns;
   public deviceModelValueStruct: ValueStruct<string>[];
-  public hardwareBasicTypeList: { type: string, basicType: string, key: string }[];
+  public hardwareBasicTypeList: { type: string; basicType: string; key: string }[];
   public busyService = new BusyService();
   public contextId = HELP_CONTEXTUAL.PortalDevices;
 
@@ -86,7 +87,7 @@ export class ViewDevicesComponent implements OnInit, OnDestroy, SideNavigationCo
     private readonly authService: AuthenticationService,
     private readonly identitiesService: IdentitiesService,
     private readonly helpContextualService: HelpContextualService,
-    qerPermissionService: QerPermissionsService,
+    qerPermissionService: QerPermissionsService
   ) {
     this.entitySchema = this.viewDevicesService.devicesSchema;
 
@@ -94,8 +95,7 @@ export class ViewDevicesComponent implements OnInit, OnDestroy, SideNavigationCo
 
     this.sessionResponse$ = this.authService.onSessionResponse.subscribe(async (session) => {
       if (session.IsLoggedIn) {
-        this.currentUser = session.UserUid,
-        this.isManagerForPersons = await qerPermissionService.isPersonManager();
+        (this.currentUser = session.UserUid), (this.isManagerForPersons = await qerPermissionService.isPersonManager());
         this.isAuditor = await qerPermissionService.isStructStatistics();
       }
     });
@@ -145,9 +145,7 @@ export class ViewDevicesComponent implements OnInit, OnDestroy, SideNavigationCo
 
     this.dstWrapperHardwareType = new DataSourceWrapper(
       (state) => this.viewDevicesService.getPortalCandidatesHardwaretype(state),
-      [
-        this.entitySchemaHardwareType.Columns[DisplayColumns.DISPLAY_PROPERTYNAME],
-      ],
+      [this.entitySchemaHardwareType.Columns[DisplayColumns.DISPLAY_PROPERTYNAME]],
       this.entitySchemaHardwareType,
       this.hardwareTypeDataModelWrapper,
       'hardware-type'
@@ -160,14 +158,17 @@ export class ViewDevicesComponent implements OnInit, OnDestroy, SideNavigationCo
     const isbusy = this.busyService.beginBusy();
     try {
       this.dstSettings = await this.dstWrapper.getDstSettings(newState);
-      this.dstSettingsHardwareType = await this.dstWrapperHardwareType.getDstSettings(newState);
 
-      this.deviceModelValueStruct = this.dstSettingsHardwareType.dataSource.Data.map(d => {
-        return {
+      const dstSettingsHardwareType = await this.dstWrapperHardwareType.getDstSettings(newState);
+      if (dstSettingsHardwareType) {
+        this.dstSettingsHardwareType = dstSettingsHardwareType;
+        this.deviceModelValueStruct = this.dstSettingsHardwareType.dataSource.Data.map((d) => {
+          return {
             DataValue: d.GetEntity().GetKeys()[0],
-            DisplayValue: d.GetEntity().GetDisplay()
-        };
-    });
+            DisplayValue: d.GetEntity().GetDisplay(),
+          };
+        });
+      }
     } finally {
       isbusy.endBusy();
     }
@@ -197,23 +198,23 @@ export class ViewDevicesComponent implements OnInit, OnDestroy, SideNavigationCo
         return;
       }
 
-        this.helpContextualService.setHelpContextId(HELP_CONTEXTUAL.PortalDevicesEdit);
-        const result = await this.sideSheet
-          .open(ViewDevicesSidesheetComponent, {
-            title: await this.translate.get('#LDS#Heading Edit Device').toPromise(),
-            subTitle: portalDevices.GetEntity().GetDisplay(),
-            padding: '0',
-            width: 'max(600px, 60%)',
-            disableClose: true,
-            testId: 'devices-sidesheet',
-            data: {
-              device: extendedEntity.Data[0],
-              deviceEntityConfig: deviceEntityConfig,
-            },
-            headerComponent: HelpContextualComponent
-          })
-          .afterClosed()
-          .toPromise();
+      this.helpContextualService.setHelpContextId(HELP_CONTEXTUAL.PortalDevicesEdit);
+      const result = await this.sideSheet
+        .open(ViewDevicesSidesheetComponent, {
+          title: await this.translate.get('#LDS#Heading Edit Device').toPromise(),
+          subTitle: portalDevices.GetEntity().GetDisplay(),
+          padding: '0',
+          width: 'max(600px, 60%)',
+          disableClose: true,
+          testId: 'devices-sidesheet',
+          data: {
+            device: extendedEntity.Data[0],
+            deviceEntityConfig: deviceEntityConfig,
+          },
+          headerComponent: HelpContextualComponent,
+        })
+        .afterClosed()
+        .toPromise();
 
       if (result) {
         this.getData();
@@ -223,30 +224,30 @@ export class ViewDevicesComponent implements OnInit, OnDestroy, SideNavigationCo
 
   public async createNewDevice(key: string, index: number): Promise<void> {
     let deviceEntityConfig = this.deviceConfig['VI_Hardware_Fields_Default'];
-    const hardwareBasicTypeListElement = this.hardwareBasicTypeList.find(hardwareType => hardwareType.key === key);
+    const hardwareBasicTypeListElement = this.hardwareBasicTypeList.find((hardwareType) => hardwareType.key === key);
     if (hardwareBasicTypeListElement) {
       const hardwareBasicType = this.hardwareBasicTypeList[this.hardwareBasicTypeList.indexOf(hardwareBasicTypeListElement)].basicType;
       deviceEntityConfig = this.deviceConfig[`VI_Hardware_Fields_${hardwareBasicType}`];
     }
     let deviceModelValueStruct = this.deviceModelValueStruct[index];
 
-      this.helpContextualService.setHelpContextId(HELP_CONTEXTUAL.PortalDevicesCreate);
-      const result = await this.sideSheet
-        .open(CreateNewDeviceComponent, {
-          title: await this.translate.get('#LDS#Heading Create Device').toPromise(),
-          padding: '0px',
-          width: 'max(650px, 65%)',
-          disableClose: false,
-          testId: 'create-new-device-sidesheet',
-          data: {
-            newDevice: await this.viewDevicesService.createNewDevice(),
-            deviceEntityConfig: deviceEntityConfig,
-            deviceModelValueStruct: deviceModelValueStruct,
-          },
-          headerComponent: HelpContextualComponent
-        })
-        .afterClosed()
-        .toPromise();
+    this.helpContextualService.setHelpContextId(HELP_CONTEXTUAL.PortalDevicesCreate);
+    const result = await this.sideSheet
+      .open(CreateNewDeviceComponent, {
+        title: await this.translate.get('#LDS#Heading Create Device').toPromise(),
+        padding: '0px',
+        width: 'max(650px, 65%)',
+        disableClose: false,
+        testId: 'create-new-device-sidesheet',
+        data: {
+          newDevice: await this.viewDevicesService.createNewDevice(),
+          deviceEntityConfig: deviceEntityConfig,
+          deviceModelValueStruct: deviceModelValueStruct,
+        },
+        headerComponent: HelpContextualComponent,
+      })
+      .afterClosed()
+      .toPromise();
 
     if (result) {
       this.getData();

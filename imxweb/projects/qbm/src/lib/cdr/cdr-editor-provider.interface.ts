@@ -29,8 +29,8 @@ import { CdrEditor } from './cdr-editor.interface';
 import { ViewContainerRef, ComponentRef } from '@angular/core';
 
 /**
- * Defines a class that can provide an UI component to display and/or edit a column dependent reference,
- * namely a cdr "editor".
+ * Defines an interface that can provide an UI component to display and/or edit a column dependent reference,
+ * namely a CDR "editor".
  */
 export interface CdrEditorProvider {
 

@@ -26,7 +26,7 @@
 
 import { Injectable } from '@angular/core';
 
-import { ExtendedTypedEntityCollection, EntitySchema, DataModel, MethodDescriptor, EntityCollectionData, MethodDefinition } from 'imx-qbm-dbts';
+import { ExtendedTypedEntityCollection, EntitySchema, DataModel, MethodDescriptor, EntityCollectionData, MethodDefinition, ApiRequestOptions } from 'imx-qbm-dbts';
 import {
   PortalItshopApproveRequests,
   OtherApproverInput,
@@ -47,6 +47,8 @@ import { DataSourceToolbarExportMethod } from 'qbm';
 
 @Injectable()
 export class ApprovalsService {
+  public abortController = new AbortController();
+
   constructor(private readonly apiService: QerApiService, private readonly itshopRequest: ItshopRequestService) {}
 
   public get PortalItshopApproveRequestsSchema(): EntitySchema {
@@ -61,12 +63,21 @@ export class ApprovalsService {
     this.itshopRequest.isChiefApproval = val;
   }
 
-  public async get(parameters: ApprovalsLoadParameters): Promise<ExtendedTypedEntityCollection<Approval, PwoExtendedData>> {
+  public abortCall(): void {
+    this.abortController.abort();
+    this.abortController = new AbortController();
+  }
+
+  public async get(
+    parameters: ApprovalsLoadParameters,
+    requestOpts?: ApiRequestOptions
+  ): Promise<ExtendedTypedEntityCollection<Approval, PwoExtendedData>> {
     const collection = await this.apiService.typedClient.PortalItshopApproveRequests.Get({
       Escalation: this.isChiefApproval,
       ...parameters,
-    });
-    return {
+    },requestOpts);
+
+    return collection == null ? undefined: {
       tableName: collection.tableName,
       totalCount: collection.totalCount,
       Data: collection.Data.map((element, index) =>
@@ -77,18 +88,22 @@ export class ApprovalsService {
   }
 
   public exportApprovalRequests(parameters: ApprovalsLoadParameters): DataSourceToolbarExportMethod {
+    const params: ApprovalsLoadParameters = {
+      Escalation: this.isChiefApproval,
+      ...parameters,
+    };
     const factory = new V2ApiClientMethodFactory();
     return {
       getMethod: (withProperties: string, PageSize?: number) => {
         let method: MethodDescriptor<EntityCollectionData>;
         if (PageSize) {
-          method = factory.portal_itshop_approve_requests_get({...parameters, withProperties, PageSize, StartIndex: 0})
+          method = factory.portal_itshop_approve_requests_get({ ...params, withProperties, PageSize, StartIndex: 0 });
         } else {
-          method = factory.portal_itshop_approve_requests_get({...parameters, withProperties})
+          method = factory.portal_itshop_approve_requests_get({ ...params, withProperties });
         }
         return new MethodDefinition(method);
-      }
-    }
+      },
+    };
   }
 
   public async getApprovalDataModel(): Promise<DataModel> {

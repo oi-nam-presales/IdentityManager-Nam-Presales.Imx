@@ -33,7 +33,6 @@ import { PortalApplication, PortalApplicationNew } from 'imx-api-aob';
 import { CollectionLoadParameters, TypedEntityCollectionData, TypedEntity } from 'imx-qbm-dbts';
 import { BusyService, ClassloggerService, DataSourceToolbarSettings, DataTileBadge, DataTilesComponent, SettingsService } from 'qbm';
 import { ApplicationsService } from '../applications.service';
-import { UserModelService } from 'qer';
 import { AobPermissionsService } from '../../permissions/aob-permissions.service';
 
 
@@ -90,7 +89,6 @@ export class ApplicationNavigationComponent implements OnInit {
     private logger: ClassloggerService,
     private readonly appService: ApplicationsService,
     private readonly settingsService: SettingsService,
-    private readonly userService: UserModelService,
     private readonly route: ActivatedRoute,
     private readonly applicationsProvider: ApplicationsService,
     private readonly aobPermissionsService: AobPermissionsService,
@@ -178,6 +176,8 @@ export class ApplicationNavigationComponent implements OnInit {
 
   public async onSearch(keywords: string): Promise<void> {
     this.logger.debug(this, `Searching for: ${keywords}`);
+    
+    this.appService.abortCall();
 
     this.navigationState.StartIndex = 0;
     if (keywords == null || keywords.length === 0) {

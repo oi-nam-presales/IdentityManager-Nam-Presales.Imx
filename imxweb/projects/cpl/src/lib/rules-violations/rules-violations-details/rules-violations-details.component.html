@@ -9,9 +9,10 @@
           {{ data.selectedRulesViolation?.stateBadge?.caption }}
         </eui-badge>
         <imx-cdr-editor *ngFor="let cdr of cdrList" [cdr]="cdr"></imx-cdr-editor>
+        <imx-cdr-editor *ngFor="let cdr of ruleInfoCdrList" [cdr]="cdr"></imx-cdr-editor>
       </mat-card>
     </div>
-    <div eui-sidesheet-actions color="white">
+    <div eui-sidesheet-actions *ngIf="data.selectedRulesViolation?.CanUserDecide.value" >
       <button mat-stroked-button (click)="resolve()" data-imx-identifier="rules-violations-table-row-button-resolve">
         {{ '#LDS#Resolve rule violation' | translate }}
       </button>

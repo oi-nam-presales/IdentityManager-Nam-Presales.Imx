@@ -43,208 +43,212 @@ import { ItshopRequestService } from '../itshop/itshop-request.service';
 import { SourceDetectiveType } from './sourcedetective-type.enum';
 
 type SourceNodeEnriched = SourceNode & {
-    Description: ParameterizedText;
-    TextTokens?: TextToken[];
-    ObjectTypeDisplay: string;
-    Children: SourceNodeEnriched[];
-    Level: number;
+  Description: ParameterizedText;
+  TextTokens?: TextToken[];
+  ObjectTypeDisplay: string;
+  Children: SourceNodeEnriched[];
+  Level: number;
 };
 
 @Component({
-    templateUrl: './sourcedetective.component.html',
-    styleUrls: ['./sourcedetective.component.scss'],
-    selector: 'imx-source-detective'
+  templateUrl: './sourcedetective.component.html',
+  styleUrls: ['./sourcedetective.component.scss'],
+  selector: 'imx-source-detective',
 })
 export class SourceDetectiveComponent implements OnInit, OnChanges, OnDestroy {
+  public treeControl = new FlatTreeControl<SourceNodeEnriched>(
+    (node) => node.Level,
+    (node) => this.hasChild(node),
+  );
 
-    public treeControl = new FlatTreeControl<SourceNodeEnriched>(
-        node => node.Level, node => this.hasChild(node));
+  public treeFlattener = new MatTreeFlattener<SourceNodeEnriched, SourceNodeEnriched>(
+    (x) => x,
+    (node) => node.Level,
+    (node) => this.hasChild(node),
+    (node) => node.Children,
+  );
 
-    public treeFlattener = new MatTreeFlattener<SourceNodeEnriched, SourceNodeEnriched>(x => x,
-        node => node.Level, node => this.hasChild(node), node => node.Children);
+  public dataSource = new MatTreeFlatDataSource(this.treeControl, this.treeFlattener);
 
-    public dataSource = new MatTreeFlatDataSource(this.treeControl, this.treeFlattener);
+  public dataReady: boolean;
+  public busy = false;
 
-    public dataReady: boolean;
-    public busy = false;
+  @Input() public UID_Person: string;
+  @Input() public TableName: string;
+  @Input() public UID: string;
+  @Input() public Type: SourceDetectiveType;
 
-    @Input() public UID_Person: string;
-    @Input() public TableName: string;
-    @Input() public UID: string;
-    @Input() public Type: SourceDetectiveType;
+  public SourceDetectiveType = SourceDetectiveType;
+  private itShopConfig: ITShopConfig;
+  private currentUserId: string;
 
-    public SourceDetectiveType = SourceDetectiveType;
-    private itShopConfig: ITShopConfig;
-    private currentUserId: string;
+  private readonly subscriptions: Subscription[] = [];
 
-    private readonly subscriptions: Subscription[] = [];
+  constructor(
+    private readonly apiClient: QerApiService,
+    private readonly metadata: MetadataService,
+    private readonly loader: EuiLoadingService,
+    public readonly ldsReplace: LdsReplacePipe,
+    private readonly translationProvider: ImxTranslationProviderService,
+    private readonly translator: TranslateService,
+    private readonly sidesheet: EuiSidesheetService,
+    private readonly projectConfig: ProjectConfigurationService,
+    private readonly itshopRequestService: ItshopRequestService,
+    authentication: AuthenticationService,
+  ) {
+    this.subscriptions.push(authentication.onSessionResponse.subscribe((state) => (this.currentUserId = state.UserUid)));
+  }
 
-    constructor(
-        private readonly apiClient: QerApiService,
-        private readonly metadata: MetadataService,
-        private readonly loader: EuiLoadingService,
-        public readonly ldsReplace: LdsReplacePipe,
-        private readonly translationProvider: ImxTranslationProviderService,
-        private readonly translator: TranslateService,
-        private readonly sidesheet: EuiSidesheetService,
-        private readonly projectConfig: ProjectConfigurationService,
-        private readonly itshopRequestService: ItshopRequestService,
-        authentication: AuthenticationService
-    ) {
-        this.subscriptions.push(authentication.onSessionResponse.subscribe(state => this.currentUserId = state.UserUid));
+  public hasChild = (node: SourceNodeEnriched) => !!node.Children && node.Children.length > 0;
+
+  public async ngOnInit(): Promise<void> {
+    this.busy = true;
+    try {
+      this.itShopConfig = (await this.projectConfig.getConfig()).ITShopConfig;
+    } finally {
+      this.busy = false;
+    }
+    this.reload();
+  }
+
+  public ngOnChanges(changes: SimpleChanges): void {
+    if (changes.UID || changes.TableName || changes.UID_Person) {
+      this.reload();
+    }
+  }
+
+  public ngOnDestroy(): void {
+    this.subscriptions.forEach((s) => s.unsubscribe());
+  }
+
+  public async openRequestDetail(node: SourceNodeEnriched): Promise<void> {
+    const uidPwo = DbObjectKey.FromXml(node.ObjectKey).Keys[0];
+
+    let data: RequestDetailParameter;
+    const overlay = this.loader.show();
+    try {
+      const collection = await this.apiClient.typedClient.PortalItshopRequests.Get({
+        uidpwo: uidPwo,
+      });
+      if (collection.Data.length < 0) {
+        throw new Error(
+          await this.translator.get('#LDS#The request could not be found. You may not have permission to view this request.').toPromise(),
+        );
+      }
+      const pwoEntity = collection.Data[0];
+
+      const requestData = new ItshopRequestData({ ...collection.extendedData, index: 0 });
+      const parameterColumns = this.itshopRequestService.createParameterColumns(pwoEntity.GetEntity(), requestData.parameters);
+      const request = new ItshopRequest(pwoEntity.GetEntity(), requestData.pwoData, parameterColumns, this.currentUserId);
+
+      data = {
+        isReadOnly: true,
+        personWantsOrg: request,
+        itShopConfig: this.itShopConfig,
+        userUid: this.currentUserId,
+      };
+    } finally {
+      this.loader.hide(overlay);
     }
 
-    public hasChild = (node: SourceNodeEnriched) => !!node.Children && node.Children.length > 0;
+    if (data) {
+      // We need to find the node with the object display that matches the assignment Display
+      const parameterizedText = data.personWantsOrg.GetEntity().GetColumn('Assignment').GetDisplayValue();
+      const parentNode = this.dataSource.data.find((item) => item.Description.value === parameterizedText);
 
-    public async ngOnInit(): Promise<void> {
-        this.busy = true;
-        try {
-            this.itShopConfig = (await this.projectConfig.getConfig()).ITShopConfig;
-        } finally {
-            this.busy = false;
-        }
-        this.reload();
+      this.sidesheet.open(RequestDetailComponent, {
+        title: await this.translator.get('#LDS#Heading View Request Details').toPromise(),
+        subTitle: parentNode && parentNode.TextTokens ? parentNode.TextTokens.map((token) => token.value).join('') : undefined,
+        testId: 'sourcedetective-request-details-sidesheet',
+        padding: '0px',
+        width: 'max(700px, 40%)',
+        data,
+      });
     }
+  }
 
-    public ngOnChanges(changes: SimpleChanges): void {
-        if (changes.UID || changes.TableName || changes.UID_Person) {
-            this.reload();
-        }
+  public grabText(node: SourceNodeEnriched, textTokens: TextToken[]): void {
+    // Set the parameter-filled text tokens back into the node
+    node.TextTokens = textTokens;
+  }
+
+  private isDirectAssignment(node: SourceNode): boolean {
+    // nodes that cannot be analyzed further
+    return !node.ObjectKey;
+  }
+
+  private isByDynamicGroup(node: SourceNode): boolean {
+    return node.ObjectType === 'DynamicGroup';
+  }
+
+  private async getObjectTypeDisplay(node: SourceNode): Promise<string> {
+    if (!node.ObjectType) {
+      return '';
     }
+    await this.metadata.updateNonExisting([node.ObjectType]);
 
-    public ngOnDestroy(): void {
-        this.subscriptions.forEach(s => s.unsubscribe());
+    return this.metadata.tables[node.ObjectType].DisplaySingular;
+  }
+
+  private async reload(): Promise<void> {
+    if (this.UID && this.TableName && this.UID_Person) {
+      this.dataReady = false;
+      this.busy = true;
+
+      try {
+        const data = await this.apiClient.client.portal_detective_get(this.UID_Person, this.TableName, this.UID);
+        this.dataSource.data = await this.Enrich(data);
+      } finally {
+        this.busy = false;
+        this.dataReady = true;
+      }
     }
+  }
 
-    public async openRequestDetail(node: SourceNodeEnriched): Promise<void> {
-        const uidPwo = DbObjectKey.FromXml(node.ObjectKey).Keys[0];
-
-        let data: RequestDetailParameter;
-        const overlay = this.loader.show();
-        try {
-            const collection = await this.apiClient.typedClient.PortalItshopRequests.Get({
-                uidpwo: uidPwo
-            });
-            if (collection.Data.length < 0) {
-                throw new Error(await this.translator.get("#LDS#The request could not be found. You may not have permission to view this request.").toPromise())
-            }
-            const pwoEntity = collection.Data[0];
-
-            const requestData = new ItshopRequestData({ ...collection.extendedData, index: 0 });
-            const parameterColumns = this.itshopRequestService.createParameterColumns(
-                pwoEntity.GetEntity(),
-                requestData.parameters
-            );
-            const request = new ItshopRequest(pwoEntity.GetEntity(), requestData.pwoData, parameterColumns, this.currentUserId);
-
-            data = {
-                isReadOnly: true,
-                personWantsOrg: request,
-                itShopConfig: this.itShopConfig,
-                userUid: this.currentUserId
-            };
-        } finally {
-            this.loader.hide(overlay);
-        }
-
-        if (data) {
-          // We need to find the node with the object display that matches the assignment Display
-          const parameterizedText = data.personWantsOrg.GetEntity().GetColumn('Assignment').GetDisplayValue();
-          const parentNode = this.dataSource.data.find(item => item.Description.value === parameterizedText);
-
-            this.sidesheet.open(RequestDetailComponent, {
-                title: await this.translator.get('#LDS#Heading View Request Details').toPromise(),
-                subTitle: parentNode && parentNode.TextTokens ? parentNode.TextTokens.map(token => token.value).join('') : undefined,
-                testId: 'sourcedetective-request-details-sidesheet',
-                padding: '0px',
-                width: 'max(700px, 40%)',
-                data
-            });
-        }
+  private async Enrich(nodes: SourceNode[], level: number = 0): Promise<SourceNodeEnriched[]> {
+    const result: SourceNodeEnriched[] = [];
+    for (const node of nodes) {
+      const children = node.Children ? await this.Enrich(node.Children, level + 1) : [];
+      result.push({
+        ...node,
+        Level: level,
+        Description: await this.getParametrizedText(node),
+        ObjectTypeDisplay: await this.getObjectTypeDisplay(node),
+        Children: children,
+      });
     }
+    return result;
+  }
 
-    public grabText(node: SourceNodeEnriched, textTokens: TextToken[]): void {
-      // Set the parameter-filled text tokens back into the node
-      node.TextTokens = textTokens;
+  private async getParametrizedText(node: SourceNode): Promise<ParameterizedText> {
+    return {
+      value: await this.GetDescription(node),
+      marker: { start: '"%', end: '%"' },
+      getParameterValue: (columnName: string) => node.ObjectDisplayParameters[columnName],
+    };
+  }
+
+  private async GetDescription(node: SourceNode): Promise<string> {
+    const tableName = node.ObjectKey ? DbObjectKey.FromXml(node.ObjectKey).TableName : null;
+    if (this.isDirectAssignment(node)) {
+      if ('Person' === tableName) {
+        return this.translationProvider.Translate('#LDS#The identity is directly assigned to this object.').toPromise();
+      }
+      return this.translationProvider.Translate('#LDS#The entitlement is directly assigned to this object.').toPromise();
+    } else if (this.isByDynamicGroup(node)) {
+      return this.translationProvider.Translate('#LDS#The identity is a member of the dynamic role.').toPromise();
+    } else if (['Org', 'Locality', 'ProfitCenter', 'Department', 'AERole'].includes(tableName)) {
+      return this.translationProvider
+        .Translate({
+          key: '#LDS#Primary assignment: {0} {1}',
+          parameters: [await this.getObjectTypeDisplay(node), node.ObjectDisplay],
+        })
+        .toPromise();
+    } else if ('Person' === tableName) {
+      return this.translationProvider.Translate('#LDS#The identity is a primary member of this role.').toPromise();
+    } else if ('PersonWantsOrg' === tableName) {
+      return this.translationProvider.Translate('#LDS#The assignment was made by a request.').toPromise();
     }
-
-    private isDirectAssignment(node: SourceNode): boolean {
-        // nodes that cannot be analyzed further
-        return !node.ObjectKey;
-    }
-
-    private isByDynamicGroup(node: SourceNode): boolean {
-        return node.ObjectType === 'DynamicGroup';
-    }
-
-    private async getObjectTypeDisplay(node: SourceNode): Promise<string> {
-        if (!node.ObjectType) { return ''; }
-        await this.metadata.update([node.ObjectType]);
-
-        return this.metadata.tables[node.ObjectType].DisplaySingular;
-    }
-
-    private async reload(): Promise<void> {
-        if (this.UID && this.TableName && this.UID_Person) {
-            this.dataReady = false;
-            this.busy = true;
-
-            try {
-                const data = await this.apiClient.client.portal_detective_get(this.UID_Person, this.TableName, this.UID);
-                this.dataSource.data = await this.Enrich(data);
-            } finally {
-                this.busy = false;
-                this.dataReady = true;
-            }
-        }
-    }
-
-    private async Enrich(nodes: SourceNode[], level: number = 0): Promise<SourceNodeEnriched[]> {
-        const result: SourceNodeEnriched[] = [];
-        for (const node of nodes) {
-            const children = node.Children ? await this.Enrich(node.Children, level + 1) : [];
-            result.push({
-                ...node,
-                Level: level,
-                Description: await this.getParametrizedText(node),
-                ObjectTypeDisplay: await this.getObjectTypeDisplay(node),
-                Children: children
-            });
-        }
-        return result;
-    }
-
-    private async getParametrizedText(node: SourceNode): Promise<ParameterizedText> {
-        return {
-            value: await this.GetDescription(node),
-            marker: { start: '"%', end: '%"' },
-            getParameterValue: (columnName: string) => node.ObjectDisplayParameters[columnName]
-        };
-    }
-
-    private async GetDescription(node: SourceNode): Promise<string> {
-        const tableName = node.ObjectKey ? DbObjectKey.FromXml(node.ObjectKey).TableName : null;
-        if (this.isDirectAssignment(node)) {
-            if ('Person' === tableName) {
-                return this.translationProvider.Translate('#LDS#The identity is directly assigned to this object.').toPromise();
-            }
-            return this.translationProvider.Translate('#LDS#The entitlement is directly assigned to this object.').toPromise();
-        }
-        else if (this.isByDynamicGroup(node)) {
-            return this.translationProvider.Translate('#LDS#The identity is a member of the dynamic role.').toPromise();
-        }
-        else if (['Org', 'Locality', 'ProfitCenter', 'Department', 'AERole'].includes(tableName)) {
-            return this.translationProvider.Translate({
-                key: '#LDS#Primary assignment: {0} {1}',
-                parameters: [await this.getObjectTypeDisplay(node), node.ObjectDisplay]
-            }).toPromise();
-        }
-        else if ('Person' === tableName) {
-            return this.translationProvider.Translate('#LDS#The identity is a primary member of this role.').toPromise();
-        }
-        else if ('PersonWantsOrg' === tableName) {
-            return this.translationProvider.Translate('#LDS#The assignment was made by a request.').toPromise();
-        }
-        return node.ObjectDisplay;
-    }
+    return node.ObjectDisplay;
+  }
 }

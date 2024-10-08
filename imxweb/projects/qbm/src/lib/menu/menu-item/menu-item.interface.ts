@@ -55,4 +55,4 @@ export interface MenuItem {
 
 }
 
-export type MenuFactory = (preProps: string[], features: string[], projectConfig: ProjectConfig, groups?: string[]) => MenuItem;
+export type MenuFactory = (preProps: string[], features: string[], projectConfig?: ProjectConfig, groups?: string[]) => MenuItem;

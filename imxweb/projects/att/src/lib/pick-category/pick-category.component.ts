@@ -40,7 +40,7 @@ import {
   ConfirmationService,
   HelpContextualComponent,
   HelpContextualService,
-  HELP_CONTEXTUAL
+  HELP_CONTEXTUAL,
 } from 'qbm';
 import { PickCategoryCreateComponent } from './pick-category-create/pick-category-create.component';
 import { PickCategorySidesheetComponent } from './pick-category-sidesheet/pick-category-sidesheet.component';
@@ -49,10 +49,9 @@ import { PickCategoryService } from './pick-category.service';
 @Component({
   selector: 'imx-pick-category',
   templateUrl: './pick-category.component.html',
-  styleUrls: ['./pick-category.component.scss']
+  styleUrls: ['./pick-category.component.scss'],
 })
 export class PickCategoryComponent implements OnInit, OnDestroy {
-
   public readonly dstWrapper: DataSourceWrapper<PortalPickcategory>;
   public dstSettings: DataSourceToolbarSettings;
   public selectedPickCategoryItems: PortalPickcategory[] = [];
@@ -68,15 +67,11 @@ export class PickCategoryComponent implements OnInit, OnDestroy {
     private readonly logger: ClassloggerService,
     private readonly helpContextualService: HelpContextualService
   ) {
-
     const entitySchema = this.pickCategoryService.pickcategorySchema;
 
     this.dstWrapper = new DataSourceWrapper(
-      state => this.pickCategoryService.getPickCategories(state),
-      [
-        entitySchema.Columns[DisplayColumns.DISPLAY_PROPERTYNAME],
-        entitySchema.Columns.IsManual
-      ],
+      (state, requestOpts) => this.pickCategoryService.getPickCategories(state, requestOpts),
+      [entitySchema.Columns[DisplayColumns.DISPLAY_PROPERTYNAME], entitySchema.Columns.IsManual],
       entitySchema
     );
   }
@@ -94,16 +89,26 @@ export class PickCategoryComponent implements OnInit, OnDestroy {
     this.selectedPickCategoryItems = items;
   }
 
+  public async onSearch(keywords: string): Promise<void> {
+    this.pickCategoryService.abortCall();
+    return this.getData({ search: keywords });
+  }
+
   public selectedItemsCanBeDeleted(): boolean {
-    return this.selectedPickCategoryItems != null &&
+    return (
+      this.selectedPickCategoryItems != null &&
       this.selectedPickCategoryItems.length > 0 &&
-      this.selectedPickCategoryItems.every(item => item.IsManual.value);
+      this.selectedPickCategoryItems.every((item) => item.IsManual.value)
+    );
   }
 
   public async getData(newState?: CollectionLoadParameters): Promise<void> {
     this.pickCategoryService.handleOpenLoader();
     try {
-      this.dstSettings = await this.dstWrapper.getDstSettings(newState);
+      const dstSettings = await this.dstWrapper.getDstSettings(newState, { signal: this.pickCategoryService.abortController.signal });
+      if (dstSettings) {
+        this.dstSettings = dstSettings;
+      }
     } finally {
       this.pickCategoryService.handleCloseLoader();
     }
@@ -111,37 +116,41 @@ export class PickCategoryComponent implements OnInit, OnDestroy {
 
   public async viewDetails(pickCategory: PortalPickcategory): Promise<void> {
     if (pickCategory) {
-      this.helpContextualService.setHelpContextId(HELP_CONTEXTUAL.AttestationPreselectionEdit)
-      const result = await this.sideSheet.open(PickCategorySidesheetComponent, {
-        title: await this.translate.get('#LDS#Heading Edit Sample').toPromise(),
-        subTitle: pickCategory.GetEntity().GetDisplay(),
-        panelClass: 'imx-sidesheet',
-        padding: '0',
-        width: '600px',
-        testId: 'pickCategory-details-sidesheet',
-        data: {
-          pickCategory
-        },
-        headerComponent: HelpContextualComponent
-      }).afterClosed().toPromise();
+      this.helpContextualService.setHelpContextId(HELP_CONTEXTUAL.AttestationPreselectionEdit);
+      const result = await this.sideSheet
+        .open(PickCategorySidesheetComponent, {
+          title: await this.translate.get('#LDS#Heading Edit Sample').toPromise(),
+          subTitle: pickCategory.GetEntity().GetDisplay(),
+          panelClass: 'imx-sidesheet',
+          padding: '0',
+          width: '600px',
+          testId: 'pickCategory-details-sidesheet',
+          data: {
+            pickCategory,
+          },
+          headerComponent: HelpContextualComponent,
+        })
+        .afterClosed()
+        .toPromise();
 
       if (result) {
         this.getData();
       }
-    }
-    else {
+    } else {
       this.messageService.subject.next({
-        text: '#LDS#You cannot edit the sample. The sample does not exist (anymore). Please reload the page.'
+        text: '#LDS#You cannot edit the sample. The sample does not exist (anymore). Please reload the page.',
       });
     }
   }
 
   public async delete(): Promise<void> {
-    if (await this.confirmationService.confirm({
-      Title: '#LDS#Heading Delete Sample',
-      Message: '#LDS#Are you sure you want to delete the sample?'
-    })) {
-      if (await this.pickCategoryService.deletePickCategories(this.selectedPickCategoryItems) > 0) {
+    if (
+      await this.confirmationService.confirm({
+        Title: '#LDS#Heading Delete Sample',
+        Message: '#LDS#Are you sure you want to delete the sample?',
+      })
+    ) {
+      if ((await this.pickCategoryService.deletePickCategories(this.selectedPickCategoryItems)) > 0) {
         await this.getData();
         this.table?.clearSelection();
       }
@@ -153,29 +162,30 @@ export class PickCategoryComponent implements OnInit, OnDestroy {
     this.logger.trace(this, 'new pick category created', newPickCategory);
 
     if (newPickCategory) {
-
-      this.helpContextualService.setHelpContextId(HELP_CONTEXTUAL.AttestationPreselectionCreate)
-      const result = await this.sideSheet.open(PickCategoryCreateComponent, {
-        title: await this.translate.get('#LDS#Heading Create Sample').toPromise(),
-        panelClass: 'imx-sidesheet',
-        padding: '0',
-        width: '700px',
-        disableClose: true,
-        testId: 'pickCategory-create-sidesheet',
-        data: {
-          pickCategory: newPickCategory
-        },
-        headerComponent: HelpContextualComponent
-      }).afterClosed().toPromise();
+      this.helpContextualService.setHelpContextId(HELP_CONTEXTUAL.AttestationPreselectionCreate);
+      const result = await this.sideSheet
+        .open(PickCategoryCreateComponent, {
+          title: await this.translate.get('#LDS#Heading Create Sample').toPromise(),
+          panelClass: 'imx-sidesheet',
+          padding: '0',
+          width: '700px',
+          disableClose: true,
+          testId: 'pickCategory-create-sidesheet',
+          data: {
+            pickCategory: newPickCategory,
+          },
+          headerComponent: HelpContextualComponent,
+        })
+        .afterClosed()
+        .toPromise();
 
       if (result?.create) {
         await this.pickCategoryService.saveNewPickCategoryAndItems(result.pickCategory, result.pickedItems);
         this.getData();
       }
-    }
-    else {
+    } else {
       this.messageService.subject.next({
-        text: '#LDS#The sample could not be created. Please reload the page and try again.'
+        text: '#LDS#The sample could not be created. Please reload the page and try again.',
       });
     }
   }

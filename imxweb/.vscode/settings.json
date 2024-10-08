@@ -1,5 +1,8 @@
 {
     "explorer.compactFolders": false,
     "editor.tabSize": 2,
-    "git.ignoreLimitWarning": true
+    "git.ignoreLimitWarning": true,
+    "cSpell.words": [
+        "requestable"
+    ]
 }

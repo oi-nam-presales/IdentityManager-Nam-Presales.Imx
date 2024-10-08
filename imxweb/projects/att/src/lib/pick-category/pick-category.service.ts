@@ -29,6 +29,7 @@ import { OverlayRef } from '@angular/cdk/overlay';
 import { EuiLoadingService } from '@elemental-ui/core';
 
 import {
+  ApiRequestOptions,
   CollectionLoadParameters,
   EntityCollectionData,
   EntitySchema,
@@ -39,11 +40,11 @@ import { PortalPersonAll, PortalPickcategory, PortalPickcategoryItems } from 'im
 import { QerApiService } from 'qer';
 import { ClassloggerService, SnackBarService } from 'qbm';
 
-
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class PickCategoryService {
+  public abortController = new AbortController();
 
   private busyIndicator: OverlayRef;
 
@@ -52,8 +53,8 @@ export class PickCategoryService {
     private readonly busyService: EuiLoadingService,
     private readonly snackbar: SnackBarService,
     private readonly logger: ClassloggerService,
-    private readonly errorHandler: ErrorHandler,
-  ) { }
+    private readonly errorHandler: ErrorHandler
+  ) {}
 
   public get pickcategorySchema(): EntitySchema {
     return this.qerClient.typedClient.PortalPickcategory.GetSchema();
@@ -63,9 +64,11 @@ export class PickCategoryService {
     return this.qerClient.typedClient.PortalPickcategoryItems.GetSchema();
   }
 
-  public async getPickCategories(navigationState: CollectionLoadParameters):
-    Promise<ExtendedTypedEntityCollection<PortalPickcategory, unknown>> {
-    return this.qerClient.typedClient.PortalPickcategory.Get(navigationState);
+  public async getPickCategories(
+    navigationState: CollectionLoadParameters,
+    requestOpts?: ApiRequestOptions
+  ): Promise<ExtendedTypedEntityCollection<PortalPickcategory, unknown>> {
+    return this.qerClient.typedClient.PortalPickcategory.Get(navigationState, requestOpts);
   }
 
   /**
@@ -84,10 +87,13 @@ export class PickCategoryService {
     try {
       deletedObjects = (await this.bulkDeletePickCategories(pickCategories)).length;
       if (deletedObjects > 0) {
-        this.snackbar.open({
-          key: '#LDS#{0} samples have been successfully deleted.',
-          parameters: [deletedObjects]
-        }, '#LDS#Close');
+        this.snackbar.open(
+          {
+            key: '#LDS#{0} samples have been successfully deleted.',
+            parameters: [deletedObjects],
+          },
+          '#LDS#Close'
+        );
       }
     } finally {
       this.handleCloseLoader();
@@ -99,17 +105,23 @@ export class PickCategoryService {
     return this.qerClient.typedClient.PortalPickcategory.createEntity();
   }
 
-  public async getPickCategoryItems(uidQERPickCategory: string, navigationState: CollectionLoadParameters):
-    Promise<ExtendedTypedEntityCollection<PortalPickcategoryItems, unknown>> {
-    return this.qerClient.typedClient.PortalPickcategoryItems.Get(uidQERPickCategory, navigationState);
+  public async getPickCategoryItems(
+    uidQERPickCategory: string,
+    navigationState: CollectionLoadParameters,
+    requestOpts?: ApiRequestOptions
+  ): Promise<ExtendedTypedEntityCollection<PortalPickcategoryItems, unknown>> {
+    return this.qerClient.typedClient.PortalPickcategoryItems.Get(uidQERPickCategory, navigationState, requestOpts);
   }
 
-  public async deletePickCategoryItems(uidPickCategory: string, pickCategoriesItems: PortalPickcategoryItems[])
-    : Promise<EntityCollectionData[]> {
+  public async deletePickCategoryItems(
+    uidPickCategory: string,
+    pickCategoriesItems: PortalPickcategoryItems[]
+  ): Promise<EntityCollectionData[]> {
     return this.handlePromiseLoader(
       Promise.all(
-        pickCategoriesItems.map(pickedItem =>
-          this.qerClient.client.portal_pickcategory_items_delete(uidPickCategory, pickedItem.GetEntity().GetKeys().join(',')))
+        pickCategoriesItems.map((pickedItem) =>
+          this.qerClient.client.portal_pickcategory_items_delete(uidPickCategory, pickedItem.GetEntity().GetKeys().join(','))
+        )
       )
     );
   }
@@ -119,7 +131,7 @@ export class PickCategoryService {
     try {
       await this.qerClient.client.portal_pickcategory_items_post(uidPickCategory, {
         Reload: true,
-        Objects: pickCategoriesItems.map(item => item.EntityWriteDataSingle)
+        Objects: pickCategoriesItems.map((item) => item.EntityWriteDataSingle),
       });
       assignedObjectsCounter++;
       this.logger.trace(this, `${pickCategoriesItems.length} pick category items assigned`);
@@ -137,10 +149,13 @@ export class PickCategoryService {
     try {
       deletedObjects = (await this.deletePickCategoryItems(uidPickCategory, selectedPickedItems)).length;
       if (deletedObjects > 0) {
-        this.snackbar.open({
-          key: '#LDS#{0} identities have been successfully removed.',
-          parameters: [deletedObjects]
-        }, '#LDS#Close');
+        this.snackbar.open(
+          {
+            key: '#LDS#{0} identities have been successfully removed.',
+            parameters: [deletedObjects],
+          },
+          '#LDS#Close'
+        );
       }
     } finally {
       this.handleCloseLoader();
@@ -149,29 +164,33 @@ export class PickCategoryService {
   }
 
   public async createPickedItems(selection: any, uidPickCategory: string, showResultInSnackbar: boolean = true): Promise<number> {
-
-    const newAssignedObjects = (await this.handlePromiseLoader(
-      Promise.all(
-        selection.map(async (selectedItem: { XObjectKey: { value: string; }; }) => {
-          const pickedItem = this.qerClient.typedClient.PortalPickcategoryItems.createEntity();
-          pickedItem.UID_QERPickCategory.value = uidPickCategory;
-          pickedItem.ObjectKeyItem.value = selectedItem.XObjectKey.value;
-          await pickedItem.GetEntity().Commit(true);
-        })
+    const newAssignedObjects = (
+      await this.handlePromiseLoader(
+        Promise.all(
+          selection.map(async (selectedItem: { XObjectKey: { value: string } }) => {
+            const pickedItem = this.qerClient.typedClient.PortalPickcategoryItems.createEntity();
+            pickedItem.UID_QERPickCategory.value = uidPickCategory;
+            pickedItem.ObjectKeyItem.value = selectedItem.XObjectKey.value;
+            await pickedItem.GetEntity().Commit(true);
+          })
+        )
       )
-    )).length;
+    ).length;
     if (newAssignedObjects > 0 && showResultInSnackbar) {
-      this.snackbar.open({
-        key: '#LDS#{0} identities have been successfully assigned.',
-        parameters: [newAssignedObjects]
-      }, '#LDS#Close');
+      this.snackbar.open(
+        {
+          key: '#LDS#{0} identities have been successfully assigned.',
+          parameters: [newAssignedObjects],
+        },
+        '#LDS#Close'
+      );
     }
     return newAssignedObjects;
   }
 
   public handleOpenLoader(): void {
     if (!this.busyIndicator) {
-      setTimeout(() => this.busyIndicator = this.busyService.show());
+      setTimeout(() => (this.busyIndicator = this.busyService.show()));
     }
   }
 
@@ -185,7 +204,6 @@ export class PickCategoryService {
   }
 
   public async saveNewPickCategoryAndItems(pickCategory: PortalPickcategory, pickedItems: PortalPersonAll[]): Promise<void> {
-
     this.handleOpenLoader();
     try {
       const uidPickCategory = await this.postPickCategory(pickCategory);
@@ -194,22 +212,28 @@ export class PickCategoryService {
       if (pickedItems && pickedItems.length > 0) {
         await this.createPickedItems(pickedItems, uidPickCategory, false);
       }
-
     } finally {
       this.handleCloseLoader();
     }
 
-    this.snackbar.open({
-      key: '#LDS#The sample has been successfully created.',
-      parameters: [pickCategory.GetEntity().GetDisplay()]
-    }, '#LDS#Close');
+    this.snackbar.open(
+      {
+        key: '#LDS#The sample has been successfully created.',
+        parameters: [pickCategory.GetEntity().GetDisplay()],
+      },
+      '#LDS#Close'
+    );
+  }
 
+  public abortCall(): void {
+    this.abortController.abort();
+    this.abortController = new AbortController();
   }
 
   private async bulkDeletePickCategories(pickCategories: PortalPickcategory[]): Promise<EntityCollectionData[]> {
     return this.handlePromiseLoader(
       Promise.all(
-        pickCategories.map(pickCategory => this.qerClient.client.portal_pickcategory_delete(pickCategory.GetEntity().GetKeys().join(',')))
+        pickCategories.map((pickCategory) => this.qerClient.client.portal_pickcategory_delete(pickCategory.GetEntity().GetKeys().join(',')))
       )
     );
   }

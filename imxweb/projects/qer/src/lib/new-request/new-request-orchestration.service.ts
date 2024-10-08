@@ -25,7 +25,6 @@
  */
 
 import { Injectable, OnDestroy } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
 import { BehaviorSubject, Observable } from 'rxjs';
 
 import { CollectionLoadParameters, EntityValue, IWriteValue, LocalProperty, ValueStruct } from 'imx-qbm-dbts';
@@ -44,10 +43,10 @@ import { CurrentProductSource } from './current-product-source';
   providedIn: 'root',
 })
 export class NewRequestOrchestrationService implements OnDestroy {
-
   //#region Private properties
   private userUid: string;
-  private defaultUser: string;
+  private defaultUser: ValueStruct<string>;
+  private lastLoggedInUser: string;
   //#endregion
 
   //#region Public properties
@@ -73,7 +72,7 @@ export class NewRequestOrchestrationService implements OnDestroy {
     value.dst.itemStatus = {
       enabled: (prod: PortalShopServiceitems): boolean => {
         return prod.IsRequestable === undefined || prod.IsRequestable?.value;
-      }
+      },
     };
     this.currentProductSourceProperty = value;
     this.currentProductSource$.next(value);
@@ -103,6 +102,8 @@ export class NewRequestOrchestrationService implements OnDestroy {
     this.disableSearch$.next(value);
   }
   public disableSearch$ = new BehaviorSubject<boolean>(null);
+
+  public keywords: string = '';
   //#endregion
 
   //#region Navigation State
@@ -146,7 +147,6 @@ export class NewRequestOrchestrationService implements OnDestroy {
   public set selectedChip(value: number) {
     this.selectedChipProperty = value;
     this.selectedChip$.next(value);
-
   }
   public selectedChip$ = new BehaviorSubject<number>(null);
   //#endregion
@@ -213,6 +213,8 @@ export class NewRequestOrchestrationService implements OnDestroy {
 
   //#region AbortController
   public abortController = new AbortController();
+
+  public serviceCategoryAbortController = new AbortController();
   //#endregion
 
   //#endregion
@@ -222,7 +224,6 @@ export class NewRequestOrchestrationService implements OnDestroy {
     private readonly qerClient: QerApiService,
     private readonly entityService: EntityService,
     private readonly personProvider: PersonService,
-    private readonly activatedRoute: ActivatedRoute,
     private readonly selectionService: NewRequestSelectionService,
     settingsService: SettingsService
   ) {
@@ -234,7 +235,11 @@ export class NewRequestOrchestrationService implements OnDestroy {
         return;
       }
 
-      await this.initRecipients();
+      if (this.lastLoggedInUser !== elem.UserUid) {
+        this.lastLoggedInUser = elem.UserUid;
+        this.selectionService.clearProducts();
+        await this.initRecipients();
+      }
     });
   }
 
@@ -254,18 +259,36 @@ export class NewRequestOrchestrationService implements OnDestroy {
   }
 
   public async setDefaultUser(): Promise<void> {
-    await this.recipients.Column.PutValue(this.defaultUser);
+    await this.recipients.Column.PutValueStruct(this.defaultUser);
     this.recipients$.next(this.recipients);
   }
 
   public async setRecipients(value: ValueStruct<string>): Promise<void> {
-    await this.recipients.Column.PutValueStruct(value);    
+    await this.recipients.Column.PutValueStruct(value);
     this.recipients$.next(this.recipients);
   }
 
   public abortCall(): void {
     this.abortController.abort();
     this.abortController = new AbortController();
+  }
+
+  public abortServiceCategoryCall(): void {
+    this.serviceCategoryAbortController.abort();
+    this.serviceCategoryAbortController = new AbortController();
+  }
+
+  /***
+   * Set the recipient to the identity with the specified uid.
+   */
+  public async setRecipient(uidPerson: string): Promise<void> {
+    if (!uidPerson) {
+      return;
+    }
+    await this.recipients.Column.PutValueStruct({
+      DataValue: uidPerson,
+      DisplayValue: await this.getPersonDisplay(uidPerson),
+    });
   }
 
   private async initRecipients(): Promise<void> {
@@ -293,17 +316,10 @@ export class NewRequestOrchestrationService implements OnDestroy {
       DisplayValue: await this.getPersonDisplay(this.userUid),
     });
 
-    const uidPerson = this.activatedRoute.snapshot.paramMap.get('UID_Person');
-
-    if (uidPerson) {
-      await this.recipients.Column.PutValueStruct({
-        DataValue: uidPerson,
-        DisplayValue: await this.getPersonDisplay(uidPerson),
-      });
-
-      // TODO in this case, CanRequestForSomebodyElse is false
-    }
-    this.defaultUser = this.recipients.Column.GetValue();
+    this.defaultUser = {
+      DataValue: this.recipients.Column.GetValue(),
+      DisplayValue: this.recipients.Column.GetDisplayValue(),
+    };
   }
 
   private async getPersonDisplay(uid: string): Promise<string> {

@@ -28,13 +28,7 @@ import { Injectable, ErrorHandler } from '@angular/core';
 import { EuiLoadingService } from '@elemental-ui/core';
 
 import { FilterData, ExtendedTypedEntityCollection, CompareOperator, FilterType, EntitySchema, TypedEntity } from 'imx-qbm-dbts';
-import {
-  CartCheckResult,
-  CheckMode,
-  PortalCartitem,
-  RequestableProductForPerson,
-  CartItemDataRead,
-} from 'imx-api-qer';
+import { CartCheckResult, CheckMode, PortalCartitem, RequestableProductForPerson, CartItemDataRead } from 'imx-api-qer';
 import { BulkItemStatus, ClassloggerService } from 'qbm';
 import { QerApiService } from '../qer-api-client.service';
 import { ItemEditService } from '../product-selection/service-item-edit/item-edit.service';
@@ -88,7 +82,7 @@ export class CartItemsService {
     cartItem.UID_PersonOrdered.value = requestableServiceItemForPerson.UidPerson;
     cartItem.UID_ITShopOrg.value = requestableServiceItemForPerson.UidITShopOrg;
     if (requestableServiceItemForPerson?.UidPatternItem?.length > 0) {
-      cartItem.UID_PatternItem.value = requestableServiceItemForPerson.UidPatternItem
+      cartItem.UID_PatternItem.value = requestableServiceItemForPerson.UidPatternItem;
     }
     if (parentCartUid) {
       cartItem.UID_ShoppingCartItemParent.value = parentCartUid;
@@ -191,7 +185,10 @@ export class CartItemsService {
     }
   }
 
-  public async getInteractiveCartitem(entityReference?: string, callbackOnChange?: () => void): Promise<ExtendedEntityWrapper<PortalCartitem>> {
+  public async getInteractiveCartitem(
+    entityReference?: string,
+    callbackOnChange?: () => void
+  ): Promise<ExtendedEntityWrapper<PortalCartitem>> {
     return this.cartItemInteractive.getExtendedEntity(entityReference, callbackOnChange);
   }
 
@@ -237,13 +234,13 @@ export class CartItemsService {
       for (const item of results.bulkItems) {
         try {
           const found = cartItems.find((x) => x.typedEntity.GetEntity().GetKeys()[0] === item.entity.GetEntity().GetKeys()[0]);
-          if (item.status === BulkItemStatus.saved) {
+          if (item.status === BulkItemStatus.saved && results.submit) {
             await this.save(found);
-            this.logger.debug(this, `${found.typedEntity.GetEntity().GetDisplay} saved`);
+            this.logger.debug(this, `${found.typedEntity.GetEntity().GetDisplay()} saved`);
           } else {
             await this.removeItems([found.typedEntity]);
             result = result - 1;
-            this.logger.debug(this, `${found.typedEntity.GetEntity().GetDisplay} removed`);
+            this.logger.debug(this, `${found.typedEntity.GetEntity().GetDisplay()} removed`);
           }
         } catch (e) {
           this.logger.error(this, e.message);
@@ -261,7 +258,6 @@ export class CartItemsService {
     } finally {
       setTimeout(() => this.busyIndicator.hide());
     }
-
 
     return result;
   }

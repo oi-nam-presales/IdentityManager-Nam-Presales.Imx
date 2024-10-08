@@ -48,28 +48,33 @@ import { DataSourceToolbarExportMethod } from 'qbm';
   providedIn: 'root',
 })
 export class AttestationHistoryService {
+  public abortController = new AbortController();
+
   constructor(private readonly attClient: ApiService, private readonly parameterDataService: ParameterDataService) {}
 
   public async get(
     parameters: AttestationCaseLoadParameters
   ): Promise<ExtendedTypedEntityCollection<PortalAttestationCase, AttCaseDataRead>> {
-    return this.attClient.typedClient.PortalAttestationCase.Get(parameters);
+    return this.attClient.typedClient.PortalAttestationCase.Get(parameters, { signal: this.abortController.signal });
   }
 
-  public async getAttestations(loadParameters?: AttestationCaseLoadParameters): Promise<TypedEntityCollectionData<AttestationHistoryCase>> {
+  public async getAttestations(loadParameters?: AttestationCaseLoadParameters): Promise<TypedEntityCollectionData<AttestationHistoryCase> | undefined> {
     const collection = await this.get(loadParameters);
+    if (!collection) {
+      return undefined;
+    }
     return {
-      tableName: collection.tableName,
-      totalCount: collection.totalCount,
-      Data: collection.Data.map((item: PortalAttestationCase, index: number) => {
+      tableName: collection?.tableName,
+      totalCount: collection?.totalCount,
+      Data: collection?.Data.map((item: PortalAttestationCase, index: number) => {
         const parameterDataContainer = this.parameterDataService.createContainer(
           item.GetEntity(),
-          { ...collection.extendedData, ...{ index } },
+          { ...collection?.extendedData, ...{ index } },
           (parameters) => this.getParameterCandidates(parameters),
           (treefilterparameter) => this.getFilterTree(treefilterparameter)
         );
 
-        return new AttestationHistoryCase(item, parameterDataContainer, { ...collection.extendedData, ...{ index } });
+        return new AttestationHistoryCase(item, parameterDataContainer, { ...collection?.extendedData, ...{ index } });
       }),
     };
   }
@@ -80,13 +85,13 @@ export class AttestationHistoryService {
       getMethod: (withProperties: string, PageSize?: number) => {
         let method: MethodDescriptor<EntityCollectionData>;
         if (PageSize) {
-          method = factory.portal_attestation_case_get({...loadParameters, withProperties, PageSize, StartIndex: 0})
+          method = factory.portal_attestation_case_get({ ...loadParameters, withProperties, PageSize, StartIndex: 0 });
         } else {
-          method = factory.portal_attestation_case_get({...loadParameters, withProperties})
+          method = factory.portal_attestation_case_get({ ...loadParameters, withProperties });
         }
         return new MethodDefinition(method);
-      }
-    }
+      },
+    };
   }
 
   public async getDataModel(objecttable?: string, objectuid?: string, groupFilter?: FilterData[]): Promise<DataModel> {
@@ -99,11 +104,16 @@ export class AttestationHistoryService {
 
   public getGroupInfo(parameters: AttestationCaseLoadParameters = {}): Promise<GroupInfoData> {
     // remove groupFilter from parameters
-    const { groupFilter, search, OrderBy, ...paramsWithoutGroupFilter } = parameters;
+    const { withProperties, groupFilter, search, OrderBy, ...paramsWithoutGroupFilter } = parameters;
     return this.attClient.client.portal_attestation_case_group_get({
       ...paramsWithoutGroupFilter,
       ...{ withcount: true, filter: parameters.groupFilter },
     });
+  }
+
+  public abortCall(): void {
+    this.abortController.abort();
+    this.abortController = new AbortController();
   }
 
   private async getParameterCandidates(parameters: ParameterDataLoadParameters): Promise<EntityCollectionData> {

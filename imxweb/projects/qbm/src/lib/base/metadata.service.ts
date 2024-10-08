@@ -30,7 +30,9 @@ import { TranslateService } from '@ngx-translate/core';
 import { MetaTableData } from 'imx-api-qbm';
 import { imx_SessionService } from '../session/imx-session.service';
 
-@Injectable()
+@Injectable({
+  providedIn: 'root',
+})
 export class MetadataService {
   public readonly tables: { [id: string]: MetaTableData } = {};
 
@@ -41,8 +43,8 @@ export class MetadataService {
 
   constructor(
     private sessionService: imx_SessionService,
-    private readonly translateService: TranslateService
-  ) { }
+    private readonly translateService: TranslateService,
+  ) {}
 
   /**
    * Updates meta data for the tables of the provided table names that are not already present in the tables map
@@ -50,7 +52,7 @@ export class MetadataService {
    */
   public async updateNonExisting(tableNames: string[]): Promise<void> {
     // Use a Set to obtain unique values
-    const uniqueSet = Array.from(new Set(tableNames.filter(tableName => this.tables[tableName] == null)));
+    const uniqueSet = Array.from(new Set(tableNames.filter((tableName) => this.tables[tableName] == null)));
     return this.update(uniqueSet);
   }
 
@@ -60,7 +62,9 @@ export class MetadataService {
    */
   public async update(tableNames: string[]): Promise<void> {
     for (const tableName of tableNames) {
-      this.tables[tableName] = await this.sessionService.Client.imx_metadata_table_get(tableName, { cultureName: this.translateService.currentLang });
+      this.tables[tableName] = await this.sessionService.Client.imx_metadata_table_get(tableName, {
+        cultureName: this.translateService.currentLang,
+      });
     }
   }
 
@@ -70,9 +74,9 @@ export class MetadataService {
    */
   public async GetTableMetadata(table: string): Promise<MetaTableData> {
     if (this.tableMetadata[table] == null) {
-      this.tableMetadata[
-        table
-      ] = await this.sessionService.Client.imx_metadata_table_get(table, { cultureName: this.translateService.currentLang });
+      this.tableMetadata[table] = await this.sessionService.Client.imx_metadata_table_get(table, {
+        cultureName: this.translateService.currentLang,
+      });
     }
 
     return this.tableMetadata[table];

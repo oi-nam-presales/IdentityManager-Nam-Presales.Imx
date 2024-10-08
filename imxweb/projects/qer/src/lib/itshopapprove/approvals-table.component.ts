@@ -216,6 +216,7 @@ export class ApprovalsTableComponent implements OnInit, OnDestroy {
   }
 
   public ngOnDestroy(): void {
+    this.approvalsService.abortCall();
     // Set service value back to false since the toggle value is stored there
     this.approvalsService.isChiefApproval = false;
     this.subscriptions.forEach((s) => s.unsubscribe());
@@ -264,8 +265,8 @@ export class ApprovalsTableComponent implements OnInit, OnDestroy {
     const isBusy = this.busyService.beginBusy();
 
     try {
-      this.approvalsCollection = await this.approvalsService.get(this.navigationState);
-      this.hasData = this.approvalsCollection.totalCount > 0 || (this.navigationState.search ?? '') !== '';
+      this.approvalsCollection = await this.approvalsService.get(this.navigationState, {signal: this.approvalsService.abortController.signal});
+      this.hasData = this.approvalsCollection?.totalCount > 0 || (this.navigationState.search ?? '') !== '';
       this.updateTable();
 
       if (this.extensions && this.extensions[0]) {
@@ -332,6 +333,7 @@ export class ApprovalsTableComponent implements OnInit, OnDestroy {
   }
 
   public onSearch(keywords: string): Promise<void> {
+    this.approvalsService.abortCall();
     const navigationState = {
       ...this.navigationState,
       ...{
@@ -363,8 +365,6 @@ export class ApprovalsTableComponent implements OnInit, OnDestroy {
         filters: this.dataModel.Filters,
         exportMethod
       };
-    } else {
-      this.dstSettings = undefined;
     }
   }
 

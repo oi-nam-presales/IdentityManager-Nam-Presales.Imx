@@ -71,7 +71,7 @@ export class ViewDevicesModule {
   private setupMyResponsibilitiesView(): void{
 
     this.myResponsibilitiesRegistryService.registerFactory((preProps: string[], features: string[],  projectConfig: QerProjectConfig & ProjectConfig) => {
-      if (projectConfig.DeviceConfig.VI_Hardware_Enabled) {
+      if (preProps.includes('MAC') && projectConfig.DeviceConfig.VI_Hardware_Enabled) {
         return {
           instance: ViewDevicesComponent,
           sortOrder: 13,

@@ -96,7 +96,7 @@ export class ShopsService {
     await this.apiProvider.request(async () => {
       for (const shop of shops) {
         await this.aobClient.client
-          .portal_applicationinshop_delete(application.UID_AOBApplication.value, shop.UID_ITShopOrg.value, undefined);
+          .portal_applicationinshop_delete(application.UID_AOBApplication.value, shop.UID_ITShopOrg.value,'');
         count++;
       }
     });

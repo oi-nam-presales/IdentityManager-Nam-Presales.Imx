@@ -50,45 +50,41 @@ import { DatePickerComponent } from './date-picker.component';
 import { MatRadioModule } from '@angular/material/radio';
 import { SingleValueComponent } from './single-value.component';
 import { CdrModule } from '../cdr/cdr.module';
+import { LdsReplaceModule } from '../lds-replace/lds-replace.module';
 
 @NgModule({
-    imports: [
-        CommonModule,
-        CdrModule,
-        EuiCoreModule,
-        EuiMaterialModule,
-        FormsModule,
-        TranslateModule,
-        ReactiveFormsModule,
-        MatButtonModule,
-        MatDatepickerModule,
-        MatSelectModule,
-        MatCheckboxModule,
-        MatInputModule,
-        MatListModule,
-        MatFormFieldModule,
-        MatOptionModule,
-        MatRadioModule,
-        MatSlideToggleModule,
-        MatButtonToggleModule,
-    ],
-    declarations: [
-        SqlWizardComponent,
-        ColumnSelectionComponent,
-        DatePickerComponent,
-        SimpleExpressionComponent,
-        SingleExpressionComponent,
-        SingleValueComponent,
-        TableSelectionComponent,
-        WhereClauseExpressionComponent,
-    ],
-    providers: [
-        SqlWizardService
-    ],
-    exports: [
-        SqlWizardComponent,
-    ]
+  imports: [
+    CommonModule,
+    CdrModule,
+    EuiCoreModule,
+    EuiMaterialModule,
+    FormsModule,
+    TranslateModule,
+    LdsReplaceModule,
+    ReactiveFormsModule,
+    MatButtonModule,
+    MatDatepickerModule,
+    MatSelectModule,
+    MatCheckboxModule,
+    MatInputModule,
+    MatListModule,
+    MatFormFieldModule,
+    MatOptionModule,
+    MatRadioModule,
+    MatSlideToggleModule,
+    MatButtonToggleModule,
+  ],
+  declarations: [
+    SqlWizardComponent,
+    ColumnSelectionComponent,
+    DatePickerComponent,
+    SimpleExpressionComponent,
+    SingleExpressionComponent,
+    SingleValueComponent,
+    TableSelectionComponent,
+    WhereClauseExpressionComponent,
+  ],
+  providers: [SqlWizardService],
+  exports: [SqlWizardComponent],
 })
-export class SqlWizardModule {
-
-}
+export class SqlWizardModule {}

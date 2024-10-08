@@ -24,29 +24,30 @@
  *
  */
 
+import { STEPPER_GLOBAL_OPTIONS, StepperSelectionEvent } from '@angular/cdk/stepper';
 import { ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { AbstractControl, UntypedFormControl, UntypedFormGroup, ValidatorFn } from '@angular/forms';
-import { StepperSelectionEvent, STEPPER_GLOBAL_OPTIONS } from '@angular/cdk/stepper';
-import { EuiLoadingService } from '@elemental-ui/core';
 import { MatSelectionList, MatSelectionListChange } from '@angular/material/list';
 import { PageEvent } from '@angular/material/paginator';
-import { Subscription } from 'rxjs';
-import { distinctUntilChanged, debounceTime } from 'rxjs/operators';
 import { MatStep, MatStepper } from '@angular/material/stepper';
+import { EuiLoadingService } from '@elemental-ui/core';
+import { Subscription } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
-import { ColumnDependentReference, BaseCdr, EntityService, AuthenticationService, ClassloggerService, BusyService } from 'qbm';
 import {
-  PortalDelegations,
-  PortalDelegable,
-  QerProjectConfig,
   GlobalDelegationInput,
+  PortalDelegable,
+  PortalDelegations,
   PortalDelegationsGlobalRoleclasses,
+  QerProjectConfig,
 } from 'imx-api-qer';
+import { AuthenticationService, BaseCdr, BusyService, ClassloggerService, ColumnDependentReference, EntityService } from 'qbm';
 import { ProjectConfigurationService } from '../project-configuration/project-configuration.service';
-import { DelegationService } from './delegation.service';
 import { UserModelService } from '../user/user-model.service';
+import { DelegationService } from './delegation.service';
 
 import { CollectionLoadParameters } from 'imx-qbm-dbts';
+import moment from 'moment';
 import { QerPermissionsService } from '../admin/qer-permissions.service';
 
 /**
@@ -112,7 +113,7 @@ export class DelegationComponent implements OnInit, OnDestroy {
   public roleClasses: PortalDelegationsGlobalRoleclasses[] = [];
 
   private subscriptions: Subscription[] = [];
-  private navigationState: CollectionLoadParameters = { PageSize: 20 };
+  public navigationState: CollectionLoadParameters = { PageSize: 20 };
   private projectConfig: QerProjectConfig;
 
   private get uidDelegator(): string {
@@ -453,7 +454,9 @@ export class DelegationComponent implements OnInit, OnDestroy {
     const schema = this.delegationService.getDelegationSchema();
     this.cdrTimeSpan = [schema.Columns.InsertValidFrom, schema.Columns.InsertValidUntil].map((property) => {
       property.IsReadOnly = false;
-      return new BaseCdr(this.entityService.createLocalEntityColumn(property, undefined, { ValueConstraint: { MinValue: new Date() } }));
+      return new BaseCdr(
+        this.entityService.createLocalEntityColumn(property, undefined, { ValueConstraint: { MinValue: moment().startOf('day') } })
+      );
     });
   }
 

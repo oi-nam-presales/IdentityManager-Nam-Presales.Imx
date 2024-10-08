@@ -27,7 +27,6 @@
 import { OverlayRef } from '@angular/cdk/overlay';
 import { Injectable } from '@angular/core';
 import { EuiLoadingService } from '@elemental-ui/core';
-import { TranslateService } from '@ngx-translate/core';
 
 import { PortalRolesExclusions, PortalShopConfigMembers, PortalShopConfigStructure } from 'imx-api-qer';
 import {
@@ -35,6 +34,7 @@ import {
   CompareOperator,
   EntityCollectionData,
   EntitySchema,
+  FilterData,
   FilterType,
   TypedEntityCollectionData,
 } from 'imx-qbm-dbts';
@@ -61,9 +61,8 @@ export class RequestsService {
     private readonly qerApiClient: QerApiService,
     private readonly logger: ClassloggerService,
     private readonly snackbar: SnackBarService,
-    private readonly translate: TranslateService,
     private readonly busyService: EuiLoadingService
-  ) {}
+  ) { }
 
   public selectedEntitlementType: IRequestableEntitlementType;
 
@@ -83,19 +82,23 @@ export class RequestsService {
     navigationState: CollectionLoadParameters,
     parentId: string = ''
   ): Promise<TypedEntityCollectionData<PortalShopConfigStructure>> {
-    let params: any = navigationState;
+    let params: CollectionLoadParameters = navigationState;
     if (!params) {
       params = {};
     }
-    if (parentId == '') {
-      params.filter = [
-        {
-          ColumnName: 'ITShopInfo',
-          CompareOp: CompareOperator.Equal,
-          Type: FilterType.Compare,
-          Value1: 'SH',
-        },
-      ];
+    if (parentId === '') {
+      const itShopColumnFilter: { filter: FilterData[] } = {
+        filter: [
+          {
+            ColumnName: 'ITShopInfo',
+            CompareOp: CompareOperator.Equal,
+            Type: FilterType.Compare,
+            Value1: 'SH',
+          },
+        ],
+      };
+      const filter = itShopColumnFilter.filter.concat(params.filter ?? []);
+      params = { ...params, filter };
     }
     params.ParentKey = parentId;
     this.logger.debug(this, `Retrieving shop config structures`);

@@ -30,8 +30,15 @@ import { DashboardComponent } from "./dashboard.component";
 
 export const AdminRoutes: Routes = [
     {
-        path: 'dashboard',
+        path: 'admin',
         component: DashboardComponent,
-        canActivate: [RouteGuardService]
+        canActivate: [RouteGuardService],
+        resolve: [RouteGuardService]
+      },
+      {
+        path: 'admin/:tab',
+        component: DashboardComponent,
+        canActivate: [RouteGuardService],
+        resolve: [RouteGuardService]
     },
 ];

@@ -39,6 +39,7 @@ import { BaseCdr } from '../cdr/base-cdr';
 import { EntityService } from '../entity/entity.service';
 import { SqlNodeView } from './SqlNodeView';
 import { SqlWizardApiService } from './sqlwizard-api.service';
+import { FormControl, Validators } from '@angular/forms';
 
 @Component({
   selector: 'imx-sqlwizard-singlevalue',
@@ -83,7 +84,7 @@ export class SingleValueComponent implements OnInit, OnDestroy {
   }
 
   set displayValue(val) {
-    if(!this.expr.Data?.DisplayValues){
+    if (!this.expr.Data?.DisplayValues) {
       return;
     }
     if (this.mode == 'array' && this.expr.Data.DisplayValues) {
@@ -101,8 +102,9 @@ export class SingleValueComponent implements OnInit, OnDestroy {
 
   public ValType = _valType;
   public ColumnType = SqlColumnTypes;
-
   public cdr: BaseCdr;
+  public doubleFormControl = new FormControl(null, Validators.pattern(/^[+-]?\d+(\.\d+)?$/));
+  public integerFormControl = new FormControl(null, Validators.pattern(/^[+-]?\d+$/));
 
   private _selectedTable: SqlTable;
   private _fkRelation: MetaTableRelationData = {
@@ -117,9 +119,9 @@ export class SingleValueComponent implements OnInit, OnDestroy {
     getDataModel: async () => ({}),
   };
 
-  constructor(private readonly entityService: EntityService, private readonly sqlWizardApi: SqlWizardApiService) {}
-
   private subscriptions: Subscription[] = [];
+
+  constructor(private readonly entityService: EntityService, private readonly sqlWizardApi: SqlWizardApiService) {}
 
   public ngOnInit(): void {
     this.subscriptions.push(
@@ -129,6 +131,11 @@ export class SingleValueComponent implements OnInit, OnDestroy {
     );
 
     this.buildCdr();
+    this.onFormValueChanges();
+  }
+
+  public ngOnDestroy(): void {
+    for (var s of this.subscriptions) s.unsubscribe();
   }
 
   public emitChanges(): void {
@@ -149,10 +156,18 @@ export class SingleValueComponent implements OnInit, OnDestroy {
       FkRelation: this._fkRelation,
     };
 
+    if (this.expr.Property.Type === ValType.Bool && this.expr.Data.Value === undefined ) this.value = false;
+
     const column = this.entityService.createLocalEntityColumn(property, [this._fkProviderItem], {
       Value: this.value,
       DisplayValue: this.displayValue,
     });
+    if (this.expr.Property.Type === ValType.Double) {
+      this.doubleFormControl.setValue(column.GetValue());
+    }
+    if (this.expr.Property.Type === ValType.Int) {
+      this.integerFormControl.setValue(column.GetValue());
+    }
 
     // when the CDR value changes, write back to the SQL wizard data structure
     column.ColumnChanged.subscribe(() => {
@@ -165,7 +180,27 @@ export class SingleValueComponent implements OnInit, OnDestroy {
     this.cdr = new BaseCdr(column, '#LDS#Value');
   }
 
-  public ngOnDestroy(): void {
-    for (var s of this.subscriptions) s.unsubscribe();
+  private onFormValueChanges(): void {
+    this.subscriptions.push(
+      this.doubleFormControl.valueChanges.subscribe((value) => {
+        if (!this.doubleFormControl.hasError('pattern')) {
+          this.value = value;
+          this.emitChanges();
+        } else {
+          this.value = {};
+        }
+      })
+    );
+    this.subscriptions.push(
+      this.integerFormControl.valueChanges.subscribe((value) => {
+        if (!this.integerFormControl.hasError('pattern')) {
+          this.value = value;
+          this.emitChanges();
+        } else {
+          this.value = {};
+        }
+      })
+    );
   }
 }
+

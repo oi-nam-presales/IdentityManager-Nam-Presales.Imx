@@ -56,7 +56,10 @@ export class TermsOfUseService {
   public async getTermsOfUse(uidTermsOfUse: string[]): Promise<PortalTermsofuse[]> {
     const arr: PortalTermsofuse[] = [];
     for (const uid of uidTermsOfUse) {
-      arr.push(await this.getSingleTermsOfUse(uid));
+      const termsOfUse = await this.getSingleTermsOfUse(uid);
+      if (termsOfUse) {
+        arr.push(termsOfUse);
+      }
     }
     return arr;
   }
@@ -66,19 +69,23 @@ export class TermsOfUseService {
    * @param uidTermsOfUse the uid for the term of use
    */
   public async getSingleTermsOfUse(uidTermsOfUse: string): Promise<PortalTermsofuse> {
-    return (
-      await this.qerClient.typedClient.PortalTermsofuse.Get({
-        PageSize: 100000,
-        filter: [
-          {
-            ColumnName: 'UID_QERTermsOfUse',
-            CompareOp: CompareOperator.Equal,
-            Value1: uidTermsOfUse,
-            Type: FilterType.Compare,
-          },
-        ],
-      })
-    ).Data[0];
+    const result = await this.qerClient.typedClient.PortalTermsofuse.Get({
+      PageSize: 100000,
+      filter: [
+        {
+          ColumnName: 'UID_QERTermsOfUse',
+          CompareOp: CompareOperator.Equal,
+          Value1: uidTermsOfUse,
+          Type: FilterType.Compare,
+        },
+      ],
+    });
+
+    if (result.totalCount > 0) {
+      return result.Data[0];
+    } else {
+      return;
+    }
   }
 
   /**
@@ -113,9 +120,11 @@ export class TermsOfUseService {
   }
 
   /**
-   * Return the download options for a specified uid of a {@link PortalTermsofuse|terms of use}.
+   * Return the download options for a specified {@link PortalTermsofuse|terms of use} item.
    */
-  public getDownloadOptions(key: string, display: string): EuiDownloadOptions {
+  public getDownloadOptions(item: PortalTermsofuse): EuiDownloadOptions {
+    const key = item?.GetEntity()?.GetKeys()[0];
+    const display = item?.GetEntity()?.GetDisplay();
     return {
       ...this.elementalUiConfigService.Config.downloadOptions,
       url: this.appConfig.BaseUrl + new MethodDefinition(this.apiMethodFactory.portal_termsofuse_download_get(key)).path,

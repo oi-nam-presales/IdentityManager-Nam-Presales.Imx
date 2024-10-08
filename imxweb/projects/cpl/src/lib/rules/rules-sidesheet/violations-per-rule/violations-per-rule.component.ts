@@ -30,9 +30,9 @@ import { TranslateService } from '@ngx-translate/core';
 
 import { CollectionLoadParameters, EntitySchema } from 'imx-qbm-dbts';
 import { DataModelWrapper, DataSourceToolbarSettings, DataSourceWrapper, DataTableGroupedData } from 'qbm';
+import { RulesViolationsApproval } from '../../../rules-violations/rules-violations-approval';
 import { RulesViolationsDetailsComponent } from '../../../rules-violations/rules-violations-details/rules-violations-details.component';
 import { RulesViolationsService } from '../../../rules-violations/rules-violations.service';
-import { RulesViolationsApproval } from '../../../rules-violations/rules-violations-approval';
 
 @Component({
   selector: 'imx-violations-per-rule',
@@ -65,8 +65,17 @@ export class ViolationsPerRuleComponent implements OnInit {
     };
 
     this.dstWrapper = new DataSourceWrapper(
-      (state) => this.rulesViolationsService.getRulesViolationsApprove({...state, ...{uid_compliancerule: this.uidRule, approvable: undefined}}),
-      [this.entitySchema.Columns.UID_Person, this.entitySchema.Columns.State],
+      (state, requestOpts) =>
+        this.rulesViolationsService.getRulesViolationsApprove(
+          { ...state, ...{ uid_compliancerule: this.uidRule, approvable: undefined } },
+          requestOpts
+        ),
+      [
+        this.entitySchema.Columns.UID_Person,
+        this.entitySchema.Columns.State,
+        this.entitySchema.Columns.RiskIndexCalculated,
+        this.entitySchema.Columns.RiskIndexReduced,
+      ],
       this.entitySchema,
       this.dataModelWrapper
     );
@@ -85,6 +94,7 @@ export class ViolationsPerRuleComponent implements OnInit {
       groupedData.data = await this.rulesViolationsService.getRulesViolationsApprove(groupedData.navigationState);
       groupedData.settings = {
         displayedColumns: this.dstSettings.displayedColumns,
+        dataModel: this.dstSettings.dataModel,
         dataSource: groupedData.data,
         entitySchema: this.dstSettings.entitySchema,
         navigationState: groupedData.navigationState,
@@ -99,9 +109,10 @@ export class ViolationsPerRuleComponent implements OnInit {
    * @param rule The selected rule from the Rule Violations list
    */
   public async showRulesViolationsDetail(rule: RulesViolationsApproval) {
-    const complianceRuleUid = await this.rulesViolationsService.getComplianceRuleUId(rule);
+    const complianceRule = await this.rulesViolationsService.getComplianceRuleByUId(rule);
     const config = await this.rulesViolationsService.featureConfig();
-    await this.sidesheet.open(RulesViolationsDetailsComponent, {
+    await this.sidesheet
+      .open(RulesViolationsDetailsComponent, {
         title: await this.translate.get('#LDS#Heading View Rule Violation Details').toPromise(),
         subTitle: rule.GetEntity().GetDisplay(),
         padding: '0px',
@@ -110,8 +121,8 @@ export class ViolationsPerRuleComponent implements OnInit {
         data: {
           selectedRulesViolation: rule,
           isMControlPerViolation: config.MitigatingControlsPerViolation,
-          complianceRuleUid
-        }
+          complianceRule,
+        },
       })
       .afterClosed()
       .toPromise();
@@ -124,9 +135,17 @@ export class ViolationsPerRuleComponent implements OnInit {
   public async getData(parameter?: CollectionLoadParameters): Promise<void> {
     this.rulesViolationsService.handleOpenLoader();
     try {
-      this.dstSettings = await this.dstWrapper.getDstSettings(parameter);
+      const dstSettings = await this.dstWrapper.getDstSettings(parameter, { signal: this.rulesViolationsService.abortController.signal });
+      if (dstSettings) {
+        this.dstSettings = dstSettings;
+      }
     } finally {
       this.rulesViolationsService.handleCloseLoader();
     }
+  }
+
+  public onSearch(keywords: string): Promise<void> {
+    this.rulesViolationsService.abortCall();
+    return this.getData({ search: keywords });
   }
 }

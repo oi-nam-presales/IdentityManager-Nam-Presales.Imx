@@ -30,17 +30,17 @@ import { Subject } from 'rxjs';
 import { ColumnDependentReference } from './column-dependent-reference.interface';
 
 /**
- * Interface for the argument, that it emitted in the CDR editor
+ * Interface for the argument, that it emitted in the CDR editor.
  */
 export interface ValueHasChangedEventArg {
     /**
-     * The new value of the editor
+     * The new value of the editor.
      */
     value: any;
 
     /**
      * A flag to show whether the emitting of a follow up event should be forced
-     * (evaluated by  {@link CdrEditorComponent|CdrEditorComponent})
+     * (evaluated by {@link CdrEditorComponent|CdrEditorComponent}).
      */
     forceEmit?: boolean;
 }
@@ -49,26 +49,35 @@ export interface ValueHasChangedEventArg {
  * Interface for an editor of a column dependent reference.
  */
 export interface CdrEditor {
-    /**
-     * The abstract control associated with the editor.
-     */
-    control: AbstractControl;
+  /**
+   * The abstract control associated with the editor.
+   */
+  control: AbstractControl;
 
-    /**
-     * An event, that is emmited, if the value of the cdr has changed.
-     */
-    valueHasChanged?: EventEmitter<ValueHasChangedEventArg>;
+  /**
+   * Determines, if the control should only be validated after the value has been changed
+   */
+  validateOnlyOnChange?: boolean;
 
-    /**
-     * Binds a column dependent reference to the editor.
-     *
-     * @param cdref The column dependent reference.
-     */
-    bind(cdref: ColumnDependentReference): void;
+  /**
+   * An event, that is emitted, if the value of the cdr has changed.
+   */
+  valueHasChanged?: EventEmitter<ValueHasChangedEventArg>;
 
-    /**
-     * A subject, that can be called, if the control needs to be updated.
-     */
-    updateRequested?: Subject<void>;
+  /**
+   * An event, that is emitted, if the value of the cdr is pending.
+   */
+  pendingChanged?: EventEmitter<boolean>;
 
+  /**
+   * Binds a column dependent reference to the editor.
+   *
+   * @param cdref The column dependent reference.
+   */
+  bind(cdref: ColumnDependentReference): void;
+
+  /**
+   * A subject, that can be called, if the control needs to be updated.
+   */
+  updateRequested?: Subject<void>;
 }

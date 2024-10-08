@@ -64,6 +64,7 @@ import { RoleService } from '../role.service';
 import { TreeDatabaseAdaptorService } from './tree-database-adaptor.service';
 import { ViewConfigService } from '../../view-config/view-config.service';
 import { Subscription } from 'rxjs';
+import { UserModelService } from '../../user/user-model.service';
 
 @Component({
   selector: 'imx-roles-overview',
@@ -94,6 +95,7 @@ export class RolesOverviewComponent implements OnInit, OnDestroy, SideNavigation
   private dataModel: DataModel;
   private exportMethod: DataSourceToolbarExportMethod;
   private subscription: Subscription;
+  private canCreateAeRole: boolean;
 
   private disposable: () => void;
 
@@ -111,7 +113,8 @@ export class RolesOverviewComponent implements OnInit, OnDestroy, SideNavigation
     private readonly metadataProvider: MetadataService,
     private readonly translate: TranslateService,
     private readonly permission: QerPermissionsService,
-    private readonly errorService: ErrorService
+    private readonly errorService: ErrorService,
+    private readonly userModelService: UserModelService
   ) {}
 
   public ngOnDestroy(): void {
@@ -121,9 +124,10 @@ export class RolesOverviewComponent implements OnInit, OnDestroy, SideNavigation
   public async ngOnInit(): Promise<void> {
     this.ownershipInfo = this.data;
     this.useTree = this.roleService.hasHierarchy(this.ownershipInfo.TableName, this.isAdmin);
+    this.canCreateAeRole = (await this.userModelService.getUserConfig()).CanCreateAERole;
 
     try {
-      await this.metadataProvider.update([this.ownershipInfo.TableName]);
+      await this.metadataProvider.updateNonExisting([this.ownershipInfo.TableName]);
       this.isStructureAdmin = await this.permission.isStructAdmin();
     } catch (error) {
       this.navigateToStartPage(error);
@@ -146,12 +150,15 @@ export class RolesOverviewComponent implements OnInit, OnDestroy, SideNavigation
       return;
     }
     this.isAdmin = this.route.snapshot?.url[0]?.path === 'admin';
+    this.roleService.isAdmin = this.isAdmin;
+
     this.viewConfigPath = (this.isAdmin ? 'admin/role/' : 'role/') + this.ownershipInfo.TableName.toLowerCase();
     const isBusy = this.busyService.beginBusy();
     this.hasHierarchy = (await this.roleService.getEntitiesForTree(this.ownershipInfo.TableName, { PageSize: -1 }))?.Hierarchy != null;
     this.useTree = this.isAdmin && this.hasHierarchy;
     this.canCreate =
-      ((this.isAdmin && this.isStructureAdmin) || !this.isAdmin) && this.roleService.canCreate(this.ownershipInfo.TableName, this.isAdmin);
+      ((this.isAdmin && this.isStructureAdmin) || !this.isAdmin) &&
+      this.roleService.canCreate(this.ownershipInfo.TableName, this.isAdmin, this.canCreateAeRole);
 
     this.navigationState = this.useTree
       ? {
@@ -334,16 +341,19 @@ export class RolesOverviewComponent implements OnInit, OnDestroy, SideNavigation
     if (this.exportMethod) {
       this.exportMethod.initialColumns = this.displayColumns.map((col) => col.ColumnName);
     }
-    this.dstSettings = {
-      dataSource: await this.roleService.get(this.ownershipInfo.TableName, this.isAdmin, this.navigationState),
-      entitySchema: this.entitySchema,
-      navigationState: this.navigationState,
-      displayedColumns: this.displayColumns,
-      filters: this.filterOptions,
-      dataModel: this.dataModel,
-      viewConfig: this.viewConfig,
-      exportMethod: this.exportMethod,
-    };
+    const dataSource = await this.roleService.get(this.ownershipInfo.TableName, this.isAdmin, this.navigationState);
+    if (dataSource) {
+      this.dstSettings = {
+        dataSource: dataSource,
+        entitySchema: this.entitySchema,
+        navigationState: this.navigationState,
+        displayedColumns: this.displayColumns,
+        filters: this.filterOptions,
+        dataModel: this.dataModel,
+        viewConfig: this.viewConfig,
+        exportMethod: this.exportMethod,
+      };
+    }
   }
 
   public async updateConfig(config: ViewConfigData): Promise<void> {

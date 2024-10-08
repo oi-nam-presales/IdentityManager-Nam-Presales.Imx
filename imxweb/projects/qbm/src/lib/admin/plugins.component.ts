@@ -24,20 +24,21 @@
  *
  */
 
-import { Component, OnInit } from "@angular/core";
-import { LoadedPlugin } from "imx-api-qbm";
-import { AppConfigService } from "../appConfig/appConfig.service";
+import { Component, Input, OnInit } from '@angular/core';
+import { LoadedPlugin } from 'imx-api-qbm';
+import { AppConfigService } from '../appConfig/appConfig.service';
+import { SideNavigationComponent } from '../side-navigation-view/side-navigation-view-interfaces';
 
 @Component({
   templateUrl: './plugins.component.html',
   styleUrls: ['./shared.scss'],
-  selector: 'imx-plugins'
+  selector: 'imx-plugins',
 })
-export class PluginsComponent implements OnInit {
-
-  constructor(private readonly appConfigService: AppConfigService) { }
-
+export class PluginsComponent implements OnInit, SideNavigationComponent {
+  @Input() public isAdmin: boolean;
   plugins: LoadedPlugin[];
+
+  constructor(private readonly appConfigService: AppConfigService) {}
 
   async ngOnInit() {
     const client = this.appConfigService.client;

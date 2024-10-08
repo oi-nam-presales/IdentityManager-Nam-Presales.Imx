@@ -42,21 +42,29 @@ import {
   MethodDefinition,
   MethodDescriptor,
 } from 'imx-qbm-dbts';
-import { PortalPersonReports, PortalPersonAll, PortalAdminPerson, PortalPersonUid, ViewConfigData, V2ApiClientMethodFactory } from 'imx-api-qer';
+import {
+  PortalPersonReports,
+  PortalPersonAll,
+  PortalAdminPerson,
+  PortalPersonUid,
+  ViewConfigData,
+  V2ApiClientMethodFactory,
+} from 'imx-api-qer';
 import { QerApiService } from '../qer-api-client.service';
 import { QerPermissionsService } from '../admin/qer-permissions.service';
 import { DuplicateCheckParameter } from './create-new-identity/duplicate-check-parameter.interface';
 
 @Injectable()
 export class IdentitiesService {
-
   public authorityDataDeleted: Subject<string> = new Subject();
 
+  private abortController = new AbortController();
 
   constructor(
     private readonly qerClient: QerApiService,
     private readonly logger: ClassloggerService,
-    private readonly qerPermissions: QerPermissionsService) { }
+    private readonly qerPermissions: QerPermissionsService
+  ) {}
 
   public get personReportsSchema(): EntitySchema {
     return this.qerClient.typedClient.PortalPersonReports.GetSchema();
@@ -74,14 +82,13 @@ export class IdentitiesService {
     return this.qerClient.typedClient.PortalAdminPerson.GetSchema();
   }
 
-
-  public getAttestationHelperAlertDescription(count: { total: number; forUser: number; }): { description: string; value?: any; }[] {
+  public getAttestationHelperAlertDescription(count: { total: number; forUser: number }): { description: string; value?: any }[] {
     // #LDS#There are currently no pending attestation cases.
 
     return [
       { description: '#LDS#Here you can get an overview of all attestations cases for this object.' },
       { description: '#LDS#Pending attestation cases: {0}', value: count.total },
-      { description: '#LDS#Pending attestation cases you can approve or deny: {0}', value: count.forUser }
+      { description: '#LDS#Pending attestation cases you can approve or deny: {0}', value: count.forUser },
     ];
   }
 
@@ -93,15 +100,23 @@ export class IdentitiesService {
    * @returns Wrapped list of Persons.
    */
   public async getAllPerson(navigationState: CollectionLoadParameters): Promise<TypedEntityCollectionData<PortalPersonAll>> {
+    if (navigationState?.search !== undefined) {
+      // abort the request only while searching
+      this.abortCall();
+    }
     this.logger.debug(this, `Retrieving person list`);
     this.logger.trace('Navigation state', navigationState);
-    return this.qerClient.typedClient.PortalPersonAll.Get(navigationState);
+    return this.qerClient.typedClient.PortalPersonAll.Get(navigationState, { signal: this.abortController.signal });
   }
 
   public async getAllPersonAdmin(navigationState: CollectionLoadParameters): Promise<TypedEntityCollectionData<PortalAdminPerson>> {
+    if (navigationState?.search !== undefined) {
+      // abort the request only while searching
+      this.abortCall();
+    }
     this.logger.debug(this, `Retrieving person list`);
     this.logger.trace('Navigation state', navigationState);
-    return this.qerClient.typedClient.PortalAdminPerson.Get(navigationState);
+    return this.qerClient.typedClient.PortalAdminPerson.Get(navigationState, { signal: this.abortController.signal });
   }
 
   /**
@@ -122,13 +137,13 @@ export class IdentitiesService {
       getMethod: (withProperties: string, PageSize?: number) => {
         let method: MethodDescriptor<EntityCollectionData>;
         if (PageSize) {
-          method = factory.portal_admin_person_get({...navigationState, withProperties, PageSize, StartIndex: 0})
+          method = factory.portal_admin_person_get({ ...navigationState, withProperties, PageSize, StartIndex: 0 });
         } else {
-          method = factory.portal_admin_person_get({...navigationState, withProperties})
+          method = factory.portal_admin_person_get({ ...navigationState, withProperties });
         }
         return new MethodDefinition(method);
-      }
-    }
+      },
+    };
   }
 
   public exportPerson(navigationState?: CollectionLoadParameters): DataSourceToolbarExportMethod {
@@ -137,13 +152,13 @@ export class IdentitiesService {
       getMethod: (withProperties: string, PageSize?: number) => {
         let method: MethodDescriptor<EntityCollectionData>;
         if (PageSize) {
-          method = factory.portal_person_reports_get({...navigationState, withProperties, PageSize, StartIndex: 0 });
+          method = factory.portal_person_reports_get({ ...navigationState, withProperties, PageSize, StartIndex: 0 });
         } else {
-          method = factory.portal_person_reports_get({...navigationState, withProperties});
+          method = factory.portal_person_reports_get({ ...navigationState, withProperties });
         }
         return new MethodDefinition(method);
-      }
-    }
+      },
+    };
   }
 
   /**
@@ -153,30 +168,31 @@ export class IdentitiesService {
    *
    * @returns Wrapped list of Persons.
    */
-  public async getReportsOfManager(navigationState: CollectionLoadParameters):
-    Promise<TypedEntityCollectionData<PortalPersonReports>> {
+  public async getReportsOfManager(navigationState: CollectionLoadParameters): Promise<TypedEntityCollectionData<PortalPersonReports>> {
+    if (navigationState?.search !== undefined) {
+      // abort the request only while searching
+      this.abortCall();
+    }
     this.logger.debug(this, `Retrieving reports of the manager`);
     this.logger.trace('Navigation state', navigationState);
-    return this.qerClient.typedClient.PortalPersonReports.Get(navigationState);
+    return this.qerClient.typedClient.PortalPersonReports.Get(navigationState, { signal: this.abortController.signal });
   }
 
   public async getGroupedAllPerson(columns: string, navigationState: CollectionLoadParameters): Promise<GroupInfoData> {
     this.logger.debug(this, `Retrieving person list`);
     this.logger.trace('Navigation state', navigationState);
 
-    return this.qerClient.client.portal_admin_person_group_get(
-      {
-        by: columns,
-        def: '',
-        StartIndex: navigationState.StartIndex,
-        PageSize: navigationState.PageSize,
-        withcount: true,
-        withmanager: '',
-        orphaned: '',
-        deletedintarget: '',
-        isinactive: ''
-      }
-    );
+    return this.qerClient.client.portal_admin_person_group_get({
+      by: columns,
+      def: '',
+      StartIndex: navigationState.StartIndex,
+      PageSize: navigationState.PageSize,
+      withcount: true,
+      withmanager: '',
+      orphaned: '',
+      deletedintarget: '',
+      isinactive: '',
+    });
   }
 
   public async userIsAdmin(): Promise<boolean> {
@@ -190,18 +206,8 @@ export class IdentitiesService {
    * @returns Details of admin person.
    */
   public async getAdminPerson(id: string): Promise<PortalAdminPerson> {
-    const getPersonNavigationState: CollectionLoadParameters = {
-      filter: [
-        {
-          ColumnName: 'UID_Person',
-          Type: FilterType.Compare,
-          CompareOp: CompareOperator.Equal,
-          Value1: id,
-        },
-      ],
-    };
     this.logger.debug(this, `Retrieving admin person with Id ${id}`);
-    return (await this.qerClient.typedClient.PortalAdminPerson.Get(getPersonNavigationState)).Data[0];
+    return (await this.qerClient.typedClient.PortalAdminPersonInteractive.Get_byid(id)).Data[0];
   }
 
   public async getPersonInteractive(uid: string): Promise<TypedEntityCollectionData<PortalPersonReports>> {
@@ -230,8 +236,7 @@ export class IdentitiesService {
 
   public buildFilterForduplicates(parameter: DuplicateCheckParameter): FilterData[] {
     const filter = [];
-    if (parameter.firstName != null && parameter.firstName !== ''
-      && parameter.lastName != null && parameter.lastName !== '') {
+    if (parameter.firstName != null && parameter.firstName !== '' && parameter.lastName != null && parameter.lastName !== '') {
       filter.push(this.buildFilter('FirstName', parameter.firstName));
       filter.push(this.buildFilter('LastName', parameter.lastName));
     }
@@ -247,9 +252,7 @@ export class IdentitiesService {
     return filter;
   }
 
-  public async getDuplicates(parameter: CollectionLoadParameters)
-    : Promise<Promise<ExtendedTypedEntityCollection<PortalPersonAll, any>>> {
-
+  public async getDuplicates(parameter: CollectionLoadParameters): Promise<Promise<ExtendedTypedEntityCollection<PortalPersonAll, any>>> {
     if (parameter.filter?.length === 0) {
       return { Data: [], totalCount: 0 };
     }
@@ -261,7 +264,12 @@ export class IdentitiesService {
       CompareOp: CompareOperator.Equal,
       Type: FilterType.Compare,
       ColumnName: column,
-      Value1: value
+      Value1: value,
     };
+  }
+
+  private abortCall(): void {
+    this.abortController.abort();
+    this.abortController = new AbortController();
   }
 }

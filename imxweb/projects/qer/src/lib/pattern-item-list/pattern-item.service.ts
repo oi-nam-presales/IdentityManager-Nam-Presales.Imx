@@ -40,6 +40,7 @@ import {
   EntityData,
   EntitySchema,
   ExtendedTypedEntityCollection,
+  FilterData,
   FilterType,
   ValueStruct,
 } from 'imx-qbm-dbts';
@@ -98,19 +99,25 @@ export class PatternItemService {
     requestOpts?: ApiRequestOptions,
     getAllItems?: boolean,
   ): Promise<ExtendedTypedEntityCollection<PortalItshopPatternItem, CartPatternItemDataRead>> {
-    let params: CollectionLoadParameters = {
-      ...parameters,
-      ...{
-        filter: [
-          {
-            ColumnName: 'UID_ShoppingCartPattern',
-            Type: FilterType.Compare,
-            CompareOp: CompareOperator.Equal,
-            Value1: patternRequestable.UID_ShoppingCartPattern.value,
-          },
-        ],
-      },
-    };
+
+    var shoppingCartPatternFilter = {
+      ColumnName: 'UID_ShoppingCartPattern',
+      Type: FilterType.Compare,
+      CompareOp: CompareOperator.Equal,
+      Value1: patternRequestable.UID_ShoppingCartPattern.value,
+    }
+    
+    const index = this.findFilterIndex(parameters.filter, 'UID_ShoppingCartPattern');
+    if (index >= 0) {
+      parameters.filter[index] = shoppingCartPatternFilter;
+    } else {
+      if(!parameters.filter){
+        parameters.filter = [];
+      }
+      parameters.filter.push(shoppingCartPatternFilter);
+    }
+
+    let params = parameters;
 
     if (getAllItems) {
       let getAllItemsParams: CollectionLoadParameters = {
@@ -124,7 +131,6 @@ export class PatternItemService {
         ...params,
         ...{
           PageSize: totalCount
-
         },
       }; 
     }
@@ -169,5 +175,20 @@ export class PatternItemService {
     }
 
     return onlySelected ? selectedItems : allItems;
+  }
+
+  
+  /**
+   * @ignore Used internally
+   * Attempts to find an existing filter matching the given column name.
+   * Returns the index or -1 if no match was found
+   */
+  private findFilterIndex(filter: FilterData[], filterName: string): number {
+    let index: number;
+    if (!filter) {
+      return -1;
+    }
+
+    return filter.map(f => f.ColumnName).indexOf(filterName);
   }
 }

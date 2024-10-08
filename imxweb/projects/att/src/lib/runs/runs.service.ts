@@ -32,6 +32,7 @@ import { TranslateService } from '@ngx-translate/core';
 
 import {
   AttCaseDataRead,
+  AttestationConfig,
   ExtendRunInput,
   PortalAttestationCase,
   PortalAttestationRun,
@@ -62,6 +63,8 @@ import { SendReminderMailComponent } from './send-reminder-mail.component';
   providedIn: 'root',
 })
 export class RunsService {
+  public abortController = new AbortController();
+
   private readonly apiClientMethodFactory = new V2ApiClientMethodFactory();
 
   constructor(
@@ -80,7 +83,7 @@ export class RunsService {
   }
 
   public async getGroupInfo(parameters: RunsLoadParameters): Promise<GroupInfoData> {
-    const { groupFilter, search, OrderBy, ...params } = parameters;
+    const { withProperties, groupFilter, search, OrderBy, ...params } = parameters;
     return this.attService.client.portal_attestation_run_group_get({
       ...params,
       filter: parameters.groupFilter,
@@ -179,8 +182,22 @@ export class RunsService {
     });
   }
 
+  public async attestationConfig(): Promise<AttestationConfig> {
+    return await this.attService.client.portal_attestation_config_get();
+  }
+  
   public getSchemaForCases(): EntitySchema {
     return this.attService.typedClient.PortalAttestationCase.GetSchema();
+  }
+
+  public get AttestationRunSchema(): EntitySchema {
+    return this.attService.typedClient.PortalAttestationRun.GetSchema();
+  }
+
+  public async getAttestationRuns(
+    parameters: CollectionLoadParameters
+  ): Promise<ExtendedTypedEntityCollection<PortalAttestationRun, unknown>> {
+    return await this.attService.typedClient.PortalAttestationRun.Get(parameters, { signal: this.abortController.signal });
   }
 
   public async getSingleRun(uidRun: string): Promise<PortalAttestationRun> {
@@ -196,5 +213,10 @@ export class RunsService {
     });
 
     return elements.Data[0];
+  }
+
+  public abortCall(): void {
+    this.abortController.abort();
+    this.abortController = new AbortController();
   }
 }

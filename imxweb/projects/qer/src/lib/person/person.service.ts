@@ -38,6 +38,7 @@ import {
   DataModel,
   GroupInfoData,
   EntitySchema,
+  ApiRequestOptions,
 } from 'imx-qbm-dbts';
 import { PortalPersonAll, PortalPersonMasterdata, PortalPersonUid } from 'imx-api-qer';
 import { QerApiService } from '../qer-api-client.service';
@@ -47,6 +48,7 @@ import { PersonAllLoadParameters } from './person-all-load-parameters.interface'
   providedIn: 'root',
 })
 export class PersonService {
+
   public get schemaPersonUid(): EntitySchema {
     return this.qerClient.typedClient.PortalPersonUid.GetSchema();
   }
@@ -69,8 +71,8 @@ export class PersonService {
     return this.qerClient.typedClient.PortalPersonUid.Get(uid, parameters);
   }
 
-  public async getAll(parameters: CollectionLoadParameters = {}): Promise<TypedEntityCollectionData<PortalPersonAll>> {
-    return this.qerClient.typedClient.PortalPersonAll.Get(parameters);
+  public async getAll(parameters: CollectionLoadParameters = {}, requestOpts: ApiRequestOptions): Promise<TypedEntityCollectionData<PortalPersonAll>> {
+    return this.qerClient.typedClient.PortalPersonAll.Get(parameters, requestOpts);
   }
 
   public async getDataModel(filter?: FilterData[]): Promise<DataModel> {
@@ -78,7 +80,7 @@ export class PersonService {
   }
 
   public getGroupInfo(parameters: PersonAllLoadParameters = {}): Promise<GroupInfoData> {
-    const {OrderBy,search, ...params} = parameters;
+    const { withProperties, OrderBy, search, ...params } = parameters;
     return this.qerClient.v2Client.portal_person_all_group_get({
       ...params,
       withcount: true,

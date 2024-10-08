@@ -9,7 +9,7 @@
       [settings]="dstSettings"
       [options]="['search', 'filter']"
       [busyService]="busyService"
-      (search)="navigate({ search: $event })"
+      (search)="onSearch($event)"
       (navigationStateChanged)="navigate($event)"
     >
     </imx-data-source-toolbar>

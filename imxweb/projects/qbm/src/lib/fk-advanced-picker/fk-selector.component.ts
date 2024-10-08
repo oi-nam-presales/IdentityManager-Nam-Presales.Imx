@@ -29,7 +29,8 @@ import { Component, OnInit, ViewChild, Input, Output, EventEmitter } from '@angu
 import {
   TypedEntityBuilder,
   CollectionLoadParameters,
-  DisplayColumns, ValType,
+  DisplayColumns,
+  ValType,
   TypedEntity,
   IForeignKeyInfo,
   FilterType,
@@ -37,7 +38,7 @@ import {
   DbObjectKey,
   DataModelFilter,
   FilterData,
-  DataModel
+  DataModel,
 } from 'imx-qbm-dbts';
 import { ClassloggerService } from '../classlogger/classlogger.service';
 import { MetadataService } from '../base/metadata.service';
@@ -52,7 +53,7 @@ import { BusyService } from '../base/busy.service';
 @Component({
   selector: 'imx-fk-selector',
   templateUrl: './fk-selector.component.html',
-  styleUrls: ['./fk-selector.component.scss']
+  styleUrls: ['./fk-selector.component.scss'],
 })
 export class FkSelectorComponent implements OnInit {
   public settings: DataSourceToolbarSettings;
@@ -78,21 +79,21 @@ export class FkSelectorComponent implements OnInit {
   constructor(
     public readonly metadataProvider: MetadataService,
     private readonly settingsService: SettingsService,
-    private readonly logger: ClassloggerService) {
-  }
+    private readonly logger: ClassloggerService
+  ) {}
 
   public async ngOnInit(): Promise<void> {
     const isBusy = this.busyService.beginBusy();
 
     if (this.data.fkRelations && this.data.fkRelations.length > 0) {
       this.logger.trace(this, 'Pre-select the first candidate table');
-      this.selectedTable = this.data.fkRelations.find(fkr => fkr.TableName === this.data.selectedTableName) || this.data.fkRelations[0];
+      this.selectedTable = this.data.fkRelations.find((fkr) => fkr.TableName === this.data.selectedTableName) || this.data.fkRelations[0];
       this.dataModel = await this.selectedTable.GetDataModel();
       this.filters = this.dataModel.Filters;
     }
 
     if (this.data.fkRelations && this.data.fkRelations.length > 0) {
-      await this.metadataProvider.update(this.data.fkRelations.map(fkr => fkr.TableName));
+      await this.metadataProvider.updateNonExisting(this.data.fkRelations.map((fkr) => fkr.TableName));
     }
     await this.loadTableData();
     await this.getPreselectedEntities();
@@ -101,7 +102,7 @@ export class FkSelectorComponent implements OnInit {
     }
     this.logger.debug(this, 'Pre selected elements', this.selectedCandidates.length);
 
-    isBusy.endBusy();    
+    isBusy.endBusy();
   }
 
   public search(keywords: string): void {
@@ -110,7 +111,7 @@ export class FkSelectorComponent implements OnInit {
   }
 
   public amIDisabled(item: TypedEntity): boolean {
-    return this.data.disabledIds?.find( x => x === item.GetEntity().GetKeys()[0]) ? true : false;
+    return this.data.disabledIds?.find((x) => x === item.GetEntity().GetKeys()[0]) ? true : false;
   }
 
   /**
@@ -121,7 +122,7 @@ export class FkSelectorComponent implements OnInit {
       return;
     }
 
-    return this.selectedCandidates[0] === item ?  {'imx-selected-row': true} : {};
+    return this.selectedCandidates[0] === item ? { 'imx-selected-row': true } : {};
   }
 
   /**
@@ -170,9 +171,10 @@ export class FkSelectorComponent implements OnInit {
     if (this.selectedTable) {
       const isBusy = this.busyService.beginBusy();
       try {
-        let navigationState = this.settings && this.settings.navigationState ?
-          this.settings.navigationState :
-          { PageSize: this.settingsService.DefaultPageSize, StartIndex: 0 };
+        let navigationState =
+          this.settings && this.settings.navigationState
+            ? this.settings.navigationState
+            : { PageSize: this.settingsService.DefaultPageSize, StartIndex: 0 };
 
         if (newState) {
           navigationState = { ...navigationState, ...newState };
@@ -185,27 +187,27 @@ export class FkSelectorComponent implements OnInit {
           displayedColumns.push({
             Type: ValType.String,
             ColumnName: 'Select',
-            untranslatedDisplay: '#LDS#Selection'
-      });
+            untranslatedDisplay: '#LDS#Selection',
+          });
         }
 
         displayedColumns.push(DisplayColumns.DISPLAY_PROPERTY);
 
-        this.settings = {
-          dataSource: this.builder.buildReadWriteEntities(
-            await this.selectedTable.Get(navigationState),
-            this.entitySchema
-          ),
-          displayedColumns,
-          entitySchema: this.entitySchema,
-          filters: this.filters,
-          dataModel: this.dataModel,
-          navigationState,
-          filterTree: {
-            multiSelect: true,
-            filterMethode: async (parentKey) => this.selectedTable.GetFilterTree(parentKey)
-          }
-        };
+        const data = this.builder.buildReadWriteEntities(await this.selectedTable.Get(navigationState), this.entitySchema);
+        if (data) {
+          this.settings = {
+            dataSource: data,
+            displayedColumns,
+            entitySchema: this.entitySchema,
+            filters: this.filters,
+            dataModel: this.dataModel,
+            navigationState,
+            filterTree: {
+              multiSelect: true,
+              filterMethode: async (parentKey) => this.selectedTable.GetFilterTree(parentKey),
+            },
+          };
+        }
       } finally {
         isBusy.endBusy();
       }
@@ -229,7 +231,7 @@ export class FkSelectorComponent implements OnInit {
           let table: IForeignKeyInfo;
           if (this.data.fkRelations.length > 1) {
             const tableName = DbObjectKey.FromXml(key).TableName;
-            table = this.data.fkRelations.find(fkr => fkr.TableName === tableName);
+            table = this.data.fkRelations.find((fkr) => fkr.TableName === tableName);
           }
 
           table = table || this.data.fkRelations[0];
@@ -240,16 +242,13 @@ export class FkSelectorComponent implements OnInit {
                 ColumnName: table.ColumnName,
                 Type: FilterType.Compare,
                 CompareOp: CompareOperator.Equal,
-                Value1: key
-              }
-            ]
+                Value1: key,
+              },
+            ],
           };
           this.logger.debug(this, 'Getting preselected entity with navigation state', navigationState);
 
-          const result = this.builder.buildReadWriteEntities(
-            await table.Get(navigationState),
-            this.entitySchema
-          );
+          const result = this.builder.buildReadWriteEntities(await table.Get(navigationState), this.entitySchema);
 
           if (result.Data.length) {
             preselectedTemp.push(result.Data[0]);
@@ -264,4 +263,3 @@ export class FkSelectorComponent implements OnInit {
     }
   }
 }
-

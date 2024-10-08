@@ -33,26 +33,53 @@ import { CdrEditor, ValueHasChangedEventArg } from '../cdr-editor.interface';
 import { ColumnDependentReference } from '../column-dependent-reference.interface';
 import { EntityColumnContainer } from '../entity-column-container';
 
+/**
+ * Provides a {@link CdrEditor | CDR editor} for editing / viewing url columns.
+ * 
+ * To change its value, it uses the input type 'url'.
+ * When set to read-only, it uses a {@link ViewPropertyComponent | view property component} to display the content.
+ */
 @Component({
   selector: 'imx-edit-url',
   templateUrl: './edit-url.component.html',
   styleUrls: ['./edit-url.component.scss'],
 })
 export class EditUrlComponent implements CdrEditor, OnDestroy {
+  /**
+   * The form control associated with the editor.
+   */
   public readonly control = new UntypedFormControl('', { updateOn: 'blur' });
 
+  /**
+   * The container that wraps the column functionality.
+   */
   public readonly columnContainer = new EntityColumnContainer<string>();
+  /**
+   * Event that is emitted, after a value has been changed.
+   */
   public readonly valueHasChanged = new EventEmitter<ValueHasChangedEventArg>();
 
   private readonly subscribers: Subscription[] = [];
   private isWriting = false;
 
+  /**   *
+   * Creates a new EditUrlComponent
+   * @param urlValidator The {@link UrlValidatorService} used for validation.
+   */
   constructor(private readonly urlValidator: UrlValidatorService) {}
 
+  /**
+   * Unsubscribes all events, after the 'OnDestroy' hook is triggered.
+   */
   public ngOnDestroy(): void {
     this.subscribers.forEach((s) => s.unsubscribe());
   }
 
+  /**
+   * Binds a column dependent reference to the component.
+   * Subscribes to subjects from the column dependent reference and its container.
+   * @param cdref a column dependent reference
+   */
   public bind(cdref: ColumnDependentReference): void {
     if (cdref && cdref.column) {
       this.columnContainer.init(cdref);

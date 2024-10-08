@@ -79,7 +79,7 @@ export class PasswordResetComponent implements OnInit {
     private readonly busy: EuiLoadingService,
     private readonly metadataSvc: MetadataService,
     private passwordSvc: PasswordService,
-    private translate: TranslateService
+    private translate: TranslateService,
   ) {
     this.addColumnDef({
       id: 'display',
@@ -108,7 +108,9 @@ export class PasswordResetComponent implements OnInit {
 
   public getDateDisplay(row: PasswordItem): string {
     const pls = row.dataItem.PasswordLastSet;
-    if (!pls) { return ''; }
+    if (!pls) {
+      return '';
+    }
     const date = pls instanceof Date ? pls : new Date(pls);
     return date.toLocaleDateString(this.translate.currentLang);
   }
@@ -123,7 +125,7 @@ export class PasswordResetComponent implements OnInit {
       setTimeout(() => this.busy.hide(overlayRef));
     }
 
-    await this.metadataSvc.update(this.passwordItems.map((elem) => elem.tableName));
+    await this.metadataSvc.updateNonExisting(this.passwordItems.map((elem) => elem.tableName));
     for (const p of this.passwordItems) {
       p.tableDisplay = this.metadataSvc.tables[p.tableName].DisplaySingular;
     }

@@ -71,7 +71,7 @@ export class PoliciesComponent implements OnInit {
   public async ngOnInit(): Promise<void> {
     this.euiBusysService.show();
     try {
-      this.filterOptions = (await this.policiesProvider.getDataModel()).Filters;
+      this.filterOptions = (await this.policiesProvider.getDataModel()).Filters || [];
       this.isMControlPerViolation = (await this.policiesProvider.featureConfig()).MitigatingControlsPerViolation;
     } finally {
       this.euiBusysService.hide();
@@ -112,15 +112,22 @@ export class PoliciesComponent implements OnInit {
 
     try {
       const data = await this.policiesProvider.getPolicies(this.navigationState);
-      this.dstSettings = {
-        displayedColumns: this.displayedColumns,
-        dataSource: data,
-        entitySchema: this.policySchema,
-        navigationState: this.navigationState,
-        filters: this.filterOptions,
-      };
+      if (data) {
+        this.dstSettings = {
+          displayedColumns: this.displayedColumns,
+          dataSource: data,
+          entitySchema: this.policySchema,
+          navigationState: this.navigationState,
+          filters: this.filterOptions,
+        };
+      }
     } finally {
       isBusy.endBusy();
     }
+  }
+
+  public async onSearch(keywords: string): Promise<void> {
+    this.policiesProvider.abortCall();
+    return this.navigate({ search: keywords });
   }
 }

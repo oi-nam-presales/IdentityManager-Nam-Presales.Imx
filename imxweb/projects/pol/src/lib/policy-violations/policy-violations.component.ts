@@ -173,6 +173,7 @@ export class PolicyViolationsComponent implements OnInit {
   }
 
   public async search(search: string): Promise<void> {
+    this.policyViolationsService.abortCall();
     return this.getData({ ...this.navigationState, ...{ search } });
   }
 
@@ -195,6 +196,7 @@ export class PolicyViolationsComponent implements OnInit {
       groupedData.data = await this.policyViolationsService.get(this.approveOnly, groupedData.navigationState);
       groupedData.settings = {
         displayedColumns: this.dstSettings.displayedColumns,
+        dataModel: this.dstSettings.dataModel,
         dataSource: groupedData.data,
         entitySchema: this.dstSettings.entitySchema,
         navigationState: groupedData.navigationState,
@@ -218,19 +220,21 @@ export class PolicyViolationsComponent implements OnInit {
         this.filterOptions = this.filterOptions.filter((filter) => filter.Name !== 'uid_qerpolicy');
       }
       const dataSource = await this.policyViolationsService.get(this.approveOnly, this.navigationState);
-      const exportMethod = this.policyViolationsService.exportPolicyViolations(this.navigationState);
-      exportMethod.initialColumns = this.displayedColumns.map((col) => col.ColumnName);
-      this.dstSettings = {
-        dataSource,
-        entitySchema: this.entitySchema,
-        navigationState: this.navigationState,
-        filters: this.filterOptions,
-        dataModel: this.dataModel,
-        groupData: this.groupData,
-        viewConfig: this.viewConfig,
-        exportMethod,
-        displayedColumns: this.displayedColumns,
-      };
+      if (dataSource) {
+        const exportMethod = this.policyViolationsService.exportPolicyViolations(this.navigationState);
+        exportMethod.initialColumns = this.displayedColumns.map((col) => col.ColumnName);
+        this.dstSettings = {
+          dataSource,
+          entitySchema: this.entitySchema,
+          navigationState: this.navigationState,
+          filters: this.filterOptions,
+          dataModel: this.dataModel,
+          groupData: this.groupData,
+          viewConfig: this.viewConfig,
+          exportMethod,
+          displayedColumns: this.displayedColumns,
+        };
+      }
     } finally {
       isBusy.endBusy();
     }

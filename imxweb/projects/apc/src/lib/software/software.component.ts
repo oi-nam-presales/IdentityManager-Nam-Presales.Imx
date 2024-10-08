@@ -29,7 +29,14 @@ import { EuiSidesheetService } from '@elemental-ui/core';
 import { TranslateService } from '@ngx-translate/core';
 
 import { CollectionLoadParameters, DataModel, DisplayColumns, EntitySchema, IClientProperty, TypedEntity } from 'imx-qbm-dbts';
-import { BusyService, DataSourceToolbarSettings, HelpContextualValues, LdsReplacePipe, MetadataService, SideNavigationComponent } from 'qbm';
+import {
+  BusyService,
+  DataSourceToolbarSettings,
+  HelpContextualValues,
+  LdsReplacePipe,
+  MetadataService,
+  SideNavigationComponent,
+} from 'qbm';
 import { SoftwareSidesheetComponent } from './software-sidesheet/software-sidesheet.component';
 import { SoftwareService } from './software.service';
 
@@ -63,7 +70,7 @@ export class SoftwareComponent implements OnInit, SideNavigationComponent {
     const isBusy = this.busyService.beginBusy();
     try {
       this.entitySchema = this.resourceProvider.getSchema(false);
-      await this.metadata.update(['Application']);
+      await this.metadata.updateNonExisting(['Application']);
       this.dataModel = await this.resourceProvider.getDataModel(undefined);
     } finally {
       isBusy.endBusy();
@@ -115,14 +122,17 @@ export class SoftwareComponent implements OnInit, SideNavigationComponent {
   private async navigate(): Promise<void> {
     const isBusy = this.busyService.beginBusy();
     try {
-      this.dstSettings = {
-        dataSource: await this.resourceProvider.get(this.navigationState),
-        entitySchema: this.entitySchema,
-        navigationState: this.navigationState,
-        displayedColumns: this.displayColumns,
-        filters: this.dataModel.Filters,
-        dataModel: this.dataModel,
-      };
+      const dataSource = await this.resourceProvider.get(this.navigationState);
+      if (dataSource) {
+        this.dstSettings = {
+          dataSource: dataSource,
+          entitySchema: this.entitySchema,
+          navigationState: this.navigationState,
+          displayedColumns: this.displayColumns,
+          filters: this.dataModel.Filters,
+          dataModel: this.dataModel,
+        };
+      }
     } finally {
       isBusy.endBusy();
     }

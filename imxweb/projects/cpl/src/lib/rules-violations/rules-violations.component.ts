@@ -28,28 +28,29 @@ import { Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { EuiLoadingService, EuiSidesheetService } from '@elemental-ui/core';
 import { TranslateService } from '@ngx-translate/core';
 
-import { CollectionLoadParameters, EntitySchema, TypedEntity, ValType } from 'imx-qbm-dbts';
 import { ActivatedRoute, Params } from '@angular/router';
+import { CollectionLoadParameters, EntitySchema, TypedEntity, ValType } from 'imx-qbm-dbts';
 
+import { PortalRules } from 'imx-api-cpl';
+import { ViewConfigData } from 'imx-api-qer';
 import {
+  BusyService,
   ClassloggerService,
+  DataModelWrapper,
   DataSourceToolbarFilter,
   DataSourceToolbarSettings,
+  DataSourceToolbarViewConfig,
   DataSourceWrapper,
   DataTableComponent,
   DataTableGroupedData,
-  DataModelWrapper,
-  DataSourceToolbarViewConfig,
-  BusyService,
 } from 'qbm';
+import { ViewConfigService } from 'qer';
 import { Subscription } from 'rxjs';
-import { RulesViolationsApproval } from './rules-violations-approval';
+import { MitigatingControlsPersonService } from './mitigating-controls-person/mitigating-controls-person.service';
 import { RulesViolationsActionService } from './rules-violations-action/rules-violations-action.service';
+import { RulesViolationsApproval } from './rules-violations-approval';
 import { RulesViolationsDetailsComponent } from './rules-violations-details/rules-violations-details.component';
 import { RulesViolationsService } from './rules-violations.service';
-import { MitigatingControlsPersonService } from './mitigating-controls-person/mitigating-controls-person.service';
-import { ViewConfigService } from 'qer';
-import { ViewConfigData } from 'imx-api-qer';
 
 /**
  * Component that shows all rules violations that the user can approve or deny.
@@ -114,27 +115,13 @@ export class RulesViolationsComponent implements OnInit, OnDestroy {
       this.viewConfig = await this.viewConfigService.getInitialDSTExtension(this.dataModelWrapper.dataModel, this.viewConfigPath);
 
       this.dstWrapper = new DataSourceWrapper(
-        (state) => this.rulesViolationsService.getRulesViolationsApprove(state),
+        (state, requestOpts) => this.rulesViolationsService.getRulesViolationsApprove(state, requestOpts),
         [
           entitySchema.Columns.UID_Person,
           entitySchema.Columns.UID_NonCompliance,
           entitySchema.Columns.State,
-          {
-            ColumnName: 'decision',
-            Type: ValType.String,
-            afterAdditionals: true,
-            untranslatedDisplay: '#LDS#Approval decision',
-          },
-        ],
-        entitySchema,
-        this.dataModelWrapper
-      );
-      this.dstWrapper = new DataSourceWrapper(
-        (state) => this.rulesViolationsService.getRulesViolationsApprove(state),
-        [
-          entitySchema.Columns.UID_Person,
-          entitySchema.Columns.UID_NonCompliance,
-          entitySchema.Columns.State,
+          entitySchema.Columns.RiskIndexCalculated,
+          entitySchema.Columns.RiskIndexReduced,
           {
             ColumnName: 'decision',
             Type: ValType.String,
@@ -172,12 +159,20 @@ export class RulesViolationsComponent implements OnInit, OnDestroy {
   public async getData(parameter?: CollectionLoadParameters): Promise<void> {
     const isBusy = this.busyService.beginBusy();
     try {
-      this.dstSettings = await this.dstWrapper.getDstSettings(parameter);
-      this.dstSettings.exportMethod = this.rulesViolationsService.exportRulesViolations(parameter);
-      this.dstSettings.viewConfig = this.viewConfig;
+      const dstSettings = await this.dstWrapper.getDstSettings(parameter, { signal: this.rulesViolationsService.abortController.signal });
+      if (dstSettings) {
+        this.dstSettings = dstSettings;
+        this.dstSettings.exportMethod = this.rulesViolationsService.exportRulesViolations(parameter);
+        this.dstSettings.viewConfig = this.viewConfig;
+      }
     } finally {
       isBusy.endBusy();
     }
+  }
+
+  public onSearch(keywords: string): Promise<void> {
+    this.rulesViolationsService.abortCall();
+    return this.getData({ search: keywords });
   }
 
   public onSelectionChanged(items: RulesViolationsApproval[]): void {
@@ -190,15 +185,15 @@ export class RulesViolationsComponent implements OnInit, OnDestroy {
    * @param selectedRulesViolation the selected {@link RulesViolationsApproval}
    */
   public async viewDetails(selectedRulesViolation: RulesViolationsApproval): Promise<void> {
-    let complianceRuleUid;
+    let complianceRule: PortalRules;
     this.elementalBusyService.show();
 
     try {
-      complianceRuleUid = await this.rulesViolationsService.getComplianceRuleUId(selectedRulesViolation);
+      complianceRule = await this.rulesViolationsService.getComplianceRuleByUId(selectedRulesViolation);
     } finally {
       this.elementalBusyService.hide();
     }
-    if (!complianceRuleUid) {
+    if (!complianceRule) {
       return;
     }
     // TODO: Make API for mit conts
@@ -214,7 +209,7 @@ export class RulesViolationsComponent implements OnInit, OnDestroy {
         data: {
           selectedRulesViolation,
           isMControlPerViolation: this.isMControlPerViolation,
-          complianceRuleUid,
+          complianceRule,
         },
       })
       .afterClosed()
@@ -233,6 +228,7 @@ export class RulesViolationsComponent implements OnInit, OnDestroy {
       groupedData.data = await this.rulesViolationsService.getRulesViolationsApprove(groupedData.navigationState);
       groupedData.settings = {
         displayedColumns: this.dstSettings.displayedColumns,
+        dataModel: this.dstSettings.dataModel,
         dataSource: groupedData.data,
         entitySchema: this.dstSettings.entitySchema,
         navigationState: groupedData.navigationState,

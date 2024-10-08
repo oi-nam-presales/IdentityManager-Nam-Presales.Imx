@@ -28,15 +28,33 @@ import { Component } from '@angular/core';
 import { UntypedFormControl } from '@angular/forms';
 import { EditorBase } from '../editor-base';
 
+/**
+ * Provides a {@link CdrEditor | CDR editor} for editing / viewing risk index columns.
+ * 
+ * To change the value, it uses an Angular Material slider, that ranges between 0 and 1.
+ * When set to read-only, it uses a {@link ViewPropertyComponent | view property component} to display the content.
+ */
 @Component({
   selector: 'imx-edit-risk-index',
   templateUrl: './edit-risk-index.component.html',
-  styleUrls: ['./edit-risk-index.component.scss']
+  styleUrls: ['./edit-risk-index.component.scss'],
 })
 export class EditRiskIndexComponent extends EditorBase<number> {
+  /**
+   * The form control associated with the editor.
+   */
   public readonly control = new UntypedFormControl(undefined, { updateOn: 'blur' });
+  
+  /**
+   * @ignore Only used in template.
+   */
   public sliderFocused = false;
 
+  /**
+   * Converts a number value to a string in the current language.
+   * @param value The number value, that should be formatted.
+   * @returns A local representation of the number value.
+   */
   public formatLabel(value: number): string {
     return value.toLocaleString();
   }

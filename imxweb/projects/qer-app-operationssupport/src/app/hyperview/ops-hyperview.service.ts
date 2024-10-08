@@ -39,5 +39,9 @@ export class OpsHyperviewService implements ObjectHyperviewService {
   public async get(tableName: string, uid: string, nodeName?: string): Promise<ShapeData[]> {
     return this.session.Client.opsupport_hyperview_get(tableName, uid, { node: nodeName });
   }
+
+  public getNavigationPermission(): Promise<boolean> {
+    return new Promise((resolve) => resolve(false));
+  }
 }
 

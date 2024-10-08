@@ -37,7 +37,7 @@ import {
   DataModel,
   EntityCollectionData,
   MethodDescriptor,
-  MethodDefinition
+  MethodDefinition,
 } from 'imx-qbm-dbts';
 import {
   PortalTargetsystemUnsGroup,
@@ -47,7 +47,7 @@ import {
   PortalTargetsystemUnsDirectmembers,
   PortalTargetsystemUnsNestedmembers,
   PortalRespUnsgroup,
-  V2ApiClientMethodFactory
+  V2ApiClientMethodFactory,
 } from 'imx-api-tsb';
 import { GroupsFilterTreeParameters, GetGroupsOptionalParameters } from './groups.models';
 import { TsbApiService } from '../tsb-api-client.service';
@@ -57,15 +57,18 @@ import { DbObjectKeyBase } from '../target-system/db-object-key-wrapper.interfac
 
 @Injectable({ providedIn: 'root' })
 export class GroupsService {
+  private abortController = new AbortController();
+
   constructor(
     private readonly tsbClient: TsbApiService,
     private readonly logger: ClassloggerService,
     private readonly dynamicMethod: TargetSystemDynamicMethodService
-  ) { }
+  ) {}
 
   public unsGroupsSchema(isAdmin: boolean): EntitySchema {
-    return isAdmin ? this.tsbClient.typedClient.PortalTargetsystemUnsGroup.GetSchema() :
-      this.tsbClient.typedClient.PortalRespUnsgroup.GetSchema();
+    return isAdmin
+      ? this.tsbClient.typedClient.PortalTargetsystemUnsGroup.GetSchema()
+      : this.tsbClient.typedClient.PortalRespUnsgroup.GetSchema();
   }
 
   public get UnsGroupMembersSchema(): EntitySchema {
@@ -85,7 +88,11 @@ export class GroupsService {
   }
 
   public async getGroups(navigationState: GetGroupsOptionalParameters): Promise<TypedEntityCollectionData<PortalTargetsystemUnsGroup>> {
-    return this.tsbClient.typedClient.PortalTargetsystemUnsGroup.Get(navigationState);
+    if (navigationState?.search !== undefined) {
+      // abort the request only while searching
+      this.abortCall();
+    }
+    return this.tsbClient.typedClient.PortalTargetsystemUnsGroup.Get(navigationState, { signal: this.abortController.signal });
   }
 
   public exportGroups(navigationState: GetGroupsOptionalParameters): DataSourceToolbarExportMethod {
@@ -94,17 +101,21 @@ export class GroupsService {
       getMethod: (withProperties: string, PageSize?: number) => {
         let method: MethodDescriptor<EntityCollectionData>;
         if (PageSize) {
-          method = factory.portal_targetsystem_uns_group_get({...navigationState, withProperties, PageSize, StartIndex: 0})
+          method = factory.portal_targetsystem_uns_group_get({ ...navigationState, withProperties, PageSize, StartIndex: 0 });
         } else {
-          method = factory.portal_targetsystem_uns_group_get({...navigationState, withProperties})
+          method = factory.portal_targetsystem_uns_group_get({ ...navigationState, withProperties });
         }
         return new MethodDefinition(method);
-      }
-    }
+      },
+    };
   }
 
   public async getGroupsResp(navigationState: GetGroupsOptionalParameters): Promise<TypedEntityCollectionData<PortalRespUnsgroup>> {
-    return this.tsbClient.typedClient.PortalRespUnsgroup.Get(navigationState);
+    if (navigationState?.search !== undefined) {
+      // abort the request only while searching
+      this.abortCall();
+    }
+    return this.tsbClient.typedClient.PortalRespUnsgroup.Get(navigationState, { signal: this.abortController.signal });
   }
 
   public exportGroupsResp(navigationState: GetGroupsOptionalParameters): DataSourceToolbarExportMethod {
@@ -113,13 +124,13 @@ export class GroupsService {
       getMethod: (withProperties: string, PageSize?: number) => {
         let method: MethodDescriptor<EntityCollectionData>;
         if (PageSize) {
-          method = factory.portal_resp_unsgroup_get({...navigationState, withProperties, PageSize, StartIndex: 0})
+          method = factory.portal_resp_unsgroup_get({ ...navigationState, withProperties, PageSize, StartIndex: 0 });
         } else {
-          method = factory.portal_resp_unsgroup_get({...navigationState, withProperties})
+          method = factory.portal_resp_unsgroup_get({ ...navigationState, withProperties });
         }
         return new MethodDefinition(method);
-      }
-    }
+      },
+    };
   }
 
   public async getGroupDetails(dbObjectKey: DbObjectKeyBase): Promise<GroupTypedEntity> {
@@ -171,15 +182,14 @@ export class GroupsService {
 
     const groupId = dbObjectKey.Keys[0];
 
-    return Promise.all(uidAccountList.map(accountId =>
-      this.dynamicMethod.delete(
-        dbObjectKey.TableName,
-        {
+    return Promise.all(
+      uidAccountList.map((accountId) =>
+        this.dynamicMethod.delete(dbObjectKey.TableName, {
           path: '{groupId}/memberships/{accountId}',
-          parameters: { groupId, accountId }
-        }
+          parameters: { groupId, accountId },
+        })
       )
-    ));
+    );
   }
 
   public async getGroupsGroupMembers(
@@ -192,16 +202,18 @@ export class GroupsService {
   }
 
   public async getFilterOptions(forAdmin: boolean): Promise<DataModelFilter[]> {
-    return forAdmin ? (await this.tsbClient.client.portal_targetsystem_uns_group_datamodel_get(undefined)).Filters
+    return forAdmin
+      ? (await this.tsbClient.client.portal_targetsystem_uns_group_datamodel_get(undefined)).Filters
       : (await this.tsbClient.client.portal_resp_unsgroup_datamodel_get(undefined)).Filters;
   }
 
   public async getDataModel(forAdmin: boolean): Promise<DataModel> {
-    return forAdmin ? this.tsbClient.client.portal_targetsystem_uns_group_datamodel_get(undefined)
+    return forAdmin
+      ? this.tsbClient.client.portal_targetsystem_uns_group_datamodel_get(undefined)
       : this.tsbClient.client.portal_resp_unsgroup_datamodel_get(undefined);
   }
 
-  public async updateMultipleOwner(uidAccProducts: string[], uidPerson: { uidPerson?: string; uidRole?: string; }): Promise<string> {
+  public async updateMultipleOwner(uidAccProducts: string[], uidPerson: { uidPerson?: string; uidRole?: string }): Promise<string> {
     let confirmMessage = '#LDS#The product owner has been successfully assigned.';
     try {
       for (const data of uidAccProducts) {
@@ -225,5 +237,10 @@ export class GroupsService {
       throw exception;
     }
     return confirmMessage;
+  }
+
+  private abortCall(): void {
+    this.abortController.abort();
+    this.abortController = new AbortController();
   }
 }

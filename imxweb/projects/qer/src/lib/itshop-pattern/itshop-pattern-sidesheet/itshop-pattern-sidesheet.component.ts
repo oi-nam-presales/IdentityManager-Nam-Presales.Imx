@@ -56,16 +56,15 @@ import { ProjectConfigurationService } from '../../project-configuration/project
 @Component({
   selector: 'imx-itshop-pattern-sidesheet',
   templateUrl: './itshop-pattern-sidesheet.component.html',
-  styleUrls: ['./itshop-pattern-sidesheet.component.scss']
+  styleUrls: ['./itshop-pattern-sidesheet.component.scss'],
 })
 export class ItshopPatternSidesheetComponent implements OnInit, OnDestroy {
-
   public get formArray(): UntypedFormArray {
     return this.detailsFormGroup.get('formArray') as UntypedFormArray;
   }
   public cdrList: ColumnDependentReference[] = [];
   public readonly detailsFormGroup: UntypedFormGroup;
-  
+
   public busyService = new BusyService();
 
   public dstWrapper: DataSourceWrapper<PortalItshopPatternItem>;
@@ -78,8 +77,8 @@ export class ItshopPatternSidesheetComponent implements OnInit, OnDestroy {
   public editableDetailsInfoText = '#LDS#Here you can edit the details of this product bundle.';
 
   public productsInfoText = '#LDS#Here you can get an overview of all products assigned to this product bundle.';
-  public editableProductsInfoText = '#LDS#Here you can get an overview of all products assigned to this product bundle. Additionally, you can add and remove products.';
-
+  public editableProductsInfoText =
+    '#LDS#Here you can get an overview of all products assigned to this product bundle. Additionally, you can add and remove products.';
 
   @ViewChild(DataTableComponent) public table: DataTableComponent<TypedEntity>;
 
@@ -88,11 +87,12 @@ export class ItshopPatternSidesheetComponent implements OnInit, OnDestroy {
 
   constructor(
     formBuilder: UntypedFormBuilder,
-    @Inject(EUI_SIDESHEET_DATA) public data: {
-      pattern: PortalItshopPatternPrivate
-      isMyPattern: boolean,
-      adminMode: boolean,
-      canEditAndDelete: boolean
+    @Inject(EUI_SIDESHEET_DATA)
+    public data: {
+      pattern: PortalItshopPatternPrivate;
+      isMyPattern: boolean;
+      adminMode: boolean;
+      canEditAndDelete: boolean;
     },
     private readonly translate: TranslateService,
     private readonly patternService: ItshopPatternService,
@@ -107,8 +107,8 @@ export class ItshopPatternSidesheetComponent implements OnInit, OnDestroy {
     this.detailsFormGroup = new UntypedFormGroup({ formArray: formBuilder.array([]) });
 
     this.closeSubscription = this.sideSheetRef.closeClicked().subscribe(async () => {
-      if (!this.detailsFormGroup.dirty
-        || await confirmation.confirmLeaveWithUnsavedChanges()) {
+      if (!this.detailsFormGroup.dirty || (await confirmation.confirmLeaveWithUnsavedChanges())) {
+        this.data.pattern.GetEntity().DiscardChanges();
         this.sideSheetRef.close();
       }
     });
@@ -143,9 +143,12 @@ export class ItshopPatternSidesheetComponent implements OnInit, OnDestroy {
 
       const parameters = {
         ...parameter,
-        ...filteredState
+        ...filteredState,
       };
-      this.dstSettings = await this.dstWrapper.getDstSettings(parameters);
+      const dstSettings = await this.dstWrapper.getDstSettings(parameters, { signal: this.patternService.abortController.signal });
+      if (dstSettings) {
+        this.dstSettings = dstSettings;
+      }
     } finally {
       isBusy.endBusy();
     }
@@ -160,6 +163,11 @@ export class ItshopPatternSidesheetComponent implements OnInit, OnDestroy {
     }
   }
 
+  public onSearch(keywords: string): Promise<void> {
+    this.patternService.abortCall();
+    return this.getData({ search: keywords });
+  }
+
   public onSelectionChanged(items: PortalItshopPatternItem[]): void {
     this.logger.trace(this, 'selection changed', items);
     this.selectedPatternItems = items;
@@ -171,10 +179,12 @@ export class ItshopPatternSidesheetComponent implements OnInit, OnDestroy {
   }
 
   public async delete(): Promise<void> {
-    if (await this.confirmation.confirm({
-      Title: '#LDS#Heading Delete Product Bundle',
-      Message: '#LDS#Are you sure you want to delete the product bundle?'
-    })) {
+    if (
+      await this.confirmation.confirm({
+        Title: '#LDS#Heading Delete Product Bundle',
+        Message: '#LDS#Are you sure you want to delete the product bundle?',
+      })
+    ) {
       if (await this.patternService.delete([this.data.pattern])) {
         this.sideSheetRef.close(ItShopPatternChangedType.Deleted);
       }
@@ -189,18 +199,20 @@ export class ItshopPatternSidesheetComponent implements OnInit, OnDestroy {
   }
 
   public async addProducts(): Promise<void> {
-
-    const result = await this.sidesheet.open(ItshopPatternAddProductsComponent, {
-      title: await this.translate.get('#LDS#Heading Add Products To Product Bundle').toPromise(),
-      subTitle: this.data.pattern.Ident_ShoppingCartPattern.value,
-      panelClass: 'imx-sidesheet',
-      padding: '0',
-      width: 'max(768px, 70%)',
-      testId: 'pattern-add-products-sidesheet',
-      data: {
-        shoppingCartPatternUid: this.shoppingCartPatternUid
-      }
-    }).afterClosed().toPromise();
+    const result = await this.sidesheet
+      .open(ItshopPatternAddProductsComponent, {
+        title: await this.translate.get('#LDS#Heading Add Products To Product Bundle').toPromise(),
+        subTitle: this.data.pattern.Ident_ShoppingCartPattern.value,
+        panelClass: 'imx-sidesheet',
+        padding: '0',
+        width: 'max(768px, 70%)',
+        testId: 'pattern-add-products-sidesheet',
+        data: {
+          shoppingCartPatternUid: this.shoppingCartPatternUid,
+        },
+      })
+      .afterClosed()
+      .toPromise();
 
     if (result) {
       const snackBarMessage = '#LDS#The selected products have been successfully added to the product bundle.';
@@ -210,8 +222,7 @@ export class ItshopPatternSidesheetComponent implements OnInit, OnDestroy {
   }
 
   public selectedItemsCanBeDeleted(): boolean {
-    return this.selectedPatternItems != null
-      && this.selectedPatternItems.length > 0;
+    return this.selectedPatternItems != null && this.selectedPatternItems.length > 0;
   }
 
   public async createPrivateCopy(): Promise<void> {
@@ -238,7 +249,6 @@ export class ItshopPatternSidesheetComponent implements OnInit, OnDestroy {
   }
 
   public async editPatternItem(selectedItem: PortalItshopPatternItem): Promise<void> {
-
     let projectConfig: QerProjectConfig & ProjectConfig;
     let serviceItem: PortalShopServiceitems;
 
@@ -250,35 +260,32 @@ export class ItshopPatternSidesheetComponent implements OnInit, OnDestroy {
       this.patternService.handleCloseLoader();
     }
 
-    this.sidesheet.open(ItshopPatternItemEditComponent,
-      {
-        title: await this.translate.get('#LDS#Heading View Product Details').toPromise(),
-        subTitle: selectedItem.GetEntity().GetDisplay(),
-        padding: '0px',
-        width: '600px',
-        testId: 'itshop-pattern-item-edit-sidesheet',
-        data: {
-          patternItemUid: selectedItem.GetEntity().GetKeys().join(''),
-          serviceItem,
-          projectConfig
-        }
-      }
-    );
+    this.sidesheet.open(ItshopPatternItemEditComponent, {
+      title: await this.translate.get('#LDS#Heading View Product Details').toPromise(),
+      subTitle: selectedItem.GetEntity().GetDisplay(),
+      padding: '0px',
+      width: '600px',
+      testId: 'itshop-pattern-item-edit-sidesheet',
+      data: {
+        patternItemUid: selectedItem.GetEntity().GetKeys().join(''),
+        serviceItem,
+        projectConfig,
+      },
+    });
   }
 
   private async setupDetailsTab(): Promise<void> {
-
     if (this.data.canEditAndDelete) {
       this.cdrList = [
         new BaseCdr(this.data.pattern.Ident_ShoppingCartPattern.Column),
         new BaseCdr(this.data.pattern.Description.Column),
-        new BaseCdr(this.data.pattern.UID_Person.Column)
+        new BaseCdr(this.data.pattern.UID_Person.Column),
       ];
     } else {
       this.cdrList = [
         new BaseReadonlyCdr(this.data.pattern.Ident_ShoppingCartPattern.Column),
         new BaseReadonlyCdr(this.data.pattern.Description.Column),
-        new BaseReadonlyCdr(this.data.pattern.UID_Person.Column)
+        new BaseReadonlyCdr(this.data.pattern.UID_Person.Column),
       ];
     }
   }
@@ -286,10 +293,8 @@ export class ItshopPatternSidesheetComponent implements OnInit, OnDestroy {
   private setupProductsTab(): void {
     const entitySchema = this.patternService.itshopPatternItemSchema;
     this.dstWrapper = new DataSourceWrapper(
-      state => this.patternService.getPatternItems(state),
-      [
-        entitySchema.Columns[DisplayColumns.DISPLAY_PROPERTYNAME]
-      ],
+      (state, requestOpts) => this.patternService.getPatternItems(state, requestOpts),
+      [entitySchema.Columns[DisplayColumns.DISPLAY_PROPERTYNAME]],
       entitySchema
     );
   }

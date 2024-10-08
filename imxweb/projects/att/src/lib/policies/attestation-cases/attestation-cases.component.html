@@ -17,7 +17,8 @@
       <p class="imx-larger-text">{{ '#LDS#A sample is assigned to this attestation policy. You can start the attestation only for all objects in the sample.' | translate }}</p>
       <p>{{ '#LDS#Note: After you have started an attestation, it may take some time until the associated attestation cases are created.' | translate }}</p>
       <button
-        mat-raised-button color="primary"
+        mat-raised-button
+        color="primary"
         data-imx-identifier="matching-objects-button-run-all"
         title="{{ '#LDS#Creates attestation cases for all objects.' | translate }}"
         (click)="createRun([])"
@@ -28,29 +29,32 @@
   </mat-card>
 
   <mat-card *ngIf="!hasSampleData" class="imx-cases-card">
-    <imx-data-source-toolbar #dst [settings]="dstSettings" [options]="['settings']" [disableFilterWizard]="true" (navigationStateChanged)="onNavigationStateChanged($event)"> </imx-data-source-toolbar>
+    <ng-container *ngIf="!hierarchical; else tree">
+      <imx-data-source-toolbar #dst [settings]="dstSettings" [options]="['settings']" [disableFilterWizard]="true" (navigationStateChanged)="onNavigationStateChanged($event)">
+      </imx-data-source-toolbar>
 
-    <imx-data-table [dst]="dst" detailViewVisible="false" mode="manual" [selectable]="data.canCreateRuns" (selectionChanged)="onSelectionChanged($event)">
-      <imx-data-table-column [entityColumn]="entitySchemaPolicy?.Columns[DisplayColumns.DISPLAY_PROPERTYNAME]">
-        <ng-template let-data>
-          <div imxTitle>{{ data.GetEntity().GetDisplay() }}</div>
-          <div *ngIf="data.GetEntity().GetDisplay() !== data.GetEntity().GetDisplayLong()" subtitle>
-            {{ data.GetEntity().GetDisplayLong() }}
-          </div>
-        </ng-template>
-      </imx-data-table-column>
-      <imx-data-table-generic-column *ngIf="data.canCreateRuns" columnName="runMethod" [columnLabel]="">
-        <ng-template let-data>
-          <button [disabled]="dst.isChecked(data)" mat-button color="primary" data-imx-identifier="matching-objects-button-run-current" (click)="createRun([data])">
-            {{ '#LDS#Start attestation' | translate }}
-          </button>
-        </ng-template>
-      </imx-data-table-generic-column>
-    </imx-data-table>
-    <imx-data-source-paginator [dst]="dst"></imx-data-source-paginator>
+      <imx-data-table [dst]="dst" detailViewVisible="false" mode="manual" [selectable]="data.canCreateRuns" (selectionChanged)="onSelectionChanged($event)">
+        <imx-data-table-column [entityColumn]="entitySchemaPolicy?.Columns[DisplayColumns.DISPLAY_PROPERTYNAME]">
+          <ng-template let-data>
+            <div imxTitle>{{ data.GetEntity().GetDisplay() }}</div>
+            <div *ngIf="data.GetEntity().GetDisplay() !== data.GetEntity().GetDisplayLong()" subtitle>
+              {{ data.GetEntity().GetDisplayLong() }}
+            </div>
+          </ng-template>
+        </imx-data-table-column>
+        <imx-data-table-generic-column *ngIf="data.canCreateRuns" columnName="runMethod" [columnLabel]="">
+          <ng-template let-data>
+            <button [disabled]="dst.isChecked(data)" mat-button color="primary" data-imx-identifier="matching-objects-button-run-current" (click)="createRun([data])">
+              {{ '#LDS#Start attestation' | translate }}
+            </button>
+          </ng-template>
+        </imx-data-table-generic-column>
+      </imx-data-table>
+      <imx-data-source-paginator [dst]="dst"></imx-data-source-paginator>
+    </ng-container>
   </mat-card>
 </div>
-<div eui-sidesheet-actions color="white" *ngIf="data.canCreateRuns && !hasSampleData">
+<div eui-sidesheet-actions *ngIf="data.canCreateRuns && !hasSampleData">
   <button
     class="justify-start"
     mat-stroked-button
@@ -71,3 +75,13 @@
     {{ '#LDS#Start attestation for selected' | translate }}
   </button>
 </div>
+
+<ng-template #tree>
+   <imx-data-tree-wrapper
+      data-imx-identifier="attestation-cases-data-tree"
+      [database]="treeDatabase"
+      [entitySchema]="entitySchema"
+      [withSelectedNodeHighlight]="false"
+    >
+    </imx-data-tree-wrapper>
+</ng-template>

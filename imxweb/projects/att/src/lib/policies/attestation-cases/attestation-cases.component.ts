@@ -26,14 +26,24 @@
 
 import { OverlayRef } from '@angular/cdk/overlay';
 import { Component, Inject, OnInit } from '@angular/core';
-import { EuiLoadingService, EuiSidesheetRef, EUI_SIDESHEET_DATA } from '@elemental-ui/core';
+import { EUI_SIDESHEET_DATA, EuiLoadingService, EuiSidesheetRef } from '@elemental-ui/core';
 import { TranslateService } from '@ngx-translate/core';
 
 import { PortalAttestationFilterMatchingobjects } from 'imx-api-att';
-import { CollectionLoadParameters, DisplayColumns, ValType, EntitySchema } from 'imx-qbm-dbts';
-import { ClassloggerService, ClientPropertyForTableColumns, ConfirmationService, DataSourceToolbarSettings, LdsReplacePipe, SettingsService, SnackBarService } from 'qbm';
+import { CollectionLoadParameters, DisplayColumns, EntitySchema, ValType } from 'imx-qbm-dbts';
+import {
+  BusyService,
+  ClassloggerService,
+  ClientPropertyForTableColumns,
+  ConfirmationService,
+  DataSourceToolbarSettings,
+  LdsReplacePipe,
+  SettingsService,
+  SnackBarService,
+} from 'qbm';
 import { PolicyService } from '../policy.service';
 import { AttestationCasesComponentParameter } from './attestation-cases-component-parameter.interface';
+import { AttestationCasesTreeDatabaseService } from './attestation-cases-tree-database.service';
 
 @Component({
   templateUrl: './attestation-cases.component.html',
@@ -47,19 +57,23 @@ export class AttestationCasesComponent implements OnInit {
   public deactivatedChecked = false;
 
   public selectedItems: PortalAttestationFilterMatchingobjects[] = [];
+  public treeDatabase: AttestationCasesTreeDatabaseService;
+  public entitySchema = PortalAttestationFilterMatchingobjects.GetEntitySchema();
 
   private navigationState: CollectionLoadParameters;
   private displayedColumns: ClientPropertyForTableColumns[];
   private threshold = -1;
+  public hierarchical: boolean;
+  private busyService = new BusyService();
 
   constructor(
     public readonly sidesheetRef: EuiSidesheetRef,
     @Inject(EUI_SIDESHEET_DATA) public readonly data: AttestationCasesComponentParameter,
     private readonly policyService: PolicyService,
-    private readonly busyService: EuiLoadingService,
+    private readonly busyServiceEui: EuiLoadingService,
     private readonly snackbar: SnackBarService,
     private readonly confirmationService: ConfirmationService,
-    settingsService: SettingsService,
+    private readonly settingsService: SettingsService,
     private readonly translate: TranslateService,
     private readonly ldsReplace: LdsReplacePipe,
     private readonly logger: ClassloggerService
@@ -72,7 +86,7 @@ export class AttestationCasesComponent implements OnInit {
       this.displayedColumns.push({
         ColumnName: 'runMethod',
         Type: ValType.String,
-        untranslatedDisplay: '#LDS#Actions'
+        untranslatedDisplay: '#LDS#Actions',
       });
     }
   }
@@ -83,16 +97,28 @@ export class AttestationCasesComponent implements OnInit {
 
   public async ngOnInit(): Promise<void> {
     let overlayRef: OverlayRef;
-    setTimeout(() => (overlayRef = this.busyService.show()));
+    setTimeout(() => (overlayRef = this.busyServiceEui.show()));
     try {
       this.threshold = await this.policyService.getCasesThreshold();
+      this.hierarchical =
+        (
+          await this.policyService.getObjectsForFilterUntyped(
+            this.data.uidobject,
+            this.data.uidPickCategory,
+            { Elements: this.data.filter, ConcatenationType: this.data.concat },
+            { PageSize: -1 }
+          )
+        ).Hierarchy != null;
+
+      this.treeDatabase = new AttestationCasesTreeDatabaseService(this.policyService, this.settingsService, this.data, this.busyService);
+      await this.treeDatabase.prepare(this.entitySchema, false);
     } finally {
       setTimeout(async () => {
-        this.busyService.hide(overlayRef);
+        this.busyServiceEui.hide(overlayRef);
       });
     }
 
-    return this.navigate();
+    return this.hierarchical ? this.navigateTree() : this.navigate();
   }
 
   public get hasSampleData(): boolean {
@@ -109,11 +135,11 @@ export class AttestationCasesComponent implements OnInit {
   }
 
   public async createRun(data: PortalAttestationFilterMatchingobjects[]): Promise<void> {
-    const count = data.length > 0 ? data.length : this.dstSettings.dataSource.totalCount;
+    const count = data.length > 0 ? data.length : this.dstSettings?.dataSource.totalCount;
 
     if (count <= this.threshold || (await this.confirmCreation())) {
       let overlayRef: OverlayRef;
-      setTimeout(() => (overlayRef = this.busyService.show()));
+      setTimeout(() => (overlayRef = this.busyServiceEui.show()));
 
       try {
         await this.policyService.createAttestationRun(
@@ -136,19 +162,23 @@ export class AttestationCasesComponent implements OnInit {
         );
       } finally {
         setTimeout(async () => {
-          this.busyService.hide(overlayRef);
+          this.busyServiceEui.hide(overlayRef);
           this.sidesheetRef.close(true);
         });
       }
     }
   }
 
+  private async navigateTree(): Promise<void> {
+    await this.treeDatabase.prepare(this.entitySchema, true);
+  }
+
   private async navigate(): Promise<void> {
     let overlayRef: OverlayRef;
-    setTimeout(() => (overlayRef = this.busyService.show()));
+    setTimeout(() => (overlayRef = this.busyServiceEui.show()));
 
     try {
-      const datasource = await this.policyService.getObjectsForFilter(
+      const dataSource = await this.policyService.getObjectsForFilter(
         this.data.uidobject,
         this.data.uidPickCategory,
         { Elements: this.data.filter, ConcatenationType: this.data.concat },
@@ -157,21 +187,23 @@ export class AttestationCasesComponent implements OnInit {
 
       this.dstSettings = {
         displayedColumns: this.displayedColumns,
-        dataSource: datasource,
+        dataSource,
         entitySchema: this.entitySchemaPolicy,
-        navigationState: this.navigationState
+        navigationState: this.navigationState,
       };
 
       this.logger.debug(this, 'matching objects table navigated to', this.navigationState);
     } finally {
-      setTimeout(() => this.busyService.hide(overlayRef));
+      setTimeout(() => this.busyServiceEui.hide(overlayRef));
     }
   }
 
   private async confirmCreation(): Promise<boolean> {
     const message = this.ldsReplace.transform(
       await this.translate
-        .get('#LDS#You have selected more than {0} objects. Attestation of the selected objects may take some time and generate notifications to many approvers. Are you sure you want to start the attestation for the selected objects?')
+        .get(
+          '#LDS#You have selected more than {0} objects. Attestation of the selected objects may take some time and generate notifications to many approvers. Are you sure you want to start the attestation for the selected objects?'
+        )
         .toPromise(),
       this.threshold
     );
