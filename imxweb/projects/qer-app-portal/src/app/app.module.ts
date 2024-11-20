@@ -80,7 +80,8 @@ import {
   UserProcessModule,
   SourceDetectiveModule,
   RoleMembershipsModule,
-  TeamResponsibilitiesModule
+  TeamResponsibilitiesModule,
+  CustomTabModule
 } from 'qer';
 
 import { APP_BASE_HREF } from '@angular/common';
@@ -149,10 +150,11 @@ export function getBaseHref(): string {
     MyResponsibilitiesViewModule,
     ApprovalWorkFlowModule,
     DataExplorerViewModule,
-    UserProcessModule,    
+    UserProcessModule,
     SourceDetectiveModule,
     RoleMembershipsModule,
-    TeamResponsibilitiesModule
+    TeamResponsibilitiesModule,
+    CustomTabModule
   ],
   providers: [
     { provide: 'environment', useValue: environment },

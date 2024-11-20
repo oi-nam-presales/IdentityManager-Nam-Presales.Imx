@@ -204,3 +204,5 @@ export { ViewDevicesComponent } from './lib/view-devices/view-devices-home/view-
 export { ViewDevicesSidesheetComponent } from './lib/view-devices/view-devices-sidesheet/view-devices-sidesheet.component';
 export { AuthenticationFactors } from './lib/admin/authentication-factors.interface';
 
+export{CustomTabModule} from './lib/custom-tab/custom-tab.module';
+export{OutstandingUsersComponent} from './lib/custom-tab/outstanding-users/outstanding-users.component';

@@ -41,6 +41,7 @@ import {
   FkAdvancedPickerModule,
   LdsReplaceModule,
   QbmModule,
+  RouteGuardService,
   TileModule,
 } from 'qbm';
 
@@ -56,6 +57,8 @@ import { TilesModule } from './tiles/tiles.module';
 import { UserModule } from './user/user.module';
 import { BusinessOwnerChartSummaryComponent } from './wport/businessowner-chartsummary/businessowner-chartsummary.component';
 import { StartComponent } from './wport/start/start.component';
+import { RouterModule, Routes } from '@angular/router';
+import { OutstandingUsersComponent } from './custom-tab/outstanding-users/outstanding-users.component';
 
 export function initConfig(config: QerService): () => Promise<any> {
   return () =>
@@ -67,11 +70,12 @@ export function initConfig(config: QerService): () => Promise<any> {
     });
 }
 
+
 // @dynamic
 @NgModule({
   declarations: [
-    BusinessOwnerChartSummaryComponent, 
-    StartComponent, 
+    BusinessOwnerChartSummaryComponent,
+    StartComponent,
     SettingsComponent,
   ],
   imports: [

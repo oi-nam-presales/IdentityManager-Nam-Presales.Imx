@@ -26,7 +26,7 @@
 
 import { Injectable } from '@angular/core';
 
-import { ExtService } from 'qbm';
+import { ExtService, MenuService } from 'qbm';
 
 import { ObjectOverviewPersonComponent } from './ops/objectOverviewPerson.component';
 import { ShoppingCartValidationDetailService } from './shopping-cart-validation-detail/shopping-cart-validation-detail.service';
@@ -42,6 +42,7 @@ export class QerService {
   constructor(
     private extService: ExtService,
     private readonly validationDetailService: ShoppingCartValidationDetailService,
+    private readonly menuService: MenuService
   ) { }
 
   public init(): void {
@@ -51,5 +52,23 @@ export class QerService {
     this.validationDetailService.register(ExclusionCheckComponent, 'ExclusionCheck');
     this.validationDetailService.register(DuplicateCheckComponent, 'DuplicateCheck');
     this.validationDetailService.register(ProductDependencyCheckComponent, 'ProductDependencyCheck');
+    this.setupMenu()
   }
+
+  private setupMenu(): void {
+    this.menuService.addMenuFactories((preProps: string[], features: string[]) => {
+        return {
+          id: 'ROOT_SAMPLES1',
+          title: '#LDS#Custom Tabs',
+          items: [
+            {
+              id: 'SAMPLE_OutstandingUsers',
+              route: 'outstandingusers',
+              title: '#LDS#Outstanding Users',
+            },
+          ]
+        }
+      })
+    }
+
 }

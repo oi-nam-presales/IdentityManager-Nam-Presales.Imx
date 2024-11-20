@@ -1,0 +1,27 @@
+<h1 class="mat-headline">
+  <span>{{ '#LDS#Heading Address Book' | translate }}</span>
+  <imx-help-contextual></imx-help-contextual>
+</h1>
+
+<mat-card>
+  <imx-data-source-toolbar
+    #dst
+    data-imx-identifier="ccc-outstanding-users"
+    [settings]="dstSettings"
+    [busyService]="busyService"
+    (navigationStateChanged)="onNavigationStateChanged($event)"
+    data-imx-identifier="addressbook-data-source-toolbar"
+  >
+  </imx-data-source-toolbar>
+  <div class="imx-addressbook-table">
+    <imx-data-table
+      data-imx-identifier="ccc-outstanding-users"
+      [dst]="dst"
+      (highlightedEntityChanged)="onHighlightedEntityChanged($event)"
+
+      data-imx-identifier="ccc-outstanding-users"
+    >
+    </imx-data-table>
+  </div>
+  <imx-data-source-paginator data-imx-identifier="ccc-outstanding-users" [dst]="dst"></imx-data-source-paginator>
+</mat-card>
