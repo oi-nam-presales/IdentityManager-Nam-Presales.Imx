@@ -1,0 +1,11 @@
+@if (isAuthorized && !loading) {
+  <imx-badge-tile
+    data-imx-identifier="start-tile-frozen-jobs"
+    [caption]="'Frozen Provisioning Jobs'"
+    [tooltip]="'Shows the number of frozen provisioning jobs in the process queue.'"
+    [value]="frozenJobsCount.toString()"
+    [identifier]="'frozen-jobs'"
+    (actionClick)="onTileClick()"
+  >
+  </imx-badge-tile>
+}

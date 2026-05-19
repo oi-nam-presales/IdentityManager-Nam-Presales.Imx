@@ -1,0 +1,34 @@
+<h2 mat-dialog-title>Frozen Job Details</h2>
+
+<mat-dialog-content>
+  <dl class="detail-list">
+    <div class="detail-row">
+      <dt>Object</dt>
+      <dd>{{ job.CausingObject || '—' }}</dd>
+    </div>
+    <div class="detail-row">
+      <dt>Target</dt>
+      <dd>{{ job.TargetSystem || '—' }}</dd>
+    </div>
+    <div class="detail-row">
+      <dt>Operation</dt>
+      <dd>{{ job.JobChainName || '—' }}</dd>
+    </div>
+    <div class="detail-row">
+      <dt>Object Key</dt>
+      <dd>{{ job.ObjectKey || '—' }}</dd>
+    </div>
+    <div class="detail-row">
+      <dt>Time of Error</dt>
+      <dd>{{ job.StartTime | date:'medium' }}</dd>
+    </div>
+    <div class="detail-row">
+      <dt>Error Message</dt>
+      <dd class="error-message">{{ job.ErrorMessage || '—' }}</dd>
+    </div>
+  </dl>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-stroked-button mat-dialog-close data-imx-identifier="frozen-job-detail-dialog-close">Close</button>
+</mat-dialog-actions>

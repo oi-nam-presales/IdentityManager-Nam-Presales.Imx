@@ -1,0 +1,484 @@
+MIME-Version: 1.0
+Content-Type: multipart/related; boundary="----=_NextPart_000"; type="text/html"
+
+------=_NextPart_000
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+<html xmlns:o=3D"urn:schemas-microsoft-com:office:office"
+xmlns:w=3D"urn:schemas-microsoft-com:office:word"
+xmlns=3D"http://www.w3.org/TR/REC-html40">
+
+<head>
+<meta http-equiv=3D"Content-Type" content=3D"text/html; charset=3Dutf-8">
+<title>Add Base Plugin Component - Updated Guide for Identity Manager Web Portal v10</title>
+<style>
+body { font-family: Verdana, sans-serif; font-size: 10pt; margin: 40px; line-height: 1.6; }
+h1 { font-size: 16pt; color: #333; border-bottom: 2px solid #0078d4; padding-bottom: 8px; }
+h2 { font-size: 13pt; color: #444; margin-top: 30px; }
+h3 { font-size: 11pt; color: #555; margin-top: 20px; }
+code { font-family: Consolas, monospace; font-size: 9pt; background: #f5f5f5; padding: 2px 4px; border-radius: 3px; }
+pre { font-family: Consolas, monospace; font-size: 9pt; background: #FCF8D8; border: 1px solid #ccc; padding: 12px; margin: 10px 0; overflow-x: auto; line-height: 1.4; }
+.note { background: #EBF5F7; border: 1px solid #999; padding: 10px 14px; margin: 10px 0; }
+.warning { background: #FFF3CD; border: 1px solid #FFCC00; padding: 10px 14px; margin: 10px 0; }
+.file-list { background: #FCF8D8; border: 1px solid #999; padding: 10px 20px; margin: 10px 0; }
+table { border-collapse: collapse; margin: 10px 0; }
+table td, table th { border: 1px solid #ccc; padding: 6px 10px; font-size: 9pt; }
+table th { background: #f0f0f0; }
+ol > li { margin-bottom: 12px; }
+.strike { text-decoration: line-through; color: #999; }
+</style>
+</head>
+
+<body>
+
+<h1>5. Add Base Plugin Component (Updated for v10 / Angular 20 / Nx)</h1>
+
+<p>This chapter describes how to add a custom plugin library to the Identity Manager Web Portal.
+The plugin registers a dashboard tile that calls an API and displays results.</p>
+
+<div class=3D"note">
+<b>What changed from the original guide:</b>
+<ul>
+<li><span class=3D"strike">ng-package.dynamic.json</span> =E2=80=94 No longer needed</li>
+<li><span class=3D"strike">tslint.json</span> =E2=80=94 Replaced by <code>.eslintrc.json</code></li>
+<li><span class=3D"strike">"compilationMode": "partial"</span> =E2=80=94 Not needed for workspace libraries</li>
+<li><span class=3D"strike">"enableIvy": true</span> =E2=80=94 Ivy is the only compiler in Angular 20</li>
+<li><span class=3D"strike">imx-project.json</span> =E2=80=94 Replaced by <code>project.json</code> (Nx format)</li>
+<li><span class=3D"strike">"dynamic" configuration in angular.json</span> =E2=80=94 Not needed; plugin is wired via <code>portal-dynamic-modules-import.service.ts</code></li>
+<li><span class=3D"strike">Html_&lt;project-name&gt; folder on IIS</span> =E2=80=94 Not needed; plugin is bundled into the app at build time</li>
+<li>Use <code>project.json</code> for Nx configuration instead of relying solely on <code>angular.json</code></li>
+<li>The <code>imx-badge-tile</code> component (from <code>TilesModule</code> in <code>qer</code>) replaces the older <code>imx-tile</code></li>
+</ul>
+</div>
+
+<h2>Overview</h2>
+
+<p>A plugin library in the Identity Manager Web Portal consists of:</p>
+<ol>
+<li>A <b>library folder</b> under <code>projects/&lt;plugin-name&gt;/</code> with configuration files</li>
+<li>A <b>module class</b> (e.g., <code>FrozenJobsPluginModule</code>) that bootstraps initialization</li>
+<li>An <b>InitService</b> that registers components with the <code>ExtService</code></li>
+<li>One or more <b>components</b> (e.g., a dashboard tile)</li>
+<li><b>Workspace wiring</b>: entries in <code>angular.json</code>, <code>tsconfig.json</code>, and the dynamic import service</li>
+</ol>
+
+<h2>Phase 1: Scaffold the Library</h2>
+
+<h3>Files to create under <code>projects/&lt;plugin-name&gt;/</code></h3>
+
+<p>Copy these from the <code>rmb</code> or <code>rms</code> project and modify as described:</p>
+
+<div class=3D"file-list">
+<ul>
+<li><code>ng-package.json</code></li>
+<li><code>package.json</code></li>
+<li><code>project.json</code> (Nx project definition)</li>
+<li><code>tsconfig.lib.json</code></li>
+<li><code>tsconfig.lib.prod.json</code></li>
+<li><code>tsconfig.spec.json</code></li>
+<li><code>karma.conf.js</code></li>
+<li><code>.eslintrc.json</code></li>
+<li><code>imx-plugin-config.json</code></li>
+<li><code>src/public_api.ts</code></li>
+<li><code>src/test.ts</code></li>
+</ul>
+</div>
+
+<div class=3D"note">
+In all files, replace <code>&lt;plugin-name&gt;</code> with your chosen library name.
+In this example it is <b>"frozen-jobs-plugin"</b> and the module is <b>"FrozenJobsPluginModule"</b>.
+</div>
+
+<h3>Step 1: ng-package.json</h3>
+
+<p>Controls ng-packagr output. Change <code>"dest"</code> to point to your library name:</p>
+
+<pre>{
+  "$schema": "../../node_modules/ng-packagr/ng-package.schema.json",
+  "dest": "../../dist/frozen-jobs-plugin",
+  "lib": {
+    "entryFile": "src/public_api.ts",
+    "styleIncludePaths": ["../../shared/scss"]
+  }
+}</pre>
+
+<h3>Step 2: package.json</h3>
+
+<pre>{
+  "name": "frozen-jobs-plugin",
+  "version": "10.0.0",
+  "private": true
+}</pre>
+
+<h3>Step 3: project.json (Nx project definition)</h3>
+
+<p>This replaces the old <code>imx-project.json</code>. Copy from <code>rmb/project.json</code> and replace all occurrences of "rmb" with your plugin name:</p>
+
+<pre>{
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "name": "frozen-jobs-plugin",
+  "sourceRoot": "projects/frozen-jobs-plugin/src",
+  "implicitDependencies": ["qer"],
+  "projectType": "library",
+  "prefix": "imx",
+  "generators": {
+    "@schematics/angular:component": {
+      "style": "scss"
+    }
+  },
+  "targets": {
+    "build": {
+      "executor": "@angular-devkit/build-angular:ng-packagr",
+      "options": {
+        "tsConfig": "projects/frozen-jobs-plugin/tsconfig.lib.json",
+        "project": "projects/frozen-jobs-plugin/ng-package.json"
+      },
+      "configurations": {
+        "production": {
+          "tsConfig": "projects/frozen-jobs-plugin/tsconfig.lib.prod.json"
+        },
+        "development": {
+          "tsConfig": "projects/frozen-jobs-plugin/tsconfig.lib.json"
+        }
+      },
+      "outputs": ["{workspaceRoot}/dist/frozen-jobs-plugin"]
+    },
+    "test": {
+      "executor": "@angular-devkit/build-angular:karma",
+      "options": {
+        "main": "projects/frozen-jobs-plugin/src/test.ts",
+        "tsConfig": "projects/frozen-jobs-plugin/tsconfig.spec.json",
+        "karmaConfig": "projects/frozen-jobs-plugin/karma.conf.js",
+        "stylePreprocessorOptions": {
+          "includePaths": [
+            "./node_modules",
+            "./node_modules/@elemental-ui/cadence-icon",
+            "./node_modules/@elemental-ui/core",
+            "./shared/scss"
+          ]
+        }
+      }
+    }
+  }
+}</pre>
+
+<h3>Step 4: tsconfig.lib.json</h3>
+
+<pre>{
+  "extends": "../../tsconfig.json",
+  "angularCompilerOptions": {
+    "strictTemplates": true
+  },
+  "compilerOptions": {
+    "outDir": "../../out-tsc/lib",
+    "strictNullChecks": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "inlineSources": true,
+    "types": []
+  },
+  "exclude": ["src/test.ts", "**/*.spec.ts"]
+}</pre>
+
+<h3>Step 5: tsconfig.lib.prod.json</h3>
+
+<p>Simple =E2=80=94 no <code>compilationMode</code>, no <code>enableIvy</code>:</p>
+
+<pre>{
+  "extends": "./tsconfig.lib.json",
+  "compilerOptions": {
+    "declarationMap": false
+  }
+}</pre>
+
+<h3>Step 6: imx-plugin-config.json</h3>
+
+<p>This tells the portal which module to load. The <code>"Name"</code> must match your exported NgModule class name:</p>
+
+<pre>{
+  "qer-app-portal": [
+    {
+      "Container": "frozen-jobs-plugin",
+      "Name": "FrozenJobsPluginModule"
+    }
+  ]
+}</pre>
+
+<h3>Step 7: src/public_api.ts</h3>
+
+<pre>export { FrozenJobsPluginModule } from './lib/frozen-jobs-plugin.module';</pre>
+
+<h2>Phase 2: Create Source Files</h2>
+
+<h3>File: src/lib/frozen-jobs-plugin.module.ts</h3>
+
+<p>The module class. Its constructor injects the InitService and calls <code>onInit()</code>:</p>
+
+<pre>import { NgModule } from '@angular/core';
+import { Routes, RouterModule } from '@angular/router';
+
+import { TilesModule } from 'qer';
+import { InitService } from './init.service';
+import { FrozenJobsTileComponent } from './frozen-jobs-tile/frozen-jobs-tile.component';
+
+const routes: Routes = [];
+
+@NgModule({
+  imports: [RouterModule.forChild(routes), TilesModule],
+  declarations: [FrozenJobsTileComponent],
+})
+export class FrozenJobsPluginModule {
+  constructor(private readonly initializer: InitService) {
+    console.log('=F0=9F=94=A5 frozen-jobs-plugin loaded');
+    this.initializer.onInit();
+    console.log('=E2=96=B6=EF=B8=8F frozen-jobs-plugin initialized');
+  }
+}</pre>
+
+<div class=3D"note">
+<b>Key points:</b>
+<ul>
+<li>Import <code>TilesModule</code> from <code>qer</code> =E2=80=94 this provides the <code>&lt;imx-badge-tile&gt;</code> component</li>
+<li>Declare your tile component in <code>declarations</code></li>
+<li>The constructor pattern (inject service, call <code>onInit()</code>) is the same as all other plugins</li>
+</ul>
+</div>
+
+<h3>File: src/lib/init.service.ts</h3>
+
+<p>The init service registers your component as a dashboard tile using <code>ExtService</code>:</p>
+
+<pre>import { Injectable } from '@angular/core';
+
+import { ExtService } from 'qbm';
+import { FrozenJobsTileComponent } from './frozen-jobs-tile/frozen-jobs-tile.component';
+
+@Injectable({ providedIn: 'root' })
+export class InitService {
+  constructor(private readonly extService: ExtService) {}
+
+  public onInit(): void {
+    this.extService.register('Dashboard-SmallTiles', { instance: FrozenJobsTileComponent });
+  }
+}</pre>
+
+<div class=3D"note">
+<b>ExtService registration keys:</b>
+<ul>
+<li><code>'Dashboard-SmallTiles'</code> =E2=80=94 Badge tiles on the dashboard (uses <code>&lt;imx-badge-tile&gt;</code>)</li>
+<li><code>'Dashboard-Tiles'</code> =E2=80=94 Large tiles on the dashboard (uses <code>&lt;imx-tile&gt;</code>)</li>
+</ul>
+</div>
+
+<h3>File: src/lib/frozen-jobs-tile/frozen-jobs-tile.component.ts</h3>
+
+<p>The tile component checks user group membership and calls an API:</p>
+
+<pre>import { Component, OnInit } from '@angular/core';
+
+import { imx_SessionService } from 'qbm';
+import { UserModelService } from 'qer';
+
+@Component({
+  selector: 'imx-frozen-jobs-tile',
+  templateUrl: './frozen-jobs-tile.component.html',
+  standalone: false,
+})
+export class FrozenJobsTileComponent implements OnInit {
+  public frozenJobsCount: number;
+  public isAuthorized =3D false;
+  public loading =3D true;
+
+  constructor(
+    private readonly session: imx_SessionService,
+    private readonly userModelService: UserModelService,
+  ) {}
+
+  public async ngOnInit(): Promise&lt;void&gt; {
+    try {
+      const groups =3D await this.userModelService.getGroups();
+      this.isAuthorized =3D groups.some(
+        (g) =3D&gt; g.Name?.toUpperCase() =3D=3D=3D 'QER_4_OPERATIONSSUPPORT'
+      );
+
+      if (this.isAuthorized) {
+        const result =3D await this.session.Client.opsupport_queue_frozenjobs_get(
+          { PageSize: 20 }
+        );
+        this.frozenJobsCount =3D result?.TotalCount ?? 0;
+      }
+    } finally {
+      this.loading =3D false;
+    }
+  }
+
+  public onTileClick(): void {
+    console.log('Frozen jobs tile clicked');
+  }
+}</pre>
+
+<div class=3D"note">
+<b>Permission checking pattern:</b><br>
+Use <code>UserModelService.getGroups()</code> (from <code>qer</code>) which calls <code>GET /portal/usergroups</code>.
+Check for group membership by name. This is the same pattern used by <code>isAuditor()</code> in the codebase.
+</div>
+
+<h3>File: src/lib/frozen-jobs-tile/frozen-jobs-tile.component.html</h3>
+
+<pre>@if (isAuthorized &amp;&amp; !loading) {
+  &lt;imx-badge-tile
+    data-imx-identifier=3D"start-tile-frozen-jobs"
+    [caption]=3D"'Frozen Jobs'"
+    [tooltip]=3D"'Shows the number of frozen jobs in the process queue.'"
+    [value]=3D"frozenJobsCount?.toString()"
+    [identifier]=3D"'frozen-jobs'"
+    (actionClick)=3D"onTileClick()"
+  &gt;
+  &lt;/imx-badge-tile&gt;
+}</pre>
+
+<div class=3D"note">
+<b>Note:</b> The template uses Angular 17+ control flow syntax (<code>@if</code>) instead of the older <code>*ngIf</code> directive.
+The <code>&lt;imx-badge-tile&gt;</code> component is from <code>TilesModule</code> (exported by <code>qer</code>).
+</div>
+
+<h2>Phase 3: Wire into Workspace</h2>
+
+<p>Three workspace-level files must be modified:</p>
+
+<h3>Step 1: IMXWEB/tsconfig.json</h3>
+
+<p>Add path mappings in <code>compilerOptions.paths</code>:</p>
+
+<pre>"frozen-jobs-plugin": ["dist/frozen-jobs-plugin"],
+"frozen-jobs-plugin/*": ["dist/frozen-jobs-plugin/*"],</pre>
+
+<h3>Step 2: IMXWEB/angular.json</h3>
+
+<p>Add a new project entry. Copy the structure from any existing library (e.g., <code>rmb</code>) and replace names:</p>
+
+<pre>"frozen-jobs-plugin": {
+  "root": "projects/frozen-jobs-plugin",
+  "sourceRoot": "projects/frozen-jobs-plugin/src",
+  "projectType": "library",
+  "prefix": "imx",
+  "schematics": {
+    "@schematics/angular:component": {
+      "style": "scss"
+    }
+  },
+  "architect": {
+    "build": {
+      "builder": "@angular-devkit/build-angular:ng-packagr",
+      "options": {
+        "tsConfig": "projects/frozen-jobs-plugin/tsconfig.lib.json",
+        "project": "projects/frozen-jobs-plugin/ng-package.json"
+      },
+      "configurations": {
+        "production": {
+          "tsConfig": "projects/frozen-jobs-plugin/tsconfig.lib.prod.json"
+        },
+        "development": {
+          "tsConfig": "projects/frozen-jobs-plugin/tsconfig.lib.json"
+        }
+      }
+    },
+    "test": { ... },
+    "lint": { ... }
+  }
+}</pre>
+
+<h3>Step 3: portal-dynamic-modules-import.service.ts</h3>
+
+<p>File location: <code>projects/qer-app-portal/src/app/dynamic-import/portal-dynamic-modules-import.service.ts</code></p>
+
+<p><b>Add the import at the top:</b></p>
+
+<pre>import { FrozenJobsPluginModule } from "frozen-jobs-plugin";</pre>
+
+<p><b>Add a case in the switch statement</b> (before <code>default</code>):</p>
+
+<pre>case 'frozen-jobs-plugin':
+  callback =3D async () =3D&gt; {
+    await import('frozen-jobs-plugin');
+    return [FrozenJobsPluginModule];
+  };
+  break;</pre>
+
+<div class=3D"warning">
+<b>Important:</b> The <code>case</code> value must exactly match the <code>"Container"</code> value in your <code>imx-plugin-config.json</code>.
+</div>
+
+<h2>Phase 4: Build and Verify</h2>
+
+<h3>Build the library</h3>
+
+<pre>npx nx build frozen-jobs-plugin --skip-nx-cache</pre>
+
+<p>This also builds dependencies (<code>qbm</code>, <code>qer</code>) if not already built.</p>
+
+<h3>Build the portal application</h3>
+
+<pre>npx nx run qer-app-portal:build:production --skip-nx-cache</pre>
+
+<p>Verify the plugin appears as a lazy chunk in the output:</p>
+
+<pre>chunk-XXXXXXXX.js     | frozen-jobs-plugin | 128 bytes</pre>
+
+<h3>Verify bundling</h3>
+
+<pre>findstr /m "FrozenJobsPluginModule" dist\qer-app-portal\*.js</pre>
+
+<h2>Phase 5: Deploy</h2>
+
+<p>Copy the contents of <code>dist/qer-app-portal/</code> to your IIS deployment folder.
+No separate <code>Html_&lt;plugin-name&gt;</code> folder is needed =E2=80=94 the plugin is bundled into the application.</p>
+
+<div class=3D"warning">
+<b>Nx cache:</b> If changes don't appear after rebuild, clear the cache with <code>npx nx reset</code> and rebuild with <code>--skip-nx-cache</code>.
+</div>
+
+<h2>Summary: File Structure</h2>
+
+<pre>projects/frozen-jobs-plugin/
+=E2=94=9C=E2=94=80=E2=94=80 .eslintrc.json
+=E2=94=9C=E2=94=80=E2=94=80 imx-plugin-config.json
+=E2=94=9C=E2=94=80=E2=94=80 karma.conf.js
+=E2=94=9C=E2=94=80=E2=94=80 ng-package.json
+=E2=94=9C=E2=94=80=E2=94=80 package.json
+=E2=94=9C=E2=94=80=E2=94=80 project.json
+=E2=94=9C=E2=94=80=E2=94=80 tsconfig.lib.json
+=E2=94=9C=E2=94=80=E2=94=80 tsconfig.lib.prod.json
+=E2=94=9C=E2=94=80=E2=94=80 tsconfig.spec.json
+=E2=94=94=E2=94=80=E2=94=80 src/
+    =E2=94=9C=E2=94=80=E2=94=80 public_api.ts
+    =E2=94=9C=E2=94=80=E2=94=80 test.ts
+    =E2=94=94=E2=94=80=E2=94=80 lib/
+        =E2=94=9C=E2=94=80=E2=94=80 frozen-jobs-plugin.module.ts
+        =E2=94=9C=E2=94=80=E2=94=80 init.service.ts
+        =E2=94=94=E2=94=80=E2=94=80 frozen-jobs-tile/
+            =E2=94=9C=E2=94=80=E2=94=80 frozen-jobs-tile.component.ts
+            =E2=94=94=E2=94=80=E2=94=80 frozen-jobs-tile.component.html</pre>
+
+<h2>Comparison: Old vs New Approach</h2>
+
+<table>
+<tr><th>Aspect</th><th>Old Guide (Chapter 5)</th><th>New Approach (v10)</th></tr>
+<tr><td>Generate library</td><td><code>ng generate library</code></td><td>Copy files from <code>rmb</code> project</td></tr>
+<tr><td>Linting</td><td><code>tslint.json</code></td><td><code>.eslintrc.json</code></td></tr>
+<tr><td>Dynamic loading config</td><td><code>ng-package.dynamic.json</code> + "dynamic" config in angular.json</td><td>Case statement in <code>portal-dynamic-modules-import.service.ts</code></td></tr>
+<tr><td>Project config</td><td><code>imx-project.json</code></td><td><code>project.json</code> (Nx schema)</td></tr>
+<tr><td>tsconfig.lib.prod.json</td><td>Remove <code>compilationMode: partial</code>, add <code>enableIvy: true</code></td><td>Just <code>declarationMap: false</code> (Ivy is default)</td></tr>
+<tr><td>Entry file</td><td>Rename <code>public-api.ts</code> =E2=86=92 <code>public_api.ts</code></td><td>Create as <code>public_api.ts</code> directly</td></tr>
+<tr><td>IIS Deployment</td><td>Create <code>Html_&lt;plugin-name&gt;</code> folder, copy <code>imx-plugin-config.json</code></td><td>Plugin bundled into app =E2=80=94 just deploy <code>dist/qer-app-portal/</code></td></tr>
+<tr><td>Tile component</td><td><code>&lt;imx-tile&gt;</code> with <code>size=3D"Addon-Tile"</code></td><td><code>&lt;imx-badge-tile&gt;</code> from <code>TilesModule</code></td></tr>
+<tr><td>Template syntax</td><td><code>*ngIf</code></td><td><code>@if (condition) { }</code></td></tr>
+<tr><td>Component metadata</td><td><code>template: '...'</code> inline</td><td><code>templateUrl</code> + <code>standalone: false</code></td></tr>
+</table>
+
+</body>
+</html>
+
+------=_NextPart_000--

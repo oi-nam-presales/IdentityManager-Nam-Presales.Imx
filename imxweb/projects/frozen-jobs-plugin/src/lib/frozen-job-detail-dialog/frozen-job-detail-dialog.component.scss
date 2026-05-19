@@ -1,0 +1,36 @@
+:host {
+  .detail-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin: 0;
+    padding: 0;
+    min-width: 420px;
+  }
+
+  .detail-row {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
+    dt {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      opacity: 0.55;
+    }
+
+    dd {
+      margin: 0;
+      font-size: 14px;
+      word-break: break-word;
+    }
+  }
+
+  .error-message {
+    white-space: pre-wrap;
+    font-family: monospace;
+    font-size: 13px;
+  }
+}

@@ -31,6 +31,7 @@ import { AobConfigModule } from "aob";
 import { ApcConfigModule } from "apc";
 import { AttConfigModule } from "att";
 import { CplConfigModule } from "cpl";
+import { FrozenJobsPluginModule } from "frozen-jobs-plugin";
 import { HdsConfigModule } from "hds";
 import { IqcConfigModule } from "iqc";
 import { OlgConfigModule } from "olg";
@@ -139,16 +140,31 @@ export class PortalDynamicModuleImportService extends DynamicModuleImportService
             return [TsbConfigModule];
           };
           break;
+        case 'frozen-jobs-plugin':
+          callback = async () => {
+            await import('frozen-jobs-plugin');
+            return [FrozenJobsPluginModule];
+          };
+          break;
         default:
           break;
       }
       await this.loadModule(module, callback);
     }
   }
-  
+
   async loadThirdPartyModules(modules: PlugInInfo[]): Promise<void> {
     // Use the JSDoc example of how to handle any external modules you have built
     return;
+
+    // await this.loadModule(
+    //   { Container: 'frozen-jobs-plugin', Name: 'FrozenJobsPluginModule' } as PlugInInfo,
+    //   async () => {
+    //     await import('frozen-jobs-plugin');
+    //     return [FrozenJobsPluginModule];
+    //   }
+    // );
+
   }
 
 }

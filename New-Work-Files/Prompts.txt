@@ -1,0 +1,7 @@
+I need to create a new project - a library similar to rmb or rms.
+It should be called notification-plugin. Please read file "IM Web Portal customization v10.docx" - chapter "5. Add base plugin component".
+This is how I used to do this operation, but possible that it is done differently now. THis library will need to be "wired in" - mentioned in angular.json, tsconfig.json etc. 
+Please aske questions until you feel you are 95% sure what needs to be done.
+
+
+It will need to check if a logged in user has a spesific security group and if it does - display a small tile on Dashboard. When that tile opens - need to read from ApiServer - GET /opsupport/queue/frozenjobs and display a number of frozen jobs on the Tile. When user clicks on that tile - it should open a sidesheet with information on the frozen jobs.

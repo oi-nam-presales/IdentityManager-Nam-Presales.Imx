@@ -1,0 +1,8 @@
+{
+  "name": "frozen-jobs-plugin",
+  "version": "10.0.0",
+  "private": true,
+  "bundledDependencies": [
+    "imx-api-utilsplugin"
+  ]
+}

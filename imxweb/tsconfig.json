@@ -51,6 +51,8 @@
       "sac/*": ["dist/sac/*"],
       "tsb": ["dist/tsb"],
       "tsb/*": ["dist/tsb/*"],
+      "frozen-jobs-plugin": ["dist/frozen-jobs-plugin"],
+      "frozen-jobs-plugin/*": ["dist/frozen-jobs-plugin/*"],
     },
     "noFallthroughCasesInSwitch": true,
     "sourceMap": true,
@@ -63,7 +65,13 @@
     "typeRoots": ["node_modules/@types", "node_modules/@angular/material", "node_modules/@elemental-ui/core"],
     "module": "ESNext",
     "lib": ["ES2024", "dom"]
+
   },
+  "exclude": [
+    "**/node_modules",
+    "**/dist",
+    "**/html",
+  ],
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,
     "strictInjectionParameters": false,

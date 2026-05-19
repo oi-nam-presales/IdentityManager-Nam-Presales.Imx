@@ -149,7 +149,8 @@
     "@imx-modules/imx-api-sac": "~10.0.0",
     "@imx-modules/imx-api-tsb": "~10.0.0",
     "@imx-modules/imx-api-uci": "~10.0.0",
-    "@imx-modules/imx-qbm-dbts": "~10.0.0"
+    "@imx-modules/imx-qbm-dbts": "~10.0.0",
+    "@imx-modules/imx-api-utilsplugin": ""
   },
   "overrides": {
     "ajv": "^8.18.0",

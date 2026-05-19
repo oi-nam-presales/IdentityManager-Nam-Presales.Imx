@@ -1,0 +1,9 @@
+:host {
+  .mat-mdc-row {
+    cursor: pointer;
+
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.04);
+    }
+  }
+}

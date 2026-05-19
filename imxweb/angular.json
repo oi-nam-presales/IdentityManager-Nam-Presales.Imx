@@ -942,6 +942,65 @@
         }
       }
     },
+    "frozen-jobs-plugin": {
+      "root": "projects/frozen-jobs-plugin",
+      "sourceRoot": "projects/frozen-jobs-plugin/src",
+      "projectType": "library",
+      "prefix": "imx",
+      "schematics": {
+        "@schematics/angular:component": {
+          "style": "scss"
+        }
+      },
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-angular:ng-packagr",
+          "options": {
+            "tsConfig": "projects/frozen-jobs-plugin/tsconfig.lib.json",
+            "project": "projects/frozen-jobs-plugin/ng-package.json"
+          },
+          "configurations": {
+            "production": {
+              "tsConfig": "projects/frozen-jobs-plugin/tsconfig.lib.prod.json"
+            },
+            "development": {
+              "tsConfig": "projects/frozen-jobs-plugin/tsconfig.lib.json"
+            },
+            "remote-dev": {
+              "tsConfig": "projects/frozen-jobs-plugin/tsconfig.lib.json"
+            },
+            "remote-qs": {
+              "tsConfig": "projects/frozen-jobs-plugin/tsconfig.lib.json"
+            }
+          }
+        },
+        "test": {
+          "builder": "@angular-devkit/build-angular:karma",
+          "options": {
+            "main": "projects/frozen-jobs-plugin/src/test.ts",
+            "tsConfig": "projects/frozen-jobs-plugin/tsconfig.spec.json",
+            "karmaConfig": "projects/frozen-jobs-plugin/karma.conf.js",
+            "stylePreprocessorOptions": {
+              "includePaths": [
+                "./node_modules",
+                "./node_modules/@elemental-ui/cadence-icon",
+                "./node_modules/@elemental-ui/core",
+                "./shared/scss"
+              ]
+            }
+          }
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": [
+              "projects/frozen-jobs-plugin/**/*.ts",
+              "projects/frozen-jobs-plugin/**/*.html"
+            ]
+          }
+        }
+      }
+    },
     "qbm-app-landingpage": {
       "root": "projects/qbm-app-landingpage",
       "sourceRoot": "projects/qbm-app-landingpage/src",

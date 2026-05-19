@@ -57,7 +57,8 @@
         "webpack:///ng://qbm/lib/*": "${workspaceFolder}/projects/qbm/src/lib/*",
         "webpack:///ng://qer/lib/*": "${workspaceFolder}/projects/qer/src/lib/*",
         "webpack:///ng://tsb/lib/*": "${workspaceFolder}/projects/tsb/src/lib/*",
-        "webpack:///ng://att/lib/*": "${workspaceFolder}/projects/att/src/lib/*"
+        "webpack:///ng://att/lib/*": "${workspaceFolder}/projects/att/src/lib/*",
+        "webpack:///ng://frozen-jobs-plugin/lib/*": "${workspaceFolder}/projects/frozen-jobs-plugin/src/lib/*"
       }
     },
     {
