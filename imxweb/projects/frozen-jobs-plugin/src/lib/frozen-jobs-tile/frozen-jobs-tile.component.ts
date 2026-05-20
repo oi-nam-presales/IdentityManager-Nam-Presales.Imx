@@ -78,7 +78,7 @@ export class FrozenJobsTileComponent implements OnInit, OnDestroy {
 
       const entities = result.Entities ?? [];
 
-      if (entities.some((e) => e.Columns?.['RoleFullPath']?.Value === 'Base roles\\Operations support')) {
+      if (entities.some((e) => e.Columns?.['RoleFullPath']?.Value === 'Custom\\Frozen Jobs Notifications')) {
         return true;
       }
 
