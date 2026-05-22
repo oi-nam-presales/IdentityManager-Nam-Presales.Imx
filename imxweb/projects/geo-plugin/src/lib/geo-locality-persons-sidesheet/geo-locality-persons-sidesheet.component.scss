@@ -1,4 +1,13 @@
 :host {
+  .search-bar {
+    padding: 8px 0 12px 0;
+
+    .search-field {
+      width: 100%;
+      max-width: 480px;
+    }
+  }
+
   .mat-mdc-row {
     height: 36px;
 

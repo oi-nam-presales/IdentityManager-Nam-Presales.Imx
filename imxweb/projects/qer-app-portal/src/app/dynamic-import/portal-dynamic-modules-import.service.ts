@@ -162,23 +162,23 @@ export class PortalDynamicModuleImportService extends DynamicModuleImportService
 
   async loadThirdPartyModules(modules: PlugInInfo[]): Promise<void> {
     // Use the JSDoc example of how to handle any external modules you have built
-    //return;
+    return;
 
-    await this.loadModule(
-      { Container: 'frozen-jobs-plugin', Name: 'FrozenJobsPluginModule' } as PlugInInfo,
-      async () => {
-        await import('frozen-jobs-plugin');
-        return [FrozenJobsPluginModule];
-      }
-    );
+    // await this.loadModule(
+    //   { Container: 'frozen-jobs-plugin', Name: 'FrozenJobsPluginModule' } as PlugInInfo,
+    //   async () => {
+    //     await import('frozen-jobs-plugin');
+    //     return [FrozenJobsPluginModule];
+    //   }
+    // );
 
-    await this.loadModule(
-      { Container: 'geo-plugin', Name: 'GeoPluginModule' } as PlugInInfo,
-      async () => {
-        await import('geo-plugin');
-        return [GeoPluginModule];
-      }
-    );
+    // await this.loadModule(
+    //   { Container: 'geo-plugin', Name: 'GeoPluginModule' } as PlugInInfo,
+    //   async () => {
+    //     await import('geo-plugin');
+    //     return [GeoPluginModule];
+    //   }
+    // );
 
   }
 

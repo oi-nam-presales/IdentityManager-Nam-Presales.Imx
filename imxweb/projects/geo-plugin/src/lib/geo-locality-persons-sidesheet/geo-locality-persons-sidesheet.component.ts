@@ -25,8 +25,9 @@ export class GeoLocalityPersonsSidesheetComponent implements OnInit, AfterViewIn
   public loading = true;
   public totalCount = 0;
   public readonly defaultPageSize = 20;
+  public searchTerm = '';
   private currentOrderBy: string | undefined = undefined;
-  private reportSortActive = false;
+  private currentSort: Sort | null = null;
   public displayedColumns = ['FirstName', 'LastName', 'CentralAccount', 'UID_Department', 'IsInActive', 'Report'];
 
   private projectConfig: any;
@@ -42,9 +43,24 @@ export class GeoLocalityPersonsSidesheetComponent implements OnInit, AfterViewIn
 
   public ngAfterViewInit(): void { }
 
+  public get isClientMode(): boolean {
+    return !!this.searchTerm || (this.currentSort?.active === 'Report' && !!this.currentSort?.direction);
+  }
+
   public async onPageChange(event: PageEvent): Promise<void> {
-    if (this.reportSortActive) { return; }
+    if (this.isClientMode) { return; }
     await this.loadPersons(event.pageIndex * event.pageSize, event.pageSize);
+  }
+
+  public onSearchChange(value: string): void {
+    this.searchTerm = (value || '').trim();
+    if (this.paginator) { this.paginator.pageIndex = 0; }
+    if (this.isClientMode) {
+      void this.loadClientSide();
+    } else {
+      this.dataSource.paginator = null;
+      void this.loadPersons(0, this.paginator?.pageSize ?? this.defaultPageSize);
+    }
   }
 
   public async ngOnInit(): Promise<void> {
@@ -120,28 +136,32 @@ export class GeoLocalityPersonsSidesheetComponent implements OnInit, AfterViewIn
   }
 
   public onSortChange(sort: Sort): void {
+    this.currentSort = sort;
     if (!sort.direction) {
-      this.reportSortActive = false;
       this.currentOrderBy = undefined;
       if (this.paginator) { this.paginator.pageIndex = 0; }
-      this.dataSource.paginator = null;
-      void this.loadPersons(0, this.defaultPageSize);
+      if (this.isClientMode) {
+        // still in client mode (searchTerm present) — re-apply with no sort
+        void this.loadClientSide();
+      } else {
+        this.dataSource.paginator = null;
+        void this.loadPersons(0, this.defaultPageSize);
+      }
       return;
     }
-    if (sort.active === 'Report') {
-      this.reportSortActive = true;
-      void this.sortByReport(sort.direction);
+    if (this.isClientMode) {
+      this.currentOrderBy = undefined;
+      if (this.paginator) { this.paginator.pageIndex = 0; }
+      void this.loadClientSide();
       return;
     }
-    this.reportSortActive = false;
     this.currentOrderBy = `${sort.active} ${sort.direction}`;
-    if (this.paginator) {
-      this.paginator.pageIndex = 0;
-    }
+    if (this.paginator) { this.paginator.pageIndex = 0; }
+    this.dataSource.paginator = null;
     void this.loadPersons(0, this.paginator?.pageSize ?? this.defaultPageSize);
   }
 
-  private async sortByReport(direction: string): Promise<void> {
+  private async loadClientSide(): Promise<void> {
     try {
       const filter: FilterData[] = [
         { ColumnName: 'UID_Locality', CompareOp: CompareOperator.Equal, Value1: this.data.localityUid },
@@ -152,25 +172,51 @@ export class GeoLocalityPersonsSidesheetComponent implements OnInit, AfterViewIn
         StartIndex: 0,
         PageSize: 10000,
       });
-      const order = (p: PortalAdminPerson): number => {
-        const s = this.reportStatus(p);
-        if (s === 'direct' || s === 'direct-indirect') { return 0; }
-        if (s === 'indirect') { return 1; }
-        return 2;
-      };
-      const sorted = [...result.Data].sort((a, b) => {
-        const diff = order(a) - order(b);
-        return direction === 'desc' ? -diff : diff;
-      });
-      this.allPersons = sorted;
-      this.dataSource.data = sorted;
-      this.totalCount = result.totalCount;
+      let data = result.Data;
+      if (this.searchTerm) {
+        const q = this.searchTerm.toLowerCase();
+        data = data.filter((p) =>
+          this.col(p, 'FirstName').toLowerCase().includes(q) ||
+          this.col(p, 'LastName').toLowerCase().includes(q) ||
+          this.col(p, 'CentralAccount').toLowerCase().includes(q) ||
+          this.colDisplay(p, 'UID_Department').toLowerCase().includes(q),
+        );
+      }
+      if (this.currentSort?.direction) {
+        const dir = this.currentSort.direction === 'desc' ? -1 : 1;
+        const active = this.currentSort.active;
+        if (active === 'Report') {
+          const order = (p: PortalAdminPerson): number => {
+            const s = this.reportStatus(p);
+            if (s === 'direct' || s === 'direct-indirect') { return 0; }
+            if (s === 'indirect') { return 1; }
+            return 2;
+          };
+          data = [...data].sort((a, b) => dir * (order(a) - order(b)));
+        } else {
+          const keyOf = (p: PortalAdminPerson): string | number => {
+            if (active === 'IsInActive') { return p.IsInActive?.value ? 1 : 0; }
+            if (active === 'UID_Department') { return this.colDisplay(p, active).toLowerCase(); }
+            return this.col(p, active).toLowerCase();
+          };
+          data = [...data].sort((a, b) => {
+            const av = keyOf(a);
+            const bv = keyOf(b);
+            if (av < bv) { return -1 * dir; }
+            if (av > bv) { return 1 * dir; }
+            return 0;
+          });
+        }
+      }
+      this.allPersons = data;
+      this.dataSource.data = data;
+      this.totalCount = data.length;
       if (this.paginator) {
         this.paginator.pageIndex = 0;
         this.dataSource.paginator = this.paginator;
       }
     } catch (error) {
-      console.error('[GeoLocalityPersonsSidesheet] Error sorting by report:', error);
+      console.error('[GeoLocalityPersonsSidesheet] Error in client-side load:', error);
     }
   }
 

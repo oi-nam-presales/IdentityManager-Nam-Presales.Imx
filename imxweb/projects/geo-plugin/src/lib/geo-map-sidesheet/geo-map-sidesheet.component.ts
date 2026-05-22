@@ -3,6 +3,7 @@ import { EUI_SIDESHEET_DATA, EuiSidesheetService } from '@elemental-ui/core';
 import { EntityData } from '@imx-modules/imx-qbm-dbts';
 import * as L from 'leaflet';
 import { GeoLocalityPersonsSidesheetComponent } from '../geo-locality-persons-sidesheet/geo-locality-persons-sidesheet.component';
+import { ensureLeafletStyles } from './leaflet-styles';
 
 @Component({
   selector: 'imx-geo-map-sidesheet',
@@ -22,8 +23,14 @@ export class GeoMapSidesheetComponent implements AfterViewInit, OnDestroy {
   ) { }
 
   public ngAfterViewInit(): void {
+    // Ensure Leaflet's required CSS is in the DOM (works around production CSS bundling issues)
+    ensureLeafletStyles();
     // Delay to allow EUI sidesheet open animation to settle before initializing Leaflet
-    setTimeout(() => { this.initMap(); }, 150);
+    setTimeout(() => {
+      this.initMap();
+      // Force Leaflet to recalculate tile positions after container is fully rendered
+      setTimeout(() => { this.map?.invalidateSize(); }, 200);
+    }, 300);
   }
 
   public ngOnDestroy(): void {

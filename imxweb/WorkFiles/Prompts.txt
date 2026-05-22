@@ -5,3 +5,16 @@ Please aske questions until you feel you are 95% sure what needs to be done.
 
 
 It will need to check if a logged in user has a spesific security group and if it does - display a small tile on Dashboard. When that tile opens - need to read from ApiServer - GET /opsupport/queue/frozenjobs and display a number of frozen jobs on the Tile. When user clicks on that tile - it should open a sidesheet with information on the frozen jobs.
+
+Geo-Plugin:
+Please create another plugin called geo-plugin following 2. utilities-plugin-plan.md.
+It should:
+1. Register medium size tile with display name Localities
+ 1.1 While loading - retrieve a list of localities using API endpoint "/portal/candidates/Locality" wis additional fields 
+	PostalAddress,ZipCode,UID_DialogCountry,CustomProperty07,CustomProperty08,CustomProperty09
+2. When user clicks on tule - a sidesheet opens.
+3. In that sidesheet it should display a map with all localities displayed as pins
+       using Latitude from field CustomProperty07 and Longitude in field CustomProperty08 if present.
+4. When user hovers over Locality pin the should be a message with address from values Display, PostalAddress,ZipCode,UID_DialogCountry
+5. When use clicks on a pin another sidesheet should open listing all users in that locality as a grid with First, Last and Central Account.
+6. When user clicks on a person row yet another sidesheet should open with that person overview - the same as in "Data Explorer" -> Identities -> Edit Identity

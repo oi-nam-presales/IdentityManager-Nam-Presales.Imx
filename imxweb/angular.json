@@ -1303,6 +1303,7 @@
               "lodash.debounce",
               "lodash.clamp",
               "moment",
+              "leaflet",
               "@elemental-ui/cadence-icon/codepoints"
             ],
             "outputPath": {
@@ -1334,7 +1335,6 @@
               }
             ],
             "styles": [
-              "node_modules/leaflet/dist/leaflet.css",
               "shared/scss/styles.scss",
               "projects/qer-app-portal/src/styles.scss",
               "projects/qbm/src/lib/styles/imx-page-title.scss",
