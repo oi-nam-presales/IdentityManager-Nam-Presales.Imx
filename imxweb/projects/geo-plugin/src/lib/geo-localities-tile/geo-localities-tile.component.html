@@ -1,0 +1,14 @@
+@if (isAuthorized && !loading) {
+  <imx-icon-tile
+    data-imx-identifier="start-tile-geo-localities"
+    [caption]="'Localities'"
+    [subtitle]="localities.length + ' locations'"
+    [image]="'location'"
+    [identifier]="'geo-localities'">
+    <ng-template #ActionTemplate>
+      <button mat-button color="primary" (click)="onTileClick()">
+        View Map
+      </button>
+    </ng-template>
+  </imx-icon-tile>
+}

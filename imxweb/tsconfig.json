@@ -53,6 +53,8 @@
       "tsb/*": ["dist/tsb/*"],
       "frozen-jobs-plugin": ["dist/frozen-jobs-plugin"],
       "frozen-jobs-plugin/*": ["dist/frozen-jobs-plugin/*"],
+      "geo-plugin": ["dist/geo-plugin"],
+      "geo-plugin/*": ["dist/geo-plugin/*"],
     },
     "noFallthroughCasesInSwitch": true,
     "sourceMap": true,

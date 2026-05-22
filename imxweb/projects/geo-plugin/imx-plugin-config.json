@@ -1,0 +1,5 @@
+{
+  "qer-app-portal": [
+    { "Container": "geo-plugin", "Name": "GeoPluginModule" }
+  ]
+}

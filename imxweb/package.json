@@ -78,7 +78,8 @@
     "url-polyfill": "1.1.14",
     "web-animations-js": "2.3.2",
     "whatwg-fetch": "3.6.20",
-    "zone.js": "0.15.1"
+    "zone.js": "0.15.1",
+    "leaflet": "^1.9.4"
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "20.3.23",
@@ -126,7 +127,8 @@
     "ng-packagr": "20.3.2",
     "prettier": "3.8.2",
     "terser": "5.46.1",
-    "typescript": "5.8.3"
+    "typescript": "5.8.3",
+    "@types/leaflet": "^1.9.14"
   },
   "optionalDependencies": {
     "@elemental-ui/cadence-icon": "~3.1.107",

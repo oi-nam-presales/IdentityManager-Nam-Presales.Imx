@@ -1,0 +1,51 @@
+:host {
+  .mat-mdc-row {
+    height: 36px;
+
+    &.clickable {
+      cursor: pointer;
+      background-color: rgba(0, 82, 204, 0.06);
+      &:hover {
+        background-color: rgba(0, 82, 204, 0.12);
+      }
+    }
+
+    &.non-clickable {
+      cursor: default;
+      pointer-events: none;
+    }
+  }
+
+  .mat-mdc-header-row {
+    height: 36px;
+  }
+
+  .mat-mdc-cell,
+  .mat-mdc-header-cell {
+    padding-top: 4px;
+    padding-bottom: 4px;
+  }
+
+  .report-cell {
+    width: 56px;
+    text-align: center;
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
+  .report-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    line-height: 18px;
+    vertical-align: middle;
+
+    &.direct {
+      color: #0052cc;
+    }
+
+    &.indirect {
+      color: #ff8f00;
+    }
+  }
+}

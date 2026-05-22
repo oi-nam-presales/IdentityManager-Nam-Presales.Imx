@@ -1,0 +1,41 @@
+{
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "name": "geo-plugin",
+  "sourceRoot": "projects/geo-plugin/src",
+  "implicitDependencies": ["qer"],
+  "projectType": "library",
+  "prefix": "imx",
+  "generators": {
+    "@schematics/angular:component": { "style": "scss" }
+  },
+  "targets": {
+    "build": {
+      "executor": "@angular-devkit/build-angular:ng-packagr",
+      "options": {
+        "tsConfig": "projects/geo-plugin/tsconfig.lib.json",
+        "project": "projects/geo-plugin/ng-package.json"
+      },
+      "configurations": {
+        "production": { "tsConfig": "projects/geo-plugin/tsconfig.lib.prod.json" },
+        "development": { "tsConfig": "projects/geo-plugin/tsconfig.lib.json" }
+      },
+      "outputs": ["{workspaceRoot}/dist/geo-plugin"]
+    },
+    "test": {
+      "executor": "@angular-devkit/build-angular:karma",
+      "options": {
+        "main": "projects/geo-plugin/src/test.ts",
+        "tsConfig": "projects/geo-plugin/tsconfig.spec.json",
+        "karmaConfig": "projects/geo-plugin/karma.conf.js",
+        "stylePreprocessorOptions": {
+          "includePaths": [
+            "./node_modules",
+            "./node_modules/@elemental-ui/cadence-icon",
+            "./node_modules/@elemental-ui/core",
+            "./shared/scss"
+          ]
+        }
+      }
+    }
+  }
+}
