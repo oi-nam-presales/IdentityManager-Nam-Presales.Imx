@@ -37,6 +37,9 @@ GitHub
 git tag -a v100-pre-geoplugin -m "State before geo-plugin check-in"
 git push origin v100-pre-geoplugin
 
+it tag -a v100-final-geoplugin -m "State after geo-plugin check-in before adding Chart"
+git push origin v100-final-geoplugin
+
 ==================================================================================
 ApiServer:
 Content security policy
@@ -45,5 +48,7 @@ Content security policy
 default-src 'self';script-src 'self' 'unsafe-inline' 'unsafe-eval';script-src-elem 'self' 'unsafe-inline' https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/;style-src-elem 'self' 'unsafe-inline';style-src-attr 'self' 'unsafe-inline';object-src 'none';img-src 'self' data:;font-src 'self';frame-src 'self' https://www.google.com/recaptcha/ https://recaptcha.google.com/recaptcha/;
 
 default-src 'self';script-src 'self' 'unsafe-inline' 'unsafe-eval';script-src-elem 'self' 'unsafe-inline' https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/;style-src-elem 'self' 'unsafe-inline';style-src-attr 'self' 'unsafe-inline';object-src 'none';img-src 'self' data: blob: https://*.tile.openstreetmap.org;font-src 'self';frame-src 'self' https://www.google.com/recaptcha/ https://recaptcha.google.com/recaptcha/;
-
+==================================================================================================================================================
+angular.json:
+projects["qer-app-portal"].architect.build.options.allowedCommonJsDependencies."leaflet"
 
