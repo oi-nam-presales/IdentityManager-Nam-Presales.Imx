@@ -7,6 +7,6 @@ export class InitService {
   constructor(private readonly extService: ExtService) { }
 
   public onInit(): void {
-    this.extService.register('Dashboard-MediumTiles', { instance: GeoLocalitiesTileComponent });
+    this.extService.register('Dashboard-SmallTiles', { instance: GeoLocalitiesTileComponent });
   }
 }

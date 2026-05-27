@@ -53,6 +53,11 @@
             <td mat-cell *matCellDef="let person">{{ colDisplay(person, 'UID_Department') }}</td>
           </ng-container>
 
+          <ng-container matColumnDef="RiskIndexCalculated">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Risk Index</th>
+            <td mat-cell *matCellDef="let person" [style.background-color]="riskColor(person)" [style.color]="riskTextColor(person)">{{ col(person, 'RiskIndexCalculated') }}</td>
+          </ng-container>
+
           <ng-container matColumnDef="IsInActive">
             <th mat-header-cell *matHeaderCellDef mat-sort-header>Inactive</th>
             <td mat-cell *matCellDef="let person">{{ person.IsInActive.value ? 'Yes' : 'No' }}</td>

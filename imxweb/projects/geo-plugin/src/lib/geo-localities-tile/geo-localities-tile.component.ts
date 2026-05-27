@@ -14,6 +14,7 @@ export class GeoLocalitiesTileComponent implements OnInit {
   public isAuthorized = false;
   public loading = true;
   public localities: EntityData[] = [];
+  private showRisk = false;
 
   constructor(
     private readonly session: imx_SessionService,
@@ -26,10 +27,16 @@ export class GeoLocalitiesTileComponent implements OnInit {
       const uidPerson = this.session.SessionState?.UserUid;
       if (uidPerson) {
         this.isAuthorized = await this.hasGeoRole(uidPerson);
+        if (this.isAuthorized) {
+          this.showRisk = await this.hasGeoRiskRole(uidPerson);
+        }
       }
       if (this.isAuthorized) {
+        const props = this.showRisk
+          ? '-CustomProperty07,CustomProperty08,PostalAddress,ZIPCode,UID_DialogCountry,RiskIndexCalculated'
+          : '-CustomProperty07,CustomProperty08,PostalAddress,ZIPCode,UID_DialogCountry';
         const result = await this.qerApiService.client.portal_admin_role_locality_get({
-          withProperties: '-CustomProperty07,CustomProperty08,PostalAddress,ZIPCode,UID_DialogCountry'
+          withProperties: props
         });
         this.localities = result.Entities ?? [];
       }
@@ -47,7 +54,7 @@ export class GeoLocalitiesTileComponent implements OnInit {
       padding: '0px',
       width: '1400px',
       testId: 'geo-map-sidesheet',
-      data: { localities: this.localities },
+      data: { localities: this.localities, showRisk: this.showRisk },
     });
   }
 
@@ -65,6 +72,32 @@ export class GeoLocalitiesTileComponent implements OnInit {
       const entities = result.Entities ?? [];
 
       if (entities.some((e) => e.Columns?.['RoleFullPath']?.Value === 'Custom\\Geo')) {
+        return true;
+      }
+
+      startIndex += entities.length;
+      if (entities.length === 0 || startIndex >= (result.TotalCount ?? 0)) {
+        break;
+      }
+    } while (true);
+
+    return false;
+  }
+
+  private async hasGeoRiskRole(uidPerson: string): Promise<boolean> {
+    const pageSize = 100;
+    let startIndex = 0;
+
+    do {
+      const result = await this.qerApiService.client.portal_person_rolememberships_AERole_get(uidPerson, {
+        withProperties: '-RoleFullPath',
+        PageSize: pageSize,
+        StartIndex: startIndex,
+      });
+
+      const entities = result.Entities ?? [];
+
+      if (entities.some((e) => e.Columns?.['RoleFullPath']?.Value === 'Custom\\Geo\\Geo Risk')) {
         return true;
       }
 

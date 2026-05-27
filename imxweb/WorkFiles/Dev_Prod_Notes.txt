@@ -9,6 +9,7 @@ frozenjobs
 imxclient compile-api /copyapi imx-api-utilsplugin.tgz /packagename imx-api-utilsplugin
 
 npm run build:watch frozen-jobs-plugin
+npm run build:watch geo-plugin
 npm run start qer-app-portal
 
 ===================================================================
@@ -21,6 +22,7 @@ Production:
 npx nx build geo-plugin --skip-nx-cache
 npx nx build frozen-jobs-plugin          # build plugin first → dist/frozen-jobs-plugin/
 npx nx run qer-app-portal:build:production --skip-nx-cache
+npx nx reset
 
 ==================================================================
 data-path="/portal/person/{UID_Person}/rolememberships/AERole"
@@ -36,9 +38,6 @@ Person in locality:
 GitHub
 git tag -a v100-pre-geoplugin -m "State before geo-plugin check-in"
 git push origin v100-pre-geoplugin
-
-it tag -a v100-final-geoplugin -m "State after geo-plugin check-in before adding Chart"
-git push origin v100-final-geoplugin
 
 ==================================================================================
 ApiServer:

@@ -28,12 +28,12 @@ export class GeoLocalityPersonsSidesheetComponent implements OnInit, AfterViewIn
   public searchTerm = '';
   private currentOrderBy: string | undefined = undefined;
   private currentSort: Sort | null = null;
-  public displayedColumns = ['FirstName', 'LastName', 'CentralAccount', 'UID_Department', 'IsInActive', 'Report'];
+  public displayedColumns: string[] = [];
 
   private projectConfig: any;
 
   constructor(
-    @Inject(EUI_SIDESHEET_DATA) public data: { localityUid: string; localityName: string },
+    @Inject(EUI_SIDESHEET_DATA) public data: { localityUid: string; localityName: string; showRisk: boolean },
     private readonly qerApiService: QerApiService,
     private readonly sidesheet: EuiSidesheetService,
     private readonly busyService: EuiLoadingService,
@@ -42,6 +42,10 @@ export class GeoLocalityPersonsSidesheetComponent implements OnInit, AfterViewIn
   ) { }
 
   public ngAfterViewInit(): void { }
+
+  public get showRisk(): boolean {
+    return this.data.showRisk;
+  }
 
   public get isClientMode(): boolean {
     return !!this.searchTerm || (this.currentSort?.active === 'Report' && !!this.currentSort?.direction);
@@ -64,6 +68,10 @@ export class GeoLocalityPersonsSidesheetComponent implements OnInit, AfterViewIn
   }
 
   public async ngOnInit(): Promise<void> {
+    this.displayedColumns = this.data.showRisk
+      ? ['FirstName', 'LastName', 'CentralAccount', 'UID_Department', 'RiskIndexCalculated', 'IsInActive', 'Report']
+      : ['FirstName', 'LastName', 'CentralAccount', 'UID_Department', 'IsInActive', 'Report'];
+
     await this.loadPersons(0, this.defaultPageSize);
 
     try {
@@ -92,7 +100,9 @@ export class GeoLocalityPersonsSidesheetComponent implements OnInit, AfterViewIn
       ];
       const result = await this.qerApiService.typedClient.PortalAdminPerson.Get({
         filter,
-        withProperties: '-CentralAccount,FirstName,LastName,UID_Department,IsInActive',
+        withProperties: this.data.showRisk
+          ? '-CentralAccount,FirstName,LastName,UID_Department,RiskIndexCalculated,IsInActive'
+          : '-CentralAccount,FirstName,LastName,UID_Department,IsInActive',
         StartIndex: startIndex,
         PageSize: pageSize,
         OrderBy: this.currentOrderBy,
@@ -111,6 +121,20 @@ export class GeoLocalityPersonsSidesheetComponent implements OnInit, AfterViewIn
     } catch {
       return '';
     }
+  }
+
+  public riskColor(person: PortalAdminPerson): string {
+    const raw = this.col(person, 'RiskIndexCalculated');
+    const risk = Math.max(0, Math.min(1, parseFloat(raw) || 0));
+    const r = risk < 0.5 ? Math.round(255 * (risk * 2)) : 255;
+    const g = risk < 0.5 ? 255 : Math.round(255 * (1 - (risk - 0.5) * 2));
+    return `rgba(${r},${g},0,0.25)`;
+  }
+
+  public riskTextColor(person: PortalAdminPerson): string {
+    const raw = this.col(person, 'RiskIndexCalculated');
+    const risk = Math.max(0, Math.min(1, parseFloat(raw) || 0));
+    return risk > 0.6 ? '#7a1a00' : '#1a4d00';
   }
 
   public colDisplay(person: PortalAdminPerson, name: string): string {
@@ -168,7 +192,9 @@ export class GeoLocalityPersonsSidesheetComponent implements OnInit, AfterViewIn
       ];
       const result = await this.qerApiService.typedClient.PortalAdminPerson.Get({
         filter,
-        withProperties: '-CentralAccount,FirstName,LastName,UID_Department,IsInActive',
+        withProperties: this.data.showRisk
+          ? '-CentralAccount,FirstName,LastName,UID_Department,RiskIndexCalculated,IsInActive'
+          : '-CentralAccount,FirstName,LastName,UID_Department,IsInActive',
         StartIndex: 0,
         PageSize: 10000,
       });
@@ -179,7 +205,8 @@ export class GeoLocalityPersonsSidesheetComponent implements OnInit, AfterViewIn
           this.col(p, 'FirstName').toLowerCase().includes(q) ||
           this.col(p, 'LastName').toLowerCase().includes(q) ||
           this.col(p, 'CentralAccount').toLowerCase().includes(q) ||
-          this.colDisplay(p, 'UID_Department').toLowerCase().includes(q),
+          this.colDisplay(p, 'UID_Department').toLowerCase().includes(q) ||
+          this.col(p, 'RiskIndexCalculated').toLowerCase().includes(q),
         );
       }
       if (this.currentSort?.direction) {
@@ -196,6 +223,7 @@ export class GeoLocalityPersonsSidesheetComponent implements OnInit, AfterViewIn
         } else {
           const keyOf = (p: PortalAdminPerson): string | number => {
             if (active === 'IsInActive') { return p.IsInActive?.value ? 1 : 0; }
+            if (active === 'RiskIndexCalculated') { return parseFloat(this.col(p, 'RiskIndexCalculated')) || 0; }
             if (active === 'UID_Department') { return this.colDisplay(p, active).toLowerCase(); }
             return this.col(p, active).toLowerCase();
           };

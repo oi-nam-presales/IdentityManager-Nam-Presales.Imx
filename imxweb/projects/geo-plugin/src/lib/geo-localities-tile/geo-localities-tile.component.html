@@ -1,14 +1,10 @@
 @if (isAuthorized && !loading) {
-  <imx-icon-tile
+  <imx-badge-tile
     data-imx-identifier="start-tile-geo-localities"
     [caption]="'Localities'"
-    [subtitle]="localities.length + ' locations'"
-    [image]="'location'"
-    [identifier]="'geo-localities'">
-    <ng-template #ActionTemplate>
-      <button mat-button color="primary" (click)="onTileClick()">
-        View Map
-      </button>
-    </ng-template>
-  </imx-icon-tile>
+    [tooltip]="localities.length + ' locations — click to view map'"
+    [value]="localities.length.toString()"
+    [identifier]="'geo-localities'"
+    (actionClick)="onTileClick()">
+  </imx-badge-tile>
 }
