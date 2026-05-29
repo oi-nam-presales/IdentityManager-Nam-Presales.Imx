@@ -257,6 +257,15 @@
     }
   </mat-menu>
   @if (data.canEdit) {
+    <!--New Terminate/Re-enable button-->
+    <button
+        mat-flat-button
+        [color]="data.selectedIdentity.IsInActive.value ? 'primary' : 'warn'"
+        (click)="terminate()"
+        data-imx-identifier="identity-sidesheet-button-terminate">
+          <span translate>{{ data.selectedIdentity.IsInActive.value ? '#LDS#Re-enable' : '#LDS#Terminate' }}</span>
+    </button>
+
     <button
       mat-flat-button
       color="primary"

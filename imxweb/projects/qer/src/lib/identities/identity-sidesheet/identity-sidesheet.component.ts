@@ -60,7 +60,7 @@ import { IdentitiesService } from '../identities.service';
   selector: 'imx-identity-sidesheet',
   templateUrl: './identity-sidesheet.component.html',
   styleUrls: ['./identity-sidesheet.component.scss'],
-    standalone: false
+  standalone: false
 })
 export class IdentitySidesheetComponent implements OnInit, OnDestroy {
   @ViewChild('tabs') public tabs: MatTabGroup;
@@ -201,6 +201,36 @@ export class IdentitySidesheetComponent implements OnInit, OnDestroy {
       }
     }
   }
+
+  public async terminate(): Promise<void> {
+    const ent = this.data.selectedIdentity.GetEntity();
+    const isCurrentlyInactive = this.data.selectedIdentity.IsInActive.value;
+
+    const title = isCurrentlyInactive ? '#LDS#Re-enable Identity' : '#LDS#Terminate Identity';
+    const message = isCurrentlyInactive
+      ? '#LDS#Are you sure you want to re-enable this identity?'
+      : '#LDS#Are you sure you want to terminate this identity?';
+
+    if (await this.confirmationService.confirm({ Title: title, Message: message })) {
+      this.logger.debug(this, isCurrentlyInactive ? 'Re-enabling identity' : 'Terminating identity');
+      const overlayRef = this.busyService.show();
+      try {
+        this.data.selectedIdentity.IsInActive.value = !isCurrentlyInactive;
+
+        await ent.Commit(true);
+        this.detailsFormGroup.markAsPristine();
+        this.snackbar.open({
+          key: isCurrentlyInactive
+            ? '#LDS#The identity has been successfully re-enabled.'
+            : '#LDS#The identity has been successfully terminated.',
+        });
+        this.closeSidesheet();
+      } finally {
+        this.busyService.hide(overlayRef);
+      }
+    }
+  }
+
 
   public async save(): Promise<void> {
     if (this.detailsFormGroup.valid) {
